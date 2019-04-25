@@ -1,0 +1,5 @@
+project/target
+project/project
+target
+!src/main/scala/com/target
+!src/test/scala/com/target
