@@ -100,6 +100,15 @@ class ConfigParserSpec extends FunSpec with BeforeAndAfterAll {
         assert(output == Right(expectedConfiguration))
       }
 
+      it("should not confuse classpath and non classpath file loading") {
+        val paths = Seq("classpath:src/test/resources/test_config.yaml", "test_config.yaml")
+
+        paths.foreach { path =>
+          val output = ConfigParser.parseFile(path, Map.empty)
+          assert(output.isLeft)
+        }
+      }
+
     }
 
   }
