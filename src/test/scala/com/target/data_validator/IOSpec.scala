@@ -48,7 +48,7 @@ class IOSpec extends FunSpec with Matchers with TestingSparkSession {
     it("file:/// should be able to write") {
       val baseFilename = createRandomTempFilename
       val filename = "file://" + baseFilename
-      val data = nextString(128) + IO.NEW_LINE //scalastyle:ignore
+      val data = List.fill(128)(nextPrintableChar).mkString + IO.NEW_LINE //scalastyle:ignore
       assert(!IO.writeString(filename, data)(spark))
       fromFile(baseFilename).mkString should be(data)
       assert(rm(baseFilename))
