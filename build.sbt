@@ -36,7 +36,7 @@ libraryDependencies ++= Seq(
 )
 
 fork in Test := true
-javaOptions ++= Seq("-Xms512M", "-Xmx2048M", "-XX:MaxPermSize=2048M", "-XX:+CMSClassUnloadingEnabled")
+javaOptions ++= Seq("-Xms512M", "-Xmx2048M", "-XX:+CMSClassUnloadingEnabled")
 parallelExecution in Test := false
 
 mainClass in assembly := Some("com.target.data_validator.Main")
