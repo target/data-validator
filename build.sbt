@@ -7,10 +7,6 @@ val sparkVersion = "2.3.1"
 
 val circeVersion = "0.10.0"
 
-
-// Needed for pentaho-aggdesigner-algorithm 5.1.5-jhyde
-resolvers += "Concurrent Conjars repository" at "http://conjars.org/repo"
-
 enablePlugins(GitVersioning)
 git.useGitDescribe := true
 
