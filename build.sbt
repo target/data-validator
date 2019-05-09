@@ -7,10 +7,6 @@ val sparkVersion = "2.3.1"
 
 val circeVersion = "0.10.0"
 
-
-// Needed for pentaho-aggdesigner-algorithm 5.1.5-jhyde
-resolvers += "Concurrent Conjars repository" at "http://conjars.org/repo"
-
 enablePlugins(GitVersioning)
 git.useGitDescribe := true
 
@@ -36,7 +32,7 @@ libraryDependencies ++= Seq(
 )
 
 fork in Test := true
-javaOptions ++= Seq("-Xms512M", "-Xmx2048M", "-XX:MaxPermSize=2048M", "-XX:+CMSClassUnloadingEnabled")
+javaOptions ++= Seq("-Xms512M", "-Xmx2048M", "-XX:+CMSClassUnloadingEnabled")
 parallelExecution in Test := false
 
 mainClass in assembly := Some("com.target.data_validator.Main")
