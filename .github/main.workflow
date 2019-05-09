@@ -1,6 +1,11 @@
-workflow "New workflow" {
+workflow "PullRequest" {
   on = "pull_request"
   resolves = ["compile data-validator"]
+}
+
+workflow "Push"  {
+  on = "push"
+  resolves = [ "compile data-validator" ]
 }
 
 action "compile data-validator" {
