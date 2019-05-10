@@ -23,17 +23,33 @@ case class NameValue(name: String, value: Json) extends ConfigVar {
 case class NameEnv(name: String, env: String) extends ConfigVar {
   override def addEntry(spark: SparkSession, varSub: VarSubstitution): Boolean = {
     val newEnv = getVarSub(env, name, varSub)
-    Option(System.getenv(newEnv)) match {
-      case None =>
-        val msg = s"Variable '$name' cannot be processed env variable '$newEnv' not found!"
-        logger.error(msg)
-        addEvent(ValidatorError(msg))
+
+    val handleFailedAccess: PartialFunction[Throwable, Boolean] = {
+      case throwable: Throwable =>
+        logger.error(s"Unable to access environment variable $newEnv", throwable)
         true
-      case Some(v) =>
-        val resolvedEnvVar = getVarSubJson(JsonUtils.string2Json(v), name, varSub)
-        logger.debug(s"name: $name env: $env getEnv: $v resolvedEnvVar: $resolvedEnvVar")
-        varSub.add(name, resolvedEnvVar)
     }
+
+    def handleUnset: Boolean = {
+      val msg = s"Variable '$name' cannot be processed env variable '$newEnv' not found!"
+      logger.error(msg)
+      addEvent(ValidatorError(msg))
+      true
+    }
+
+    def handlePresent(v: String): Boolean = {
+      val resolvedEnvVar = getVarSubJson(JsonUtils.string2Json(v), name, varSub)
+      logger.debug(s"name: $name env: $env getEnv: $v resolvedEnvVar: $resolvedEnvVar")
+      varSub.add(name, resolvedEnvVar)
+    }
+
+    val getNewEnv = EnvironmentVariables.getWithHandlers[Boolean](newEnv) _
+
+    getNewEnv(
+      handleFailedAccess,
+      handleUnset,
+      handlePresent
+    ).getOrElse(true)
   }
 }
 
