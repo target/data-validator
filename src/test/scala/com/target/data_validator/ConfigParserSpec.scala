@@ -10,6 +10,31 @@ class ConfigParserSpec extends FunSpec with BeforeAndAfterAll {
   // Silence is golden!
   override def beforeAll(): Unit = TestingSparkSession.configTestLog4j("OFF", "OFF")
 
+  val expectedConfiguration = ValidatorConfig(
+    2,
+    742, // scalastyle:ignore magic.number
+    Some(EmailConfig("smtpHost", "subject", "from", List("to"))),
+    detailedErrors = true,
+    Some(List(NameValue("foo", Json.fromString("bar")))),
+    Some(
+      List[ValidatorOutput](
+        FileOutput("/user/home/sample.json", None),
+        PipeOutput("/apps/dv2kafka.py", Some(true))
+      )
+    ),
+    List(
+      ValidatorHiveTable(
+        "foo",
+        "bar",
+        Some(List("one", "two")),
+        None,
+        List(MinNumRows(10294), NullCheck("mdse_item_i")) // scalastyle:ignore magic.number
+      ),
+      ValidatorOrcFile("LocalFile.orc", None, Some("foo < 10"), List(NullCheck("start_d"))),
+      ValidatorParquetFile("LocFile.parquet", None, Some("bar < 10"), List(NullCheck("end_d")))
+    )
+  )
+
   describe("ConfigParser") {
 
     describe("parse") {
@@ -58,32 +83,30 @@ class ConfigParserSpec extends FunSpec with BeforeAndAfterAll {
             |         column: end_d
           """.stripMargin)
 
-        assert(config == Right(
-          ValidatorConfig(
-            2,
-            742, // scalastyle:ignore magic.number
-            Some(EmailConfig("smtpHost", "subject", "from", List("to"))),
-            detailedErrors = true,
-            Some(List(NameValue("foo", Json.fromString("bar")))),
-            Some(
-              List[ValidatorOutput](
-                FileOutput("/user/home/sample.json", None),
-                PipeOutput("/apps/dv2kafka.py", Some(true))
-              )
-            ),
-            List(
-              ValidatorHiveTable(
-                "foo",
-                "bar",
-                Some(List("one", "two")),
-                None,
-                List(MinNumRows(10294), NullCheck("mdse_item_i")) // scalastyle:ignore magic.number
-              ),
-              ValidatorOrcFile("LocalFile.orc", None, Some("foo < 10"), List(NullCheck("start_d"))),
-              ValidatorParquetFile("LocFile.parquet", None, Some("bar < 10"), List(NullCheck("end_d")))
-            )
-          )
-        ))
+        assert(config == Right(expectedConfiguration))
+      }
+
+    }
+
+    describe("parseFile") {
+
+      it("should support loading config files by path") {
+        val output = ConfigParser.parseFile("src/test/resources/test_config.yaml", Map.empty)
+        assert(output == Right(expectedConfiguration))
+      }
+
+      it("should support classpath configuration loading with the prefix 'classpath:'") {
+        val output = ConfigParser.parseFile("classpath:/test_config.yaml", Map.empty)
+        assert(output == Right(expectedConfiguration))
+      }
+
+      it("should not confuse classpath and non classpath file loading") {
+        val paths = Seq("classpath:src/test/resources/test_config.yaml", "test_config.yaml")
+
+        paths.foreach { path =>
+          val output = ConfigParser.parseFile(path, Map.empty)
+          assert(output.isLeft)
+        }
       }
 
     }
