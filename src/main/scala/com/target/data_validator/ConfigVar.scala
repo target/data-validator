@@ -1,6 +1,7 @@
 package com.target.data_validator
 
 import cats.syntax.functor._
+import com.target.data_validator.EnvironmentVariables.{Error, Inaccessible, Present, Unset}
 import com.typesafe.scalalogging.LazyLogging
 import io.circe.{Decoder, Json}
 import io.circe.generic.auto._
@@ -21,35 +22,24 @@ case class NameValue(name: String, value: Json) extends ConfigVar {
 }
 
 case class NameEnv(name: String, env: String) extends ConfigVar {
+
   override def addEntry(spark: SparkSession, varSub: VarSubstitution): Boolean = {
     val newEnv = getVarSub(env, name, varSub)
-
-    val handleFailedAccess: PartialFunction[Throwable, Boolean] = {
-      case throwable: Throwable =>
-        logger.error(s"Unable to access environment variable $newEnv", throwable)
+    EnvironmentVariables.get(newEnv) match {
+      case Inaccessible(message) => logger.error(message); true
+      case Error(message) => logger.error(message); true
+      case Unset => {
+        val msg = s"Variable '$name' cannot be processed env variable '$newEnv' not found!"
+        logger.error(msg)
+        addEvent(ValidatorError(msg))
         true
+      }
+      case Present(value) => {
+        val resolvedEnvVar = getVarSubJson(JsonUtils.string2Json(value), name, varSub)
+        logger.debug(s"name: $name env: $env getEnv: $value resolvedEnvVar: $resolvedEnvVar")
+        varSub.add(name, resolvedEnvVar)
+      }
     }
-
-    def handleUnset: Boolean = {
-      val msg = s"Variable '$name' cannot be processed env variable '$newEnv' not found!"
-      logger.error(msg)
-      addEvent(ValidatorError(msg))
-      true
-    }
-
-    def handlePresent(v: String): Boolean = {
-      val resolvedEnvVar = getVarSubJson(JsonUtils.string2Json(v), name, varSub)
-      logger.debug(s"name: $name env: $env getEnv: $v resolvedEnvVar: $resolvedEnvVar")
-      varSub.add(name, resolvedEnvVar)
-    }
-
-    val getNewEnv = EnvironmentVariables.getWithHandlers[Boolean](newEnv) _
-
-    getNewEnv(
-      handleFailedAccess,
-      handleUnset,
-      handlePresent
-    ).getOrElse(true)
   }
 }
 
