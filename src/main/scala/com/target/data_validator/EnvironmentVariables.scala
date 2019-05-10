@@ -1,11 +1,18 @@
 package com.target.data_validator
 
+import scala.collection.mutable
 import scala.util.Try
 
 object EnvironmentVariables {
+  type MaybeEnvVar = Try[Option[String]]
 
-  def get(key: String): Try[Option[String]] = {
-    Try(System.getenv(key)).map(Option(_))
+  val accessedEnvVars: mutable.Map[String, MaybeEnvVar] = mutable.Map.empty
+  private[this] def clearAccessList(): Unit = accessedEnvVars.clear()
+
+  def get(key: String): MaybeEnvVar = {
+    val result = Try(System.getenv(key)).map(Option(_))
+    accessedEnvVars += key -> result
+    result
   }
 
   def getWithHandlers[T](key: String)(whenError: PartialFunction[Throwable, T],
