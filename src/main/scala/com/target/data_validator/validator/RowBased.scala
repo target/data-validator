@@ -10,7 +10,7 @@ import org.apache.spark.sql.catalyst.analysis.UnresolvedAttribute
 import org.apache.spark.sql.catalyst.expressions._
 import org.apache.spark.sql.types.{NumericType, StructType}
 
-abstract class RowBased extends ValidatorBase {
+abstract class RowBased extends CheapCheck {
 
   val column: String
 

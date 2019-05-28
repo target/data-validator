@@ -14,6 +14,7 @@ object JsonDecoders extends LazyLogging {
       case "negativeCheck" => c.as[NegativeCheck]
       case "columnMaxCheck" => c.as[ColumnMaxCheck]
       case "rangeCheck" => RangeCheck.fromJson(c)
+      case "uniqueCheck" => UniqueCheck.fromJson(c)
       case x => logger.error(s"Unknown Check `$x` in config!")
         throw new RuntimeException(s"Unknown Check in config `$x`")
     }

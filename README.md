@@ -250,6 +250,15 @@ The minimum number of rows a table must have to pass the validator.
 
 See Example Config file below to see how the checks are configured.
 
+#### `uniqueCheck`
+
+This check is used to make sure all rows in the table are unique, only the columns specified are used to determine uniqueness.
+This is a costly check and currently requires a separate pass through the table.
+
+| Arg | Type | Description |
+|-----|------|-------------|
+| `columns` | Array[String] | Each set of values in these columns must be unique.
+
 ## Example Config
 
 ```yaml
