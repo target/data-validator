@@ -7,7 +7,7 @@ import io.circe._
 import io.circe.generic.auto._
 import io.circe.yaml.parser
 
-import scala.io.Source
+import scala.io.{BufferedSource, Source}
 import scala.util.{Failure, Success, Try}
 
 object ConfigParser extends LazyLogging {
@@ -28,9 +28,35 @@ object ConfigParser extends LazyLogging {
     json.as[ValidatorConfig]
   }
 
+  private def bufferContentsAsString(buffer: BufferedSource): String = {
+    val contents = buffer.mkString
+    buffer.close()
+    contents
+  }
+
+  private def loadFromFile(filename: String): String = {
+    logger.info(s"Attempting to load `$filename` from file system")
+    val buffer = Source.fromFile(filename)
+    bufferContentsAsString(buffer)
+  }
+
+  private def loadFromClasspath(filename: String): String = {
+    logger.info(s"Attempting to load `$filename` from classpath")
+    val is = getClass.getResourceAsStream(filename)
+    val buffer = Source.fromInputStream(is)
+    bufferContentsAsString(buffer)
+  }
+
   def parseFile(filename: String, cliMap: Map[String, String]): Either[Error, ValidatorConfig] = {
     logger.info(s"Parsing `$filename`")
-    Try(Source.fromFile(filename).mkString) match {
+
+    Try {
+      if (filename.startsWith("classpath:")) {
+        loadFromClasspath(filename.stripPrefix("classpath:"))
+      } else {
+        loadFromFile(filename)
+      }
+    } match {
       case Success(contents) => parse(contents)
       case Failure(thr) => Left[Error, ValidatorConfig](DecodingFailure.fromThrowable(thr, List.empty))
     }

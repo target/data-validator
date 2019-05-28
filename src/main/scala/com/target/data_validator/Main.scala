@@ -138,7 +138,11 @@ object Main extends LazyLogging with EventLog {
         c.copy(verbose = true)).text("Print additional debug output.")
 
       opt[String]("config").action((fn, c) =>
-        c.copy(configFilename = fn)).text("required validator config .yaml filename")
+        c.copy(configFilename = fn))
+        .text(
+          "required validator config .yaml filename, " +
+          "prefix w/ 'classpath:' to load configuration from JVM classpath/resources, " +
+          "ex. '--config classpath:/config.yaml'")
 
       opt[String]("jsonReport").action((fn, c) =>
         c.copy(jsonReport = Some(fn))).text("optional JSON report filename")

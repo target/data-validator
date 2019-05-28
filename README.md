@@ -14,7 +14,7 @@ Usage: data-validator [options]
 
   --version
   --verbose                Print additional debug output.
-  --config <value>         required validator config .yaml filename
+  --config <value>         required validator config .yaml filename, prefix w/ 'classpath:' to load configuration from JVM classpath/resources, ex. '--config classpath:/config.yaml'
   --jsonReport <value>     optional JSON report filename
   --htmlReport <value>     optional HTML report filename
   --vars k1=v1,k2=v2...    other arguments
