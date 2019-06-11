@@ -1,10 +1,10 @@
-package com.target.data_validator
+package com.target.data_validator.validator
 
 import com.target.TestingSparkSession
-import com.target.data_validator.validator.{UniqueCheck, ValidatorBase}
+import com.target.data_validator._
 import io.circe.Json
 import org.apache.spark.sql.{DataFrame, Row, SparkSession}
-import org.apache.spark.sql.types.{DoubleType, IntegerType, StringType, StructField, StructType}
+import org.apache.spark.sql.types._
 import org.scalatest.{FunSpec, Matchers}
 
 class UniqueCheckSpec extends FunSpec with Matchers with TestingSparkSession {
