@@ -200,7 +200,7 @@ To validate an `.orc` file, specify `orcFile` and the path to the file, see belo
 
 ### Validators
 
- The third section are the validators. Currently 5 validators are supported `columnMaxCheck`, `negativeCheck`, `nullCheck`, `rangeCheck` and `rowCount`. To specify a validator, you first specify the `type` as one of the validators, then specify the arguments for that validator.
+  The third section are the validators. To specify a validator, you first specify the type as one of the validators, then specify the arguments for that validator. Currently supported validators are listed below:
 
 #### `columnMaxCheck`
 
@@ -253,7 +253,7 @@ See Example Config file below to see how the checks are configured.
 #### `uniqueCheck`
 
 This check is used to make sure all rows in the table are unique, only the columns specified are used to determine uniqueness.
-This is a costly check and currently requires a separate pass through the table.
+This is a costly check and requires an additional pass through the table.
 
 | Arg | Type | Description |
 |-----|------|-------------|

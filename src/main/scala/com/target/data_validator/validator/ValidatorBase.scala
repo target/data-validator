@@ -243,8 +243,8 @@ object ValidatorBase extends LazyLogging {
   }
 }
 
-/*
-* CheckChecks are checks that can be combined into the same pass through a table.
+/**
+* CheapChecks are checks that can be combined into the same pass through a table.
 */
 trait CheapCheck extends ValidatorBase {
   def select(schema: StructType, dict: VarSubstitution): Expression
@@ -252,7 +252,7 @@ trait CheapCheck extends ValidatorBase {
   def quickCheck(r: Row, count: Long, idx: Int): Boolean
 }
 
-/*
+/**
 * CostlyChecks are checks that require their own pass through the table and therefore are most costly.
 */
 trait CostlyCheck extends ValidatorBase {

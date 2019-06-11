@@ -17,7 +17,7 @@ class UniqueCheckSpec extends FunSpec with Matchers with TestingSparkSession {
     Row("Eggs", 1, 5.00), Row("Eggs", 2, 2.00))
   def mkDataFrame(spark: SparkSession, data: List[Row]): DataFrame = spark.createDataFrame(sc.parallelize(data), schema)
 
-  describe ("fromJson") {
+  describe("fromJson") {
     it("create fromJson") {
       import com.target.data_validator.validator.JsonDecoders.decodeChecks
       val yaml =
@@ -26,7 +26,7 @@ class UniqueCheckSpec extends FunSpec with Matchers with TestingSparkSession {
           |  columns:
           |   - foo
           |   - bar
-              """.stripMargin
+        """.stripMargin
       val json = io.circe.yaml.parser.parse(yaml).right.getOrElse(Json.Null)
       val sut = json.as[Array[ValidatorBase]]
       assert(sut.isRight)
@@ -70,7 +70,15 @@ class UniqueCheckSpec extends FunSpec with Matchers with TestingSparkSession {
       val df = mkDataFrame(spark, defData)
       assert(sut.costlyCheck(df))
       assert(sut.failed)
-      assert(sut.getEvents contains ValidatorError("duplicates found 1!"))
+      assert(sut.getEvents contains ValidatorError("1 duplicates found!"))
+    }
+
+    it("finds error with multiple columns") {
+      val sut = UniqueCheck(Seq("item", "location"))
+      val df = mkDataFrame(spark, defData)
+      assert(sut.costlyCheck(df))
+      assert(sut.failed)
+      assert(sut.getEvents contains ValidatorError("1 duplicates found!"))
     }
 
     it("no error") {

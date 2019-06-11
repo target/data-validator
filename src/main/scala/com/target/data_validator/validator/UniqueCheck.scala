@@ -34,10 +34,12 @@ case class UniqueCheck(columns: Seq[String]) extends CostlyCheck {
     val cols = columns.map(new Column(_))
     val timer = new ValidatorTimer(s"UniqueCheck($columns)")
     addEvent(timer)
+    // Note: this computes the count of the number of distinct keys (if you will) that have at least one duplicated row.
+    // It's not number of duplicated rows.
     val ret = timer.time(df.select(cols: _*).groupBy(cols: _*).count().where("count > 1").count())
     logger.info(s"costlyCheck: cols:$cols ret:$ret")
     if (ret > 0) {
-      addEvent(ValidatorError(s"duplicates found $ret!"))
+      addEvent(ValidatorError(s"$ret duplicates found!"))
     } else {
       addEvent(ValidatorGood("no duplicates found."))
     }
