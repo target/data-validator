@@ -52,54 +52,5 @@ abstract class RowBased extends ValidatorBase {
   }
 }
 
-case class NullCheck(column: String) extends RowBased {
-
-  override def substituteVariables(dict: VarSubstitution): ValidatorBase = {
-    val ret = NullCheck(getVarSub(column, "column", dict))
-    getEvents.foreach(ret.addEvent)
-    ret
-  }
-
-  override def colTest(schema: StructType, dict: VarSubstitution): Expression = IsNull(UnresolvedAttribute(column))
-
-  override def toJson: Json = Json.obj(
-    ("type", Json.fromString("nullCheck")),
-    ("column", Json.fromString(column)),
-    ("failed", Json.fromBoolean(failed)),
-    ("events", this.getEvents.asJson)
-  )
 }
 
-case class NegativeCheck(column: String) extends RowBased {
-
-  override def substituteVariables(dict: VarSubstitution): ValidatorBase = {
-    val ret = NegativeCheck(getVarSub(column, "column", dict))
-    getEvents.foreach(ret.addEvent)
-    ret
-  }
-
-  override def configCheck(df: DataFrame): Boolean = {
-    findColumnInDataFrame(df, column) match {
-      case Some(ft) if ft.dataType.isInstanceOf[NumericType] => Unit
-      case Some(ft) =>
-        val msg = s"Column: $column found, but not of numericType type: ${ft.dataType}"
-        logger.error(msg)
-        addEvent(ValidatorError(msg))
-      case None =>
-        val msg = s"Column: $column not found in schema."
-        logger.error(msg)
-        addEvent(ValidatorError(msg))
-    }
-    failed
-  }
-
-  override def colTest(schema: StructType, dict: VarSubstitution): Expression =
-    LessThan (UnresolvedAttribute(column), I0)
-
-  override def toJson: Json = Json.obj(
-    ("type", Json.fromString("negativeCheck")),
-    ("column", Json.fromString(column)),
-    ("failed", Json.fromBoolean(failed)),
-    ("events", this.getEvents.asJson)
-  )
-}
