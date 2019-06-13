@@ -1,6 +1,6 @@
 package com.target.data_validator.validator
 
-import com.target.data_validator.{ValidatorCheckEvent, ValidatorError, VarSubstitution}
+import com.target.data_validator.{ValidatorCheckEvent, ValidatorCounter, ValidatorError, VarSubstitution}
 import com.target.data_validator.JsonEncoders.eventEncoder
 import io.circe.Json
 import io.circe.syntax._
@@ -36,6 +36,7 @@ case class MinNumRows(minNumRows: Long) extends ColumnBased("", ValidatorBase.L0
 
   override def quickCheck(row: Row, count: Long, idx: Int): Boolean = {
     failed = count < minNumRows
+    addEvent(ValidatorCounter("rowCount", count))
     addEvent(ValidatorCheckEvent(failed, s"MinNumRowCheck $minNumRows ", count, 1))
     failed
   }
@@ -84,7 +85,6 @@ case class ColumnMaxCheck(column: String, value: Json)
         true // Fail check!
     }
     logger.debug(s"MaxValue compared Row: $row with value: $value failed: $failed")
-
     if (failed) {
       addEvent(
         ValidatorCheckEvent(
