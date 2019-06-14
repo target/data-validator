@@ -13,7 +13,7 @@ import org.scalatest._
 import scala.util.Random
 
 class ValidatorBaseSpec extends FunSpec with Matchers with TestingSparkSession {
-  val nullCheck = List(NullCheck("name"))
+  val nullCheck = List(NullCheck("name", None))
   val nameStructField = StructField("name", StringType)
   val schema = StructType(List(nameStructField, StructField("age", IntegerType)))
 
@@ -161,7 +161,7 @@ class ValidatorBaseSpec extends FunSpec with Matchers with TestingSparkSession {
     it("should fail configCheck on unknown column") {
       val dict = new VarSubstitution
       val df = spark.createDataFrame(sc.parallelize(List(Row("Doug", 50), Row("Collin", 32))), schema) //scalastyle:ignore
-      val config = mkConfig(df, List(NullCheck("unknown_column")))
+      val config = mkConfig(df, List(NullCheck("unknown_column", None)))
       assert(config.configCheck(spark, dict))
       assert(config.failed)
       assert(config.tables.head.failed)

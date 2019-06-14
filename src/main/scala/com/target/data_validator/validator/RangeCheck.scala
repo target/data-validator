@@ -15,16 +15,16 @@ case class RangeCheck(
   column: String,
   minValue: Option[Json],
   maxValue: Option[Json],
-  inclusive: Option[Json]
-) extends RowBased {
+  inclusive: Option[Json],
+  threshold: Option[String]) extends RowBased {
 
   override def substituteVariables(dict: VarSubstitution): ValidatorBase = {
     val ret = RangeCheck(
       getVarSub(column, "column", dict),
       minValue.map(getVarSubJson(_, "minValue", dict)),
       maxValue.map(getVarSubJson(_, "maxValue", dict)),
-      inclusive.map(getVarSubJson(_, "inclusive", dict))
-    )
+      inclusive.map(getVarSubJson(_, "inclusive", dict)),
+      threshold.map(getVarSub(_, "threshold", dict)))
     getEvents.foreach(ret.addEvent)
     ret
   }
@@ -128,13 +128,15 @@ object RangeCheck extends LazyLogging {
     val minValueJ = c.downField("minValue").as[Json].right.toOption
     val maxValueJ = c.downField("maxValue").as[Json].right.toOption
     val inclusiveJ = c.downField("inclusive").as[Json].right.toOption
+    val threshold = c.downField("threshold").as[String].right.toOption
 
     logger.debug(s"column: $column")
     logger.debug(s"minValue: $minValueJ type: ${minValueJ.getClass.getCanonicalName}")
     logger.debug(s"maxValue: $maxValueJ type: ${maxValueJ.getClass.getCanonicalName}")
     logger.debug(s"inclusive: $inclusiveJ type: ${inclusiveJ.getClass.getCanonicalName}")
+    logger.debug(s"threshold: $threshold")
 
     c.focus.foreach {f => logger.info(s"RangeCheckJson: ${f.spaces2}")}
-    scala.util.Right(RangeCheck(column, minValueJ, maxValueJ, inclusiveJ))
+    scala.util.Right(RangeCheck(column, minValueJ, maxValueJ, inclusiveJ, threshold))
   }
 }

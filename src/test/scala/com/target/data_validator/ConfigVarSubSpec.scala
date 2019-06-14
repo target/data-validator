@@ -95,12 +95,12 @@ class ConfigVarSubSpec extends FunSpec with Matchers with TestingSparkSession {
         describe("NegativeCheck") {
 
           it("NegativeCheck") {
-            val sut = NegativeCheck("Col$four")
-            assert(sut.substituteVariables(dict) == NegativeCheck("Col4"))
+            val sut = NegativeCheck("Col$four", None)
+            assert(sut.substituteVariables(dict) == NegativeCheck("Col4", None))
           }
 
           it("NegativeCheck bad variable substitution should fail") {
-            val check = NegativeCheck("Col$fourfour")
+            val check = NegativeCheck("Col$fourfour", None)
             val sut = check.substituteVariables(dict)
             assert(sut.failed)
           }
@@ -110,12 +110,12 @@ class ConfigVarSubSpec extends FunSpec with Matchers with TestingSparkSession {
         describe("NullCheck") {
 
           it("should substitute variables properly") {
-            val sut = NullCheck("Col${one}")
-            assert(sut.substituteVariables(dict) == NullCheck("Col1"))
+            val sut = NullCheck("Col${one}", None)
+            assert(sut.substituteVariables(dict) == NullCheck("Col1", None))
           }
 
           it("bad variable substitution should fail") {
-            val check = NullCheck("Col${unknown}")
+            val check = NullCheck("Col${unknown}", None)
             val sut = check.substituteVariables(dict)
             assert(sut.failed)
           }
