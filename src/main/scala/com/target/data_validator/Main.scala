@@ -75,7 +75,10 @@ object Main extends LazyLogging with EventLog {
     mainConfig: CmdLineOptions,
     config: ValidatorConfig,
     varSub: VarSubstitution
-  ): Boolean = config.quickChecks(spark, varSub)
+  ): Boolean = {
+    logger.info("Running sparkChecks")
+    Seq(config.quickChecks(spark, varSub), config.costlyChecks(spark, varSub)).exists(x => x)
+  }
 
   /*
     * There are 2 types of errors we return (fatal, validator_status)

@@ -10,7 +10,7 @@ import org.apache.spark.sql.catalyst.expressions.Expression
 import org.apache.spark.sql.catalyst.expressions.aggregate.Max
 import org.apache.spark.sql.types._
 
-abstract class ColumnBased(column: String, condTest: Expression) extends ValidatorBase {
+abstract class ColumnBased(column: String, condTest: Expression) extends CheapCheck {
   override def select(schema: StructType, dict: VarSubstitution): Expression = condTest
 
   // ColumnBased checks don't have per row error details.

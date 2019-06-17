@@ -66,7 +66,7 @@ class RangeCheckSpec extends FunSpec with Matchers with TestingSparkSession {
           None
         )
         assert(sut.configCheck(df))
-        assert(sut.getEvents contains ValidatorError("Column: bad_column_name not found in schema."))
+        assert(sut.getEvents contains ValidatorError("Column: 'bad_column_name' not found in schema."))
         assert(sut.failed)
       }
 
