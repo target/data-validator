@@ -198,6 +198,18 @@ To validate an `.orc` file, specify `orcFile` and the path to the file, see belo
   checks:
 ```
 
+#### Parquet File
+
+To validate an `.parquet` file, specify `parquetFile` and the path to the file, see below.
+
+```yaml
+- parquetFile: /path/to/parquet/file
+  keyColumns:
+    - col1
+    - col2
+  checks:
+```
+
 ### Validators
 
   The third section are the validators. To specify a validator, you first specify the type as one of the validators, then specify the arguments for that validator. Currently supported validators are listed below:
