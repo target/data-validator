@@ -212,7 +212,22 @@ To validate an `.parquet` file, specify `parquetFile` and the path to the file, 
 
 ### Validators
 
-  The third section are the validators. To specify a validator, you first specify the type as one of the validators, then specify the arguments for that validator. Currently supported validators are listed below:
+  The third section are the validators. To specify a validator, you
+first specify the type as one of the validators, then specify the
+arguments for that validator. Some of the validators support an error
+threshold. This options allows the user specify the number of errors
+or percentage of errors they can tolerate.  In some use cases, it
+might not be possible to eliminate all errors in the data.
+
+##### Thresholds
+
+Thresholds can be specified as an absolute number of errors, or a percentage of the row count.
+If the threshold is `>= 1` it is considered an absolute number of errors. For example `1000` would fail the check if there are more then 1000 rows that failed the check.
+
+If the threshold is `< 1` it is considered a fraction of the row count. For example `0.25` would fail the check if more then `rowCount * 0.25` of the rows fail the check.
+If the threshold ends in a `%` its considered a percentage of the row count. For eample `33%` would fail the check if more then `rowCount * 0.33` of the rows fail the check.
+
+Currently supported validators are listed below:
 
 #### `columnMaxCheck`
 
@@ -230,6 +245,7 @@ Takes a single parameter, the column name to check. The validator will fail if a
 | Arg | Type | Description |
 |-----|------|-------------|
 | `column` | String | Table column to be checked for negative values.  If it contains a `null` validator will fail.  **Note:** Column must be of a `NumericType` or the check will fail during the config check.
+| `threshold` | String | See above description of threshold.
 
 #### `nullCheck`
 
@@ -238,6 +254,7 @@ Takes a single parameter, the column name to check. The validator will fail if a
 | Arg | Type | Description |
 |-----|------|-------------|
 | `column` | String | Table column to be checked for `null`.  If it contains a `null` validator will fail.
+| `threshold` | String | See above description of threshold.
 
 #### `rangeCheck`
 
@@ -249,6 +266,7 @@ Takes 2 - 4 parameters, described below. If the value in the column doesn't fall
 | `minValue` | \* | lower bound of the range, or other column in table. Type depends on the type of the `column`.
 | `maxValue` | \* | upper bound of the range, or other column in table. Type depends on the type of the `column`.
 | `inclusive` | Boolean | Include `minValue` and `maxValue` as part of the range.
+| `threshold` | String | See above description of threshold.
 
 **Note:** To specify another column in the table, you must prefix the column name with a **`** (backtick).
 
