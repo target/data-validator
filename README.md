@@ -248,7 +248,7 @@ At least one of `minValue` or `maxValue` must be specified. The data type of `co
 | Arg | Type | Description |
 |-----|------|-------------|
 | `column` | String | Table column to be checked. The DataType of the column must be a String
-| `minValue` | Integer | Lower bound of the length of the string.
+| `minValue` | Integer | Lower bound of the length of the string, inclusive.
 | `maxValue` | Integer | Upper bound of the length of the string.
 
 #### `rowCount`
