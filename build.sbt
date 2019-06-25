@@ -10,6 +10,28 @@ val circeVersion = "0.10.0"
 enablePlugins(GitVersioning)
 git.useGitDescribe := true
 
+val artifactoryUrl:java.net.URL = sys.env.get("ARTIFACTORY_URL").map(new java.net.URL(_)).getOrElse(new java.net.URL("http://localhost"))
+
+// Publish info
+publishTo := {
+  if (isSnapshot.value)
+    Some("Artifactory Realm" at artifactoryUrl.toString + ";build.timestamp=" + new java.util.Date().getTime)
+  else
+    Some("Artifactory Realm" at artifactoryUrl.toString)
+}
+
+credentials ++= (
+  for {
+    artifactoryUsername <- sys.env.get("ARTIFACTORY_USERNAME")
+    artifactoryPassword <- sys.env.get("ARTIFACTORY_PASSWORD")
+  } yield Credentials(
+    "Artifactory Realm",
+    artifactoryUrl.getHost,
+    artifactoryUsername,
+    artifactoryPassword
+  )
+).toSeq
+
 enablePlugins(BuildInfoPlugin)
 buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion)
 buildInfoPackage := "com.target.data_validator"
