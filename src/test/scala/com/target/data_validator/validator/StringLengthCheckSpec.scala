@@ -248,9 +248,15 @@ class StringLengthCheckSpec  extends FunSpec with Matchers with TestingSparkSess
         assert(sut.failed)
         assert(sut.getEvents contains
           ValidatorCheckEvent(failure = true, "StringLengthCheck on column 'item'", 4, 2))
-        assert(sut.getEvents contains
-          ValidatorQuickCheckError(("item", "I") :: Nil, "I",
-            "StringLengthCheck failed! item = I and ((length('item) < 5) || (length('item) > 6))"))
+
+        // There are 2 invalid rows, and numErrorsToReport is 1. So we need to check that exactly one of the 2 errors are present
+        assert((sut.getEvents contains
+                ValidatorQuickCheckError(("item", "I") :: Nil, "I",
+                  "StringLengthCheck failed! item = I and ((length('item) < 5) || (length('item) > 6))")) ^
+               (sut.getEvents contains
+                 ValidatorQuickCheckError(("item", "") :: Nil, "",
+                   "StringLengthCheck failed! item =  and ((length('item) < 5) || (length('item) > 6))"))
+             )
       }
 
       it ("String length check fails numErrorsToReport:2") {
