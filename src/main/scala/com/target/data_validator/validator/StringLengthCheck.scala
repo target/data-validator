@@ -9,7 +9,7 @@ import io.circe.syntax._
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.catalyst.analysis.UnresolvedAttribute
 import org.apache.spark.sql.catalyst.expressions._
-import org.apache.spark.sql.types.{DataType, IntegerType, StringType, StructType}
+import org.apache.spark.sql.types.{IntegerType, StringType, StructType}
 
 case class StringLengthCheck(
                        column: String,

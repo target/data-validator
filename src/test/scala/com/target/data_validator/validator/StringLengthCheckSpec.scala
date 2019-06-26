@@ -2,7 +2,6 @@ package com.target.data_validator.validator
 
 import com.target.TestingSparkSession
 import com.target.data_validator._
-import com.target.data_validator.validator.ValidatorBase.D0
 import io.circe.Json
 import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 import org.apache.spark.sql.catalyst.analysis.UnresolvedAttribute
@@ -35,7 +34,6 @@ class StringLengthCheckSpec  extends FunSpec with Matchers with TestingSparkSess
     describe("configCheck") {
 
       it("error if min and max are not defined") {
-        val dict = new VarSubstitution
         val df = mkDataFrame(spark, defData)
         val sut = StringLengthCheck("item", None, None)
         assert(sut.configCheck(df))
@@ -44,7 +42,6 @@ class StringLengthCheckSpec  extends FunSpec with Matchers with TestingSparkSess
       }
 
       it("error if min and max are different types") {
-        val dict = new VarSubstitution
         val df = mkDataFrame(spark, defData)
         val sut = StringLengthCheck(
           "item",
@@ -56,7 +53,6 @@ class StringLengthCheckSpec  extends FunSpec with Matchers with TestingSparkSess
       }
 
       it("error if column is not found in df") {
-        val dict = new VarSubstitution
         val df = mkDataFrame(spark, defData)
         val sut = StringLengthCheck(
           "bad_column_name",
@@ -69,7 +65,6 @@ class StringLengthCheckSpec  extends FunSpec with Matchers with TestingSparkSess
       }
 
       it("error if col type is not String") {
-        val dict = new VarSubstitution
         val df = mkDataFrame(spark, defData)
         val sut = StringLengthCheck(
           "baseprice",
@@ -82,7 +77,6 @@ class StringLengthCheckSpec  extends FunSpec with Matchers with TestingSparkSess
       }
 
       it("minValue less than maxValue fails configCheck") {
-        val dict = new VarSubstitution
         val maxValue = Math.abs(Random.nextInt(1000)) //scalastyle:ignore
         val minValue = maxValue + 10
         val sut = StringLengthCheck("item", Some(Json.fromInt(minValue)), Some(Json.fromInt(maxValue)))
