@@ -242,14 +242,14 @@ Takes 2 - 4 parameters, described below. If the value in the column doesn't fall
 
 #### `stringLengthCheck`
 
-Takes 2 - 3 parameters, described below. If the length of the string in the column doesn't fall within the range specified by (`minValue`, `maxValue`), both inclusive, the check will fail.
+Takes 2 or 3 parameters, described in the table below. If the length of the string in the column doesn't fall within the range specified by (`minValue`, `maxValue`), both inclusive, the check will fail.
 At least one of `minValue` or `maxValue` must be specified. The data type of `column` must be String.
 
 | Arg | Type | Description |
 |-----|------|-------------|
 | `column` | String | Table column to be checked. The DataType of the column must be a String
-| `minValue` | Integer | Lower bound of the length of the string.
-| `maxValue` | Integer | Upper bound of the length of the string.
+| `minValue` | Integer | Lower bound of the length of the string, inclusive.
+| `maxValue` | Integer | Upper bound of the length of the string, inclusive.
 
 #### `rowCount`
 
