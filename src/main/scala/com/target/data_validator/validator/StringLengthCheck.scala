@@ -14,7 +14,8 @@ import org.apache.spark.sql.types.{IntegerType, StringType, StructType}
 case class StringLengthCheck(
                        column: String,
                        minValue: Option[Json],
-                       maxValue: Option[Json]
+                       maxValue: Option[Json],
+                       threshold: Option[String]
                      ) extends RowBased {
 
   override def substituteVariables(dict: VarSubstitution): ValidatorBase = {
@@ -22,7 +23,8 @@ case class StringLengthCheck(
     val ret = StringLengthCheck(
                                   getVarSub(column, "column", dict),
                                   minValue.map(getVarSubJson(_, "minValue", dict)),
-                                  maxValue.map(getVarSubJson(_, "maxValue", dict))
+                                  maxValue.map(getVarSubJson(_, "maxValue", dict)),
+                                  threshold.map(getVarSub(_, "threshold", dict))
                                )
     getEvents.foreach(ret.addEvent)
     ret
@@ -115,12 +117,14 @@ object StringLengthCheck extends LazyLogging {
     val column = c.downField("column").as[String].right.get
     val minValueJ = c.downField("minValue").as[Json].right.toOption
     val maxValueJ = c.downField("maxValue").as[Json].right.toOption
+    val threshold = c.downField("threshold").as[String].right.toOption
 
     logger.debug(s"column: $column")
     logger.debug(s"minValue: $minValueJ type: ${minValueJ.getClass.getCanonicalName}")
     logger.debug(s"maxValue: $maxValueJ type: ${maxValueJ.getClass.getCanonicalName}")
+    logger.debug(s"threshold: $threshold type: ${threshold.getClass.getCanonicalName}")
 
     c.focus.foreach {f => logger.info(s"StringLengthCheckJson: ${f.spaces2}")}
-    scala.util.Right(StringLengthCheck(column, minValueJ, maxValueJ))
+    scala.util.Right(StringLengthCheck(column, minValueJ, maxValueJ, threshold))
   }
 }
