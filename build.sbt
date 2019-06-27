@@ -10,23 +10,24 @@ val circeVersion = "0.10.0"
 enablePlugins(GitVersioning)
 git.useGitDescribe := true
 
-val artifactoryUrl:java.net.URL = sys.env.get("ARTIFACTORY_URL").map(new java.net.URL(_)).getOrElse(new java.net.URL("http://localhost"))
+val artifactoryUrl:Option[java.net.URL] = sys.env.get("ARTIFACTORY_URL").map(new java.net.URL(_))
 
 // Publish info
-publishTo := {
+publishTo := artifactoryUrl.flatMap { url =>
   if (isSnapshot.value)
-    Some("Artifactory Realm" at artifactoryUrl.toString + ";build.timestamp=" + new java.util.Date().getTime)
+    Some("Artifactory Realm" at url.toString + ";build.timestamp=" + new java.util.Date().getTime)
   else
-    Some("Artifactory Realm" at artifactoryUrl.toString)
+    Some("Artifactory Realm" at url.toString)
 }
 
 credentials ++= (
   for {
     artifactoryUsername <- sys.env.get("ARTIFACTORY_USERNAME")
     artifactoryPassword <- sys.env.get("ARTIFACTORY_PASSWORD")
+    url <- artifactoryUrl
   } yield Credentials(
     "Artifactory Realm",
-    artifactoryUrl.getHost,
+    url.getHost,
     artifactoryUsername,
     artifactoryPassword
   )
