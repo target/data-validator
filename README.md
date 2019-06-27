@@ -270,6 +270,17 @@ Takes 2 - 4 parameters, described below. If the value in the column doesn't fall
 
 **Note:** To specify another column in the table, you must prefix the column name with a **`** (backtick).
 
+#### `stringLengthCheck`
+
+Takes 2 or 3 parameters, described in the table below. If the length of the string in the column doesn't fall within the range specified by (`minValue`, `maxValue`), both inclusive, the check will fail.
+At least one of `minValue` or `maxValue` must be specified. The data type of `column` must be String.
+
+| Arg | Type | Description |
+|-----|------|-------------|
+| `column` | String | Table column to be checked. The DataType of the column must be a String
+| `minValue` | Integer | Lower bound of the length of the string, inclusive.
+| `maxValue` | Integer | Upper bound of the length of the string, inclusive.
+
 #### `rowCount`
 
 The minimum number of rows a table must have to pass the validator.
@@ -354,6 +365,12 @@ tables:
       # nullCheck - checks if the column is null, counts number of rows with null for this column.
       - type: nullCheck
         column: occupation
+
+      # stringLengthCheck - checks if the length of the string in the column falls within the specified range, counts number of rows in which the length of the string is outside the specified range.
+            - type: stringLengthCheck
+              column: occupation
+              minValue: 1
+              maxValue: 5
 ```
 
 ## Working with OOZIE Workflows
