@@ -75,7 +75,8 @@ class StringLengthCheckSpec  extends FunSpec with Matchers with TestingSparkSess
           None
         )
         assert(sut.configCheck(df))
-        assert(sut.getEvents contains ValidatorError("Data type of column 'baseprice' must be String, but was found to be DoubleType"))
+        assert(sut.getEvents contains
+          ValidatorError("Data type of column 'baseprice' must be String, but was found to be DoubleType"))
         assert(sut.failed)
       }
 
@@ -121,7 +122,8 @@ class StringLengthCheckSpec  extends FunSpec with Matchers with TestingSparkSess
         val dict = new VarSubstitution
         dict.addString("maxValue", "10")
         val sut = StringLengthCheck("item", None, Some(Json.fromString("${maxValue}")), None)
-        assert(sut.substituteVariables(dict) == StringLengthCheck("item", None, Some(Json.fromInt(10)), None))
+        assert(sut.substituteVariables(dict) ==
+          StringLengthCheck("item", None, Some(Json.fromInt(10)), None)) // scalastyle:ignore
         assert(!sut.failed)
       }
 
@@ -172,7 +174,7 @@ class StringLengthCheckSpec  extends FunSpec with Matchers with TestingSparkSess
         val sut = StringLengthCheck("item", Some(Json.fromInt(1)), Some(Json.fromInt(10)), None) // scalastyle:ignore
         assert(sut.colTest(schema, dict).sql ==
           Or(LessThan(Length(UnresolvedAttribute("item")), Literal.create(1, IntegerType)),
-            GreaterThan(Length(UnresolvedAttribute("item")), Literal.create(10, IntegerType))).sql)
+            GreaterThan(Length(UnresolvedAttribute("item")), Literal.create(10, IntegerType))).sql) // scalastyle:ignore
       }
 
     }
