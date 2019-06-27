@@ -13,12 +13,7 @@ git.useGitDescribe := true
 val artifactoryUrl:Option[java.net.URL] = sys.env.get("ARTIFACTORY_URL").map(new java.net.URL(_))
 
 // Publish info
-publishTo := artifactoryUrl.flatMap { url =>
-  if (isSnapshot.value)
-    Some("Artifactory Realm" at url.toString + ";build.timestamp=" + new java.util.Date().getTime)
-  else
-    Some("Artifactory Realm" at url.toString)
-}
+publishTo := artifactoryUrl.map(url =>"Artifactory Realm" at url.toString)
 
 credentials ++= (
   for {
