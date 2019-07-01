@@ -1,7 +1,6 @@
 package com.target.data_validator.validator
 
-import com.target.data_validator.{ValidatorCheckEvent, ValidatorCounter, ValidatorError, ValidatorQuickCheckError}
-import com.target.data_validator.VarSubstitution
+import com.target.data_validator._
 import com.target.data_validator.validator.ValidatorBase.{isColumnInDataFrame, L0, L1}
 import org.apache.spark.sql.{DataFrame, Row}
 import org.apache.spark.sql.catalyst.expressions._
@@ -54,7 +53,7 @@ abstract class RowBased extends CheapCheck {
     * Calculates the max acceptable number of errors from threshold and rowCount.
     * @param rowCount of table.
     * @return max number of errors we can tolerate.
-    * if threshold < 0, then its a percentage of rowCount.
+    * if threshold < 1, then its a percentage of rowCount.
     * if threshold ends with '%' then its percentage of rowCount
     * if threshold is > 1, then its maxErrors.
     */
@@ -106,6 +105,6 @@ abstract class RowBased extends CheapCheck {
 }
 
 object RowBased {
-  val THRESHOLD_NUMBER_REGEX: Regex = "([0-9]+\\.*[0-9]*)\\s*%*".r
+  val THRESHOLD_NUMBER_REGEX: Regex = "^([0-9]+\\.*[0-9]*)\\s*%{0,1}$".r // scalastyle:ignore
 }
 
