@@ -11,7 +11,7 @@ import org.scalatest.{FunSpec, Matchers}
 
 import scala.util.Random
 
-class StringLengthCheckSpec  extends FunSpec with Matchers with TestingSparkSession {
+class StringLengthCheckSpec extends FunSpec with Matchers with TestingSparkSession {
 
   val schema = StructType(
     List(
@@ -148,7 +148,7 @@ class StringLengthCheckSpec  extends FunSpec with Matchers with TestingSparkSess
         dict.add("threshold", threshold)
         val sut = StringLengthCheck("item", minValue, maxValue, Some("${threshold}"))
         assert(sut.substituteVariables(dict) == StringLengthCheck("item", minValue, maxValue,
-           Some("100"))) // scalastyle: ignore
+          Some("100"))) // scalastyle: ignore
         assert(!sut.failed)
       }
     }
@@ -264,7 +264,7 @@ class StringLengthCheckSpec  extends FunSpec with Matchers with TestingSparkSess
 
     describe("Basic String Length check") {
 
-      it ("String length check fails numErrorsToReport:1") {
+      it("String length check fails numErrorsToReport:1") {
         val dict = new VarSubstitution
         val df = mkDataFrame(spark, defData)
         val sut = StringLengthCheck("item", Some(Json.fromInt(5)), Some(Json.fromInt(6)), None) // scalastyle:ignore
@@ -279,15 +279,15 @@ class StringLengthCheckSpec  extends FunSpec with Matchers with TestingSparkSess
         // There are 2 invalid rows, and numErrorsToReport is
         // 1. So we need to check that exactly one of the 2 errors are present
         assert((sut.getEvents contains
-                ValidatorQuickCheckError(("item", "I") :: Nil, "I",
-                  "StringLengthCheck failed! item = I and ((length('item) < 5) || (length('item) > 6))")) ^
-               (sut.getEvents contains
-                 ValidatorQuickCheckError(("item", "") :: Nil, "",
-                   "StringLengthCheck failed! item =  and ((length('item) < 5) || (length('item) > 6))"))
-             )
+          ValidatorQuickCheckError(("item", "I") :: Nil, "I",
+            "StringLengthCheck failed! item = I and ((length('item) < 5) || (length('item) > 6))")) ^
+          (sut.getEvents contains
+            ValidatorQuickCheckError(("item", "") :: Nil, "",
+              "StringLengthCheck failed! item =  and ((length('item) < 5) || (length('item) > 6))"))
+        )
       }
 
-      it ("String length check fails numErrorsToReport:2") {
+      it("String length check fails numErrorsToReport:2") {
         val dict = new VarSubstitution
         val df = mkDataFrame(spark, defData)
         val sut = StringLengthCheck("item", Some(Json.fromInt(5)), Some(Json.fromInt(6)), None) // scalastyle:ignore
@@ -308,7 +308,7 @@ class StringLengthCheckSpec  extends FunSpec with Matchers with TestingSparkSess
             "StringLengthCheck failed! item =  and ((length('item) < 5) || (length('item) > 6))"))
       }
 
-      it ("String length check fails for minValue = maxValue and numErrorsToReport:3") {
+      it("String length check fails for minValue = maxValue and numErrorsToReport:3") {
         val dict = new VarSubstitution
         val df = mkDataFrame(spark, defData)
         val sut = StringLengthCheck("item", Some(Json.fromInt(5)), Some(Json.fromInt(5)), None) // scalastyle:ignore
@@ -333,7 +333,7 @@ class StringLengthCheckSpec  extends FunSpec with Matchers with TestingSparkSess
             "StringLengthCheck failed! item = Item23 and ((length('item) < 5) || (length('item) > 5))"))
       }
 
-      it ("String length check fails for only minValue specified and numErrorsToReport:2") {
+      it("String length check fails for only minValue specified and numErrorsToReport:2") {
         val dict = new VarSubstitution
         val df = mkDataFrame(spark, defData)
         val sut = StringLengthCheck("item", Some(Json.fromInt(5)), None, None) // scalastyle:ignore
@@ -354,7 +354,7 @@ class StringLengthCheckSpec  extends FunSpec with Matchers with TestingSparkSess
             "StringLengthCheck failed! item =  and (length('item) < 5)"))
       }
 
-      it ("String length check fails for only maxValue specified and numErrorsToReport:2") {
+      it("String length check fails for only maxValue specified and numErrorsToReport:2") {
         val dict = new VarSubstitution
         val df = mkDataFrame(spark, defData)
         val sut = StringLengthCheck("item", None, Some(Json.fromInt(2)), None) // scalastyle:ignore
@@ -375,7 +375,7 @@ class StringLengthCheckSpec  extends FunSpec with Matchers with TestingSparkSess
             "StringLengthCheck failed! item = Item23 and (length('item) > 2)"))
       }
 
-      it ("String length check passes for minValue and  maxValue specified") {
+      it("String length check passes for minValue and  maxValue specified") {
         val dict = new VarSubstitution
         val df = mkDataFrame(spark, defData)
         val sut = StringLengthCheck("item", Some(Json.fromInt(0)), Some(Json.fromInt(6)), None) // scalastyle:ignore
@@ -388,7 +388,7 @@ class StringLengthCheckSpec  extends FunSpec with Matchers with TestingSparkSess
           ValidatorCheckEvent(failure = false, "StringLengthCheck on column 'item'", 4, 0)) // scalastyle:ignore
       }
 
-      it ("String length check passes for only minValue specified") {
+      it("String length check passes for only minValue specified") {
         val dict = new VarSubstitution
         val df = mkDataFrame(spark, defData)
         val sut = StringLengthCheck("item", Some(Json.fromInt(0)), None, None) // scalastyle:ignore
@@ -401,7 +401,7 @@ class StringLengthCheckSpec  extends FunSpec with Matchers with TestingSparkSess
           ValidatorCheckEvent(failure = false, "StringLengthCheck on column 'item'", 4, 0)) // scalastyle:ignore
       }
 
-      it ("String length check passes for only maxValue specified") {
+      it("String length check passes for only maxValue specified") {
         val dict = new VarSubstitution
         val df = mkDataFrame(spark, defData)
         val sut = StringLengthCheck("item", None, Some(Json.fromInt(6)), None) // scalastyle:ignore
