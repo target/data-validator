@@ -106,10 +106,10 @@ class ValidatorTableSpec extends FunSpec with Matchers with TestingSparkSession 
         }
 
         it("checks") {
-          val vt = ValidatorHiveTable("database", "table", None, None, List(NullCheck("${nullCol1}")))
+          val vt = ValidatorHiveTable("database", "table", None, None, List(NullCheck("${nullCol1}", None)))
           val dict = mkDict(("nullCol1", "nc1"), ("nullCol2", "nc2"))
           val sut = vt.substituteVariables(dict).asInstanceOf[ValidatorHiveTable]
-          assert(sut == vt.copy(checks = List(NullCheck("nc1"))))
+          assert(sut == vt.copy(checks = List(NullCheck("nc1", None))))
           assert(sut.checks.head.getEvents contains VarSubEvent("${nullCol1}", "nc1"))
         }
 
@@ -143,10 +143,10 @@ class ValidatorTableSpec extends FunSpec with Matchers with TestingSparkSession 
         }
 
         it("checks") {
-          val vt = ValidatorOrcFile("OrcFile", None, None, List(NullCheck("${nullCol1}")))
+          val vt = ValidatorOrcFile("OrcFile", None, None, List(NullCheck("${nullCol1}", None)))
           val dict = mkDict(("nullCol1", "nc1"), ("nullCol2", "nc2"))
           val sut = vt.substituteVariables(dict).asInstanceOf[ValidatorOrcFile]
-          assert(sut == vt.copy(checks = List(NullCheck("nc1"))))
+          assert(sut == vt.copy(checks = List(NullCheck("nc1", None))))
           assert(sut.checks.head.getEvents contains VarSubEvent("${nullCol1}", "nc1"))
         }
 
@@ -174,10 +174,10 @@ class ValidatorTableSpec extends FunSpec with Matchers with TestingSparkSession 
         }
 
         it("checks") {
-          val vt = ValidatorDataFrame(spark.emptyDataFrame, None, None, List(NullCheck("$nullCol1")))
+          val vt = ValidatorDataFrame(spark.emptyDataFrame, None, None, List(NullCheck("$nullCol1", None)))
           val dict = mkDict(("nullCol1", "nc1"), ("nullCol2", "nc2"))
           val sut = vt.substituteVariables(dict).asInstanceOf[ValidatorDataFrame]
-          assert(sut == vt.copy(checks = List(NullCheck("nc1"))))
+          assert(sut == vt.copy(checks = List(NullCheck("nc1", None))))
           assert(sut.checks.head.getEvents contains VarSubEvent("$nullCol1", "nc1"))
         }
 
