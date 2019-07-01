@@ -2,8 +2,9 @@ package com.target.data_validator.validator
 
 import com.target.TestingSparkSession
 import com.target.data_validator.TestHelpers._
+import io.circe.Json
 import org.apache.spark.sql.Row
-import org.apache.spark.sql.types.{BooleanType, DoubleType, IntegerType, StringType, StructField, StructType}
+import org.apache.spark.sql.types._
 import org.scalatest.{FunSpec, Matchers}
 
 class TestHelpersSpec  extends FunSpec with Matchers with TestingSparkSession {
@@ -23,20 +24,33 @@ class TestHelpersSpec  extends FunSpec with Matchers with TestingSparkSession {
       StructField("instock", BooleanType))
   )
 
-
   describe("parseYml") {
-
+    it ("parses simple yml") {
+      val sut = parseYaml(
+        """
+          |double: 2.01
+          |int: 10293
+          |string: foo
+          |array:
+          | - one
+          | - two
+          | - three
+        """.stripMargin)
+      assert(sut == Json.obj(
+        ("double", Json.fromDouble(2.01).get),
+        ("int", Json.fromInt(10293)), // scalastyle:ignore
+        ("string", Json.fromString("foo")),
+        ("array", Json.arr(Seq("one", "two", "three").map(Json.fromString): _*))
+      ))
+    }
   }
 
   describe("mkDict") {
     it("simple case") {
-      // val sut = mkDict("key"->"value")
-      // assert(sut.dict == Map("key" -> "value"))
+      val sut = mkDict("key"->"value")
+      assert(sut.dict("key") ==  Json.fromString("value"))
     }
   }
-
-
-  // guessType
 
   describe("guessType") {
     it("double") {

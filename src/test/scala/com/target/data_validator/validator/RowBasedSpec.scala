@@ -133,9 +133,15 @@ class RowBasedSpec extends FunSpec with Matchers with TestingSparkSession {
         assert(!sut.configCheckThreshold)
       }
 
-      it ("100%") {
+      it ("10%") {
         val sut = NullCheck("col", Some("10%"))
         assert(!sut.configCheckThreshold)
+      }
+
+      it (" works with extra spacing before percentage sign") {
+        val sut = NullCheck("col", Some("10%"))
+        assert(!sut.configCheckThreshold)
+        assert(sut.calcErrorCountThreshold(100) == 10) // scalastyle:ignore
       }
 
       it("bad value") {
@@ -143,6 +149,36 @@ class RowBasedSpec extends FunSpec with Matchers with TestingSparkSession {
         assert(sut.configCheckThreshold)
         assert(sut.failed)
       }
+
+      it ("is negative") {
+        val sut = NullCheck("col", Some("-10"))
+        assert(sut.configCheckThreshold)
+        assert(sut.failed)
+      }
+
+      it ("is negative fraction") {
+        val sut = NullCheck("col", Some("-0.1"))
+        assert(sut.configCheckThreshold)
+        assert(sut.failed)
+      }
+      it ("is negative percent") {
+        val sut = NullCheck("col", Some("-10%"))
+        assert(sut.configCheckThreshold)
+        assert(sut.failed)
+      }
+
+      it ("negative percentage should be rejected") {
+        val sut = NullCheck("col", Some("-2.3 %"))
+        assert(sut.configCheckThreshold)
+        assert(sut.failed)
+      }
+
+      it ("multiple '%' should be rejected") {
+        val sut = NullCheck("col", Some("2.3 %%%"))
+        assert(sut.configCheckThreshold)
+        assert(sut.failed)
+      }
+
     }
 
     describe ("calMaxErrors()") {
@@ -157,7 +193,7 @@ class RowBasedSpec extends FunSpec with Matchers with TestingSparkSession {
         assert(sut.calcErrorCountThreshold(rowCount) == 1000)
       }
 
-      it ("100%") {
+      it ("10%") {
         val sut = NullCheck("col", Some("10%"))
         assert(sut.calcErrorCountThreshold(rowCount) == 1000)
       }

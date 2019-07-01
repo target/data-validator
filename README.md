@@ -215,7 +215,7 @@ To validate an `.parquet` file, specify `parquetFile` and the path to the file, 
   The third section are the validators. To specify a validator, you
 first specify the type as one of the validators, then specify the
 arguments for that validator. Some of the validators support an error
-threshold. This options allows the user specify the number of errors
+threshold. This options allows the user to specify the number of errors
 or percentage of errors they can tolerate.  In some use cases, it
 might not be possible to eliminate all errors in the data.
 

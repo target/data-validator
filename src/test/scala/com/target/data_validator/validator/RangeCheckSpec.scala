@@ -187,7 +187,7 @@ class RangeCheckSpec extends FunSpec with Matchers with TestingSparkSession {
       it("min and max value") {
         val dict = new VarSubstitution
         val maxValue = Math.abs(Random.nextDouble)
-        val sut = RangeCheck("avg", Some(Json.fromInt(0)), Json.fromDouble(maxValue), None,  None)
+        val sut = RangeCheck("avg", Some(Json.fromInt(0)), Json.fromDouble(maxValue), None, None)
         // TODO: Find better way to compare expressions.
         assert(sut.colTest(schema, dict).sql ==
           Or(LessThanOrEqual(UnresolvedAttribute("avg"), D0),
@@ -281,14 +281,6 @@ class RangeCheckSpec extends FunSpec with Matchers with TestingSparkSession {
           ("events", Json.arr())
         ))
       }
-
-      it("threshold works as expected") {
-        val maxJson = Json.fromDouble(3.0)
-        val sut = RangeCheck("max",
-          None, maxJson, None, Some("30%")) // scalastyle:ignore
-        assert(true) // FIXME!!!!!
-      }
-
     }
 
     describe ("Support column names for min/max value") {

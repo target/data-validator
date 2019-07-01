@@ -44,7 +44,6 @@ case class NegativeCheck(column: String, threshold: Option[String]) extends RowB
     ("column", Json.fromString(column)),
     ("threshold", Json.fromString(threshold.getOrElse("0"))),
     ("failed", Json.fromBoolean(failed)),
-
     ("events", this.getEvents.asJson)
   )
 }
