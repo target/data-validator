@@ -1,30 +1,47 @@
 package com.target.data_validator.validator
 
-import com.target.data_validator.{ValidatorCheckEvent, ValidatorError, ValidatorQuickCheckError, VarSubstitution}
-import com.target.data_validator.JsonEncoders.eventEncoder
-import com.target.data_validator.validator.ValidatorBase.{isColumnInDataFrame, I0, L0, L1}
-import io.circe.Json
-import io.circe.syntax._
+import com.target.data_validator._
+import com.target.data_validator.validator.ValidatorBase.{isColumnInDataFrame, L0, L1}
 import org.apache.spark.sql.{DataFrame, Row}
-import org.apache.spark.sql.catalyst.analysis.UnresolvedAttribute
 import org.apache.spark.sql.catalyst.expressions._
-import org.apache.spark.sql.types.{NumericType, StructType}
+import org.apache.spark.sql.types.StructType
+
+import scala.util.matching.Regex
 
 abstract class RowBased extends CheapCheck {
 
   val column: String
+  val threshold: Option[String]
 
-  def configCheck(df: DataFrame): Boolean = configCheckColumn(df)
+  def configCheck(df: DataFrame): Boolean = {
+    configCheckColumn(df)
+    configCheckThreshold
+    failed
+  }
 
   def configCheckColumn(df: DataFrame): Boolean = {
     if (isColumnInDataFrame(df, column)) {
       logger.debug(s"Column: $column found in table.")
       false
     } else {
-      val msg = s"Column: $column not found in table."
+      val msg = s"Column: $column not found in schema."
       logger.error(msg)
       addEvent(ValidatorError(msg))
       failed
+    }
+  }
+
+  def configCheckThreshold: Boolean = {
+    if (threshold.isDefined) {
+      val ret = threshold.flatMap(RowBased.THRESHOLD_NUMBER_REGEX.findFirstIn).isEmpty
+      if (ret) {
+        val msg = s"Threshold `${threshold.get}` not parsable."
+        logger.error(msg)
+        addEvent(ValidatorError(msg))
+      }
+      ret
+    } else {
+      false
     }
   }
 
@@ -32,12 +49,47 @@ abstract class RowBased extends CheapCheck {
 
   def select(schema: StructType, dict: VarSubstitution): Expression = If(colTest(schema, dict), L1, L0)
 
+  /**
+    * Calculates the max acceptable number of errors from threshold and rowCount.
+    * @param rowCount of table.
+    * @return max number of errors we can tolerate.
+    * if threshold < 1, then its a percentage of rowCount.
+    * if threshold ends with '%' then its percentage of rowCount
+    * if threshold is > 1, then its maxErrors.
+    */
+  def calcErrorCountThreshold(rowCount: Long): Long = {
+    threshold.map { t =>
+      val tempThreshold = t.stripSuffix("%").toDouble
+      val ret: Long = if (t.endsWith("%")) {
+        // Has '%', so divide by 100.0
+        (tempThreshold * (rowCount / 100.0)).toLong
+      } else if (tempThreshold < 1.0) {
+        // Percentage without the '%'
+        (tempThreshold * rowCount).toLong
+      } else {
+        // Number of rows
+        tempThreshold.toLong
+      }
+      logger.info(s"Threshold:${threshold.get} tempThreshold:$tempThreshold ret:$ret")
+      ret
+    }.getOrElse(0)
+  }
+
   override def quickCheck(row: Row, count: Long, idx: Int): Boolean = {
     logger.debug(s"quickCheck $column Row: $row count: $count idx: $idx")
     if (count > 0) {
       val errorCount = row.getLong(idx)
-      val failure = errorCount > 0
-      if (failure) logger.error(s"Quick check for $name on $column failed, $errorCount errors in $count rows.")
+      val errorCountThreshold = calcErrorCountThreshold(count)
+
+      addEvent(ValidatorCounter("rowCount", count))
+      addEvent(ValidatorCounter("errorCount", errorCount))
+      if (errorCountThreshold > 0) {
+        addEvent(ValidatorCounter("errorCountThreshold", errorCountThreshold))
+      }
+
+      val failure = errorCount > errorCountThreshold
+      if (failure) logger.error(s"Quick check for $name on $column failed, $errorCount errors in $count rows"
+        + s" errorCountThreshold: $errorCountThreshold")
       addEvent(ValidatorCheckEvent(failure, s"$name on column '$column'", count, errorCount))
     } else {
       logger.warn(s"No Rows to check for $toString!")
@@ -52,54 +104,7 @@ abstract class RowBased extends CheapCheck {
   }
 }
 
-case class NullCheck(column: String) extends RowBased {
-
-  override def substituteVariables(dict: VarSubstitution): ValidatorBase = {
-    val ret = NullCheck(getVarSub(column, "column", dict))
-    getEvents.foreach(ret.addEvent)
-    ret
-  }
-
-  override def colTest(schema: StructType, dict: VarSubstitution): Expression = IsNull(UnresolvedAttribute(column))
-
-  override def toJson: Json = Json.obj(
-    ("type", Json.fromString("nullCheck")),
-    ("column", Json.fromString(column)),
-    ("failed", Json.fromBoolean(failed)),
-    ("events", this.getEvents.asJson)
-  )
+object RowBased {
+  val THRESHOLD_NUMBER_REGEX: Regex = "^([0-9]+\\.*[0-9]*)\\s*%{0,1}$".r // scalastyle:ignore
 }
 
-case class NegativeCheck(column: String) extends RowBased {
-
-  override def substituteVariables(dict: VarSubstitution): ValidatorBase = {
-    val ret = NegativeCheck(getVarSub(column, "column", dict))
-    getEvents.foreach(ret.addEvent)
-    ret
-  }
-
-  override def configCheck(df: DataFrame): Boolean = {
-    findColumnInDataFrame(df, column) match {
-      case Some(ft) if ft.dataType.isInstanceOf[NumericType] => Unit
-      case Some(ft) =>
-        val msg = s"Column: $column found, but not of numericType type: ${ft.dataType}"
-        logger.error(msg)
-        addEvent(ValidatorError(msg))
-      case None =>
-        val msg = s"Column: $column not found in schema."
-        logger.error(msg)
-        addEvent(ValidatorError(msg))
-    }
-    failed
-  }
-
-  override def colTest(schema: StructType, dict: VarSubstitution): Expression =
-    LessThan (UnresolvedAttribute(column), I0)
-
-  override def toJson: Json = Json.obj(
-    ("type", Json.fromString("negativeCheck")),
-    ("column", Json.fromString(column)),
-    ("failed", Json.fromBoolean(failed)),
-    ("events", this.getEvents.asJson)
-  )
-}
