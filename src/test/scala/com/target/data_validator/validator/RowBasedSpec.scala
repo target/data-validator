@@ -121,7 +121,7 @@ class RowBasedSpec extends FunSpec with Matchers with TestingSparkSession {
 
   }
 
-  describe ("threshold parsing") {
+  describe ("threshold tests") {
     describe ("validate different way of specifying thresholds") {
       it ("absolute 10") {
         val sut = NullCheck("col", Some("10"))
@@ -196,6 +196,11 @@ class RowBasedSpec extends FunSpec with Matchers with TestingSparkSession {
       it ("10%") {
         val sut = NullCheck("col", Some("10%"))
         assert(sut.calcErrorCountThreshold(rowCount) == 1000)
+      }
+
+      it ("check for integer division") {
+        val sut = NullCheck("col", Some("10%"))
+        assert(sut.calcErrorCountThreshold(99) == 9) // scalastyle:ignore
       }
     }
   }

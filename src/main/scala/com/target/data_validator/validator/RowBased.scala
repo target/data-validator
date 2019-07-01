@@ -61,8 +61,8 @@ abstract class RowBased extends CheapCheck {
     threshold.map { t =>
       val tempThreshold = t.stripSuffix("%").toDouble
       val ret: Long = if (t.endsWith("%")) {
-        // Has '%', so divide by 100.
-        (tempThreshold * (rowCount / 100)).toLong
+        // Has '%', so divide by 100.0
+        (tempThreshold * (rowCount / 100.0)).toLong
       } else if (tempThreshold < 1.0) {
         // Percentage without the '%'
         (tempThreshold * rowCount).toLong
