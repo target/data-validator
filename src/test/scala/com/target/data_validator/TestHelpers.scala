@@ -3,7 +3,7 @@ package com.target.data_validator
 import io.circe.Json
 import io.circe.yaml.parser
 import org.apache.spark.sql.{DataFrame, Row, SparkSession}
-import org.apache.spark.sql.types.{BooleanType, DataType, DoubleType, IntegerType, LongType, StringType, StructField, StructType}
+import org.apache.spark.sql.types._
 
 object TestHelpers {
 

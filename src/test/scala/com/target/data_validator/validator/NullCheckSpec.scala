@@ -1,8 +1,8 @@
 package com.target.data_validator.validator
 
 import com.target.TestingSparkSession
+import com.target.data_validator.{ValidatorConfig, ValidatorDataFrame, ValidatorError}
 import com.target.data_validator.TestHelpers._
-import com.target.data_validator.{ValidatorConfig, ValidatorDataFrame, ValidatorError, VarSubstitution}
 import org.scalatest.{FunSpec, Matchers}
 
 class NullCheckSpec extends FunSpec with Matchers with TestingSparkSession {
@@ -46,15 +46,15 @@ class NullCheckSpec extends FunSpec with Matchers with TestingSparkSession {
 
     describe("variable substitution") {
       it("success substitution") {
-        var dict = mkDict("threshold" -> "20%", "column" -> "foo")
-        var sut = NullCheck("$column", Some("$threshold"))
+        val dict = mkDict("threshold" -> "20%", "column" -> "foo")
+        val sut = NullCheck("$column", Some("$threshold"))
         assert(sut.substituteVariables(dict) == NullCheck("foo", Some("20%")))
         assert(!sut.failed)
       }
 
       it("error on substitution issues") {
-        var dict = mkDict()
-        var sut = NullCheck("$column", Some("$threshold"))
+        val dict = mkDict()
+        val sut = NullCheck("$column", Some("$threshold"))
         assert(sut.substituteVariables(dict) == sut)
         assert(sut.failed)
         assert(sut.getEvents contains
@@ -69,7 +69,7 @@ class NullCheckSpec extends FunSpec with Matchers with TestingSparkSession {
     describe("checkconfiguration") {
 
       it("Column Exists") {
-        val df = mkDf(spark = spark, ("item" -> List("Eggs")))
+        val df = mkDf(spark = spark, "item" -> List("Eggs"))
         val sut = NullCheck("item", None)
         assert(!sut.configCheck(df))
       }
