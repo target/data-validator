@@ -13,8 +13,8 @@ import org.apache.spark.sql.types.{IntegerType, StringType, StructType}
 
 case class StringLengthCheck(
                        column: String,
-                       minValue: Option[Json],
-                       maxValue: Option[Json],
+                       minLength: Option[Json],
+                       maxLength: Option[Json],
                        threshold: Option[String]
                      ) extends RowBased {
 
@@ -22,8 +22,8 @@ case class StringLengthCheck(
 
     val ret = StringLengthCheck(
                                   getVarSub(column, "column", dict),
-                                  minValue.map(getVarSubJson(_, "minValue", dict)),
-                                  maxValue.map(getVarSubJson(_, "maxValue", dict)),
+                                  minLength.map(getVarSubJson(_, "minLength", dict)),
+                                  maxLength.map(getVarSubJson(_, "maxLength", dict)),
                                   threshold.map(getVarSub(_, "threshold", dict))
                                )
     getEvents.foreach(ret.addEvent)
@@ -41,10 +41,10 @@ case class StringLengthCheck(
 
     val colExp = Length(UnresolvedAttribute(column))
 
-    val minValueExpression = cmpExpr(colExp, minValue, LessThan)
-    val maxValueExpression = cmpExpr(colExp, maxValue, GreaterThan)
+    val minLengthExpression = cmpExpr(colExp, minLength, LessThan)
+    val maxLengthExpression = cmpExpr(colExp, maxLength, GreaterThan)
 
-    val ret = (minValueExpression, maxValueExpression) match {
+    val ret = (minLengthExpression, maxLengthExpression) match {
       case (Some(x), None) => x
       case (None, Some(y)) => y
       case (Some(x), Some(y)) => Or(x, y)
@@ -59,7 +59,7 @@ case class StringLengthCheck(
     if (values.forall(_.isNumber)) {
         values.flatMap(_.asNumber) match {
           case mv :: xv :: Nil if mv.toDouble > xv.toDouble =>
-            addEvent(ValidatorError(s"min: ${minValue.get} must be less than or equal to max: ${maxValue.get}"))
+            addEvent(ValidatorError(s"min: ${minLength.get} must be less than or equal to max: ${maxLength.get}"))
           case _ =>
         }
     } else if (values.forall(_.isString)) {
@@ -77,9 +77,9 @@ case class StringLengthCheck(
   override def configCheck(df: DataFrame): Boolean = {
 
     // Verify if at least one of min or max is specified.
-    val values = (minValue::maxValue::Nil).flatten
+    val values = (minLength::maxLength::Nil).flatten
     if (values.isEmpty) {
-      addEvent(ValidatorError("Must define minValue or maxValue or both."))
+      addEvent(ValidatorError("Must define minLength or maxLength or both."))
     }
 
     // Verify that min is less than max
@@ -103,8 +103,8 @@ case class StringLengthCheck(
       ("type", Json.fromString("stringLengthCheck")),
       ("column", Json.fromString(column))
     ) ++
-      minValue.map(mv => ("minValue", mv)) ++
-      maxValue.map(mv => ("maxValue", mv)) ++
+      minLength.map(mv => ("minLength", mv)) ++
+      maxLength.map(mv => ("maxLength", mv)) ++
       Seq(
         ("events", getEvents.asJson)
       )
@@ -115,16 +115,16 @@ case class StringLengthCheck(
 object StringLengthCheck extends LazyLogging {
   def fromJson(c: HCursor): Either[DecodingFailure, ValidatorBase] = {
     val column = c.downField("column").as[String].right.get
-    val minValueJ = c.downField("minValue").as[Json].right.toOption
-    val maxValueJ = c.downField("maxValue").as[Json].right.toOption
+    val minLengthJ = c.downField("minLength").as[Json].right.toOption
+    val maxLengthJ = c.downField("maxLength").as[Json].right.toOption
     val threshold = c.downField("threshold").as[String].right.toOption
 
     logger.debug(s"column: $column")
-    logger.debug(s"minValue: $minValueJ type: ${minValueJ.getClass.getCanonicalName}")
-    logger.debug(s"maxValue: $maxValueJ type: ${maxValueJ.getClass.getCanonicalName}")
+    logger.debug(s"minLength: $minLengthJ type: ${minLengthJ.getClass.getCanonicalName}")
+    logger.debug(s"maxLength: $maxLengthJ type: ${maxLengthJ.getClass.getCanonicalName}")
     logger.debug(s"threshold: $threshold type: ${threshold.getClass.getCanonicalName}")
 
     c.focus.foreach {f => logger.info(s"StringLengthCheckJson: ${f.spaces2}")}
-    scala.util.Right(StringLengthCheck(column, minValueJ, maxValueJ, threshold))
+    scala.util.Right(StringLengthCheck(column, minLengthJ, maxLengthJ, threshold))
   }
 }

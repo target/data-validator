@@ -272,14 +272,14 @@ Takes 2 - 4 parameters, described below. If the value in the column doesn't fall
 
 #### `stringLengthCheck`
 
-Takes 2 to 4 parameters, described in the table below. If the length of the string in the column doesn't fall within the range specified by (`minValue`, `maxValue`), both inclusive, the check will fail.
-At least one of `minValue` or `maxValue` must be specified. The data type of `column` must be String.
+Takes 2 to 4 parameters, described in the table below. If the length of the string in the column doesn't fall within the range specified by (`minLength`, `maxLength`), both inclusive, the check will fail.
+At least one of `minLength` or `maxLength` must be specified. The data type of `column` must be String.
 
 | Arg | Type | Description |
 |-----|------|-------------|
 | `column` | String | Table column to be checked. The DataType of the column must be a String
-| `minValue` | Integer | Lower bound of the length of the string, inclusive.
-| `maxValue` | Integer | Upper bound of the length of the string, inclusive.
+| `minLength` | Integer | Lower bound of the length of the string, inclusive.
+| `maxLength` | Integer | Upper bound of the length of the string, inclusive.
 | `threshold` | String | See above description of threshold.
 
 #### `rowCount`
@@ -370,8 +370,8 @@ tables:
       # stringLengthCheck - checks if the length of the string in the column falls within the specified range, counts number of rows in which the length of the string is outside the specified range.
             - type: stringLengthCheck
               column: occupation
-              minValue: 1
-              maxValue: 5
+              minLength: 1
+              maxLength: 5
 ```
 
 ## Working with OOZIE Workflows
