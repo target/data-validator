@@ -37,7 +37,7 @@ class StringLengthCheckSpec extends FunSpec with Matchers with TestingSparkSessi
         val df = mkDataFrame(spark, defData)
         val sut = StringLengthCheck("item", None, None, None)
         assert(sut.configCheck(df))
-        assert(sut.getEvents contains ValidatorError("Must define minValue or maxValue or both."))
+        assert(sut.getEvents contains ValidatorError("Must define minLength or maxLength or both."))
         assert(sut.failed)
       }
 
@@ -80,14 +80,14 @@ class StringLengthCheckSpec extends FunSpec with Matchers with TestingSparkSessi
         assert(sut.failed)
       }
 
-      it("minValue less than maxValue fails configCheck") {
-        val maxValue = Math.abs(Random.nextInt(1000)) //scalastyle:ignore
-        val minValue = maxValue + 10
-        val sut = StringLengthCheck("item", Some(Json.fromInt(minValue)), Some(Json.fromInt(maxValue)), None)
+      it("minLength less than maxLength fails configCheck") {
+        val maxLength = Math.abs(Random.nextInt(1000)) //scalastyle:ignore
+        val minLength = maxLength + 10
+        val sut = StringLengthCheck("item", Some(Json.fromInt(minLength)), Some(Json.fromInt(maxLength)), None)
         val df = mkDataFrame(spark, defData)
         assert(sut.configCheck(df))
         assert(sut.failed)
-        assert(sut.getEvents contains ValidatorError(s"min: $minValue must be less than or equal to max: $maxValue"))
+        assert(sut.getEvents contains ValidatorError(s"min: $minLength must be less than or equal to max: $maxLength"))
       }
 
     }
@@ -104,37 +104,37 @@ class StringLengthCheckSpec extends FunSpec with Matchers with TestingSparkSessi
       it("variable column name is good.") {
         val dict = new VarSubstitution
         dict.addString("column", "item")
-        val minValue = Json.fromDouble(0.0)
-        val sut = StringLengthCheck("$column", minValue, None, None)
-        assert(sut.substituteVariables(dict) == StringLengthCheck("item", minValue, None, None))
+        val minLength = Json.fromDouble(0.0)
+        val sut = StringLengthCheck("$column", minLength, None, None)
+        assert(sut.substituteVariables(dict) == StringLengthCheck("item", minLength, None, None))
         assert(!sut.failed)
       }
 
-      it("substitutes minValue") {
+      it("substitutes minLength") {
         val dict = new VarSubstitution
-        dict.addString("minValue", "0")
-        val sut = StringLengthCheck("item", Some(Json.fromString("${minValue}")), None, None)
+        dict.addString("minLength", "0")
+        val sut = StringLengthCheck("item", Some(Json.fromString("${minLength}")), None, None)
         assert(sut.substituteVariables(dict) == StringLengthCheck("item", Some(Json.fromInt(0)), None, None))
         assert(!sut.failed)
       }
 
-      it("substitutes maxValue") {
+      it("substitutes maxLength") {
         val dict = new VarSubstitution
-        dict.addString("maxValue", "10")
-        val sut = StringLengthCheck("item", None, Some(Json.fromString("${maxValue}")), None)
+        dict.addString("maxLength", "10")
+        val sut = StringLengthCheck("item", None, Some(Json.fromString("${maxLength}")), None)
         assert(sut.substituteVariables(dict) ==
           StringLengthCheck("item", None, Some(Json.fromInt(10)), None)) // scalastyle:ignore
         assert(!sut.failed)
       }
 
-      it("substitutes minValue and maxValue") {
+      it("substitutes minLength and maxLength") {
         val dict = new VarSubstitution
-        dict.addString("minValue", "1")
-        dict.addString("maxValue", "10")
-        val sut = StringLengthCheck("item", Some(Json.fromString("${minValue}")),
-          Some(Json.fromString("${maxValue}")), None)
+        dict.addString("minLength", "1")
+        dict.addString("maxLength", "10")
+        val sut = StringLengthCheck("item", Some(Json.fromString("${minLength}")),
+          Some(Json.fromString("${maxLength}")), None)
         assert(sut.substituteVariables(dict) == StringLengthCheck("item", Some(Json.fromInt(1)),
-          Some(Json.fromInt(10)), None)) // scalastyle: ignore
+          Some(Json.fromInt(10)), None)) // scalastyle:ignore
         assert(!sut.failed)
       }
 
@@ -142,12 +142,12 @@ class StringLengthCheckSpec extends FunSpec with Matchers with TestingSparkSessi
         val dict = new VarSubstitution
         // scalastyle:off
         val threshold = Json.fromInt(100)
-        val minValue = Some(Json.fromInt(1))
-        val maxValue = Some(Json.fromInt(10))
+        val minLength = Some(Json.fromInt(1))
+        val maxLength = Some(Json.fromInt(10))
         // scalastyle:on
         dict.add("threshold", threshold)
-        val sut = StringLengthCheck("item", minValue, maxValue, Some("${threshold}"))
-        assert(sut.substituteVariables(dict) == StringLengthCheck("item", minValue, maxValue,
+        val sut = StringLengthCheck("item", minLength, maxLength, Some("${threshold}"))
+        assert(sut.substituteVariables(dict) == StringLengthCheck("item", minLength, maxLength,
           Some("100"))) // scalastyle: ignore
         assert(!sut.failed)
       }
@@ -155,21 +155,21 @@ class StringLengthCheckSpec extends FunSpec with Matchers with TestingSparkSessi
 
     describe("colTest") {
 
-      it("minValue") {
+      it("minLength") {
         val dict = new VarSubstitution
         val sut = StringLengthCheck("item", Some(Json.fromInt(2)), None, None)
         assert(sut.colTest(schema, dict).sql ==
           LessThan(Length(UnresolvedAttribute("item")), Literal.create(2, IntegerType)).sql)
       }
 
-      it("maxValue") {
+      it("maxLength") {
         val dict = new VarSubstitution
         val sut = StringLengthCheck("item", None, Some(Json.fromInt(2)), None)
         assert(sut.colTest(schema, dict).sql ==
           GreaterThan(Length(UnresolvedAttribute("item")), Literal.create(2, IntegerType)).sql)
       }
 
-      it("minValue and maxValue") {
+      it("minLength and maxLength") {
         val dict = new VarSubstitution
         val sut = StringLengthCheck("item", Some(Json.fromInt(1)), Some(Json.fromInt(10)), None) // scalastyle:ignore
         assert(sut.colTest(schema, dict).sql ==
@@ -187,8 +187,8 @@ class StringLengthCheckSpec extends FunSpec with Matchers with TestingSparkSessi
           """---
             |- type: stringLengthCheck
             |  column: item
-            |  minValue: 0
-            |  maxValue: 100
+            |  minLength: 0
+            |  maxLength: 100
             |
               """.stripMargin
         val json = io.circe.yaml.parser.parse(yaml).right.getOrElse(Json.Null)
@@ -208,7 +208,7 @@ class StringLengthCheckSpec extends FunSpec with Matchers with TestingSparkSessi
           """---
             |- type: stringLengthCheck
             |  column: item
-            |  minValue: 0
+            |  minLength: 0
             |
               """.stripMargin
         val json = io.circe.yaml.parser.parse(yaml).right.getOrElse(Json.Null)
@@ -228,7 +228,7 @@ class StringLengthCheckSpec extends FunSpec with Matchers with TestingSparkSessi
           """---
             |- type: stringLengthCheck
             |  column: item
-            |  maxValue: 100
+            |  maxLength: 100
             |
               """.stripMargin
         val json = io.circe.yaml.parser.parse(yaml).right.getOrElse(Json.Null)
@@ -308,7 +308,7 @@ class StringLengthCheckSpec extends FunSpec with Matchers with TestingSparkSessi
             "StringLengthCheck failed! item =  and ((length('item) < 5) || (length('item) > 6))"))
       }
 
-      it("String length check fails for minValue = maxValue and numErrorsToReport:3") {
+      it("String length check fails for minLength = maxLength and numErrorsToReport:3") {
         val dict = new VarSubstitution
         val df = mkDataFrame(spark, defData)
         val sut = StringLengthCheck("item", Some(Json.fromInt(5)), Some(Json.fromInt(5)), None) // scalastyle:ignore
@@ -333,7 +333,7 @@ class StringLengthCheckSpec extends FunSpec with Matchers with TestingSparkSessi
             "StringLengthCheck failed! item = Item23 and ((length('item) < 5) || (length('item) > 5))"))
       }
 
-      it("String length check fails for only minValue specified and numErrorsToReport:2") {
+      it("String length check fails for only minLength specified and numErrorsToReport:2") {
         val dict = new VarSubstitution
         val df = mkDataFrame(spark, defData)
         val sut = StringLengthCheck("item", Some(Json.fromInt(5)), None, None) // scalastyle:ignore
@@ -354,7 +354,7 @@ class StringLengthCheckSpec extends FunSpec with Matchers with TestingSparkSessi
             "StringLengthCheck failed! item =  and (length('item) < 5)"))
       }
 
-      it("String length check fails for only maxValue specified and numErrorsToReport:2") {
+      it("String length check fails for only maxLength specified and numErrorsToReport:2") {
         val dict = new VarSubstitution
         val df = mkDataFrame(spark, defData)
         val sut = StringLengthCheck("item", None, Some(Json.fromInt(2)), None) // scalastyle:ignore
@@ -375,7 +375,7 @@ class StringLengthCheckSpec extends FunSpec with Matchers with TestingSparkSessi
             "StringLengthCheck failed! item = Item23 and (length('item) > 2)"))
       }
 
-      it("String length check passes for minValue and  maxValue specified") {
+      it("String length check passes for minLength and  maxLength specified") {
         val dict = new VarSubstitution
         val df = mkDataFrame(spark, defData)
         val sut = StringLengthCheck("item", Some(Json.fromInt(0)), Some(Json.fromInt(6)), None) // scalastyle:ignore
@@ -388,7 +388,7 @@ class StringLengthCheckSpec extends FunSpec with Matchers with TestingSparkSessi
           ValidatorCheckEvent(failure = false, "StringLengthCheck on column 'item'", 4, 0)) // scalastyle:ignore
       }
 
-      it("String length check passes for only minValue specified") {
+      it("String length check passes for only minLength specified") {
         val dict = new VarSubstitution
         val df = mkDataFrame(spark, defData)
         val sut = StringLengthCheck("item", Some(Json.fromInt(0)), None, None) // scalastyle:ignore
@@ -401,7 +401,7 @@ class StringLengthCheckSpec extends FunSpec with Matchers with TestingSparkSessi
           ValidatorCheckEvent(failure = false, "StringLengthCheck on column 'item'", 4, 0)) // scalastyle:ignore
       }
 
-      it("String length check passes for only maxValue specified") {
+      it("String length check passes for only maxLength specified") {
         val dict = new VarSubstitution
         val df = mkDataFrame(spark, defData)
         val sut = StringLengthCheck("item", None, Some(Json.fromInt(6)), None) // scalastyle:ignore
@@ -415,14 +415,14 @@ class StringLengthCheckSpec extends FunSpec with Matchers with TestingSparkSessi
       }
 
       it("toJson works") {
-        val minValue = Random.nextInt(1000) // scalastyle:ignore
-        val minJson = Json.fromInt(minValue)
-        val maxJson = Json.fromInt(minValue + Random.nextInt(1000) + 1) // scalastyle:ignore
+        val minLength = Random.nextInt(1000) // scalastyle:ignore
+        val minJson = Json.fromInt(minLength)
+        val maxJson = Json.fromInt(minLength + Random.nextInt(1000) + 1) // scalastyle:ignore
         val sut = StringLengthCheck("item", Some(minJson), Some(maxJson), None) // scalastyle:ignore
         assert(sut.toJson == Json.obj(("type", Json.fromString("stringLengthCheck")),
           ("column", Json.fromString("item")),
-          ("minValue", minJson),
-          ("maxValue", maxJson),
+          ("minLength", minJson),
+          ("maxLength", maxJson),
           ("events", Json.arr())
         ))
       }
