@@ -282,6 +282,17 @@ At least one of `minLength` or `maxLength` must be specified. The data type of `
 | `maxLength` | Integer | Upper bound of the length of the string, inclusive.
 | `threshold` | String | See above description of threshold.
 
+#### `stringRegexCheck`
+
+Takes 2 to 3 parameters, described in the table below. If the `column` value does not match the pattern specified by the `regex`, the check will fail.
+A value for `regex` must be specified. The data type of `column` must be String.
+
+| Arg | Type | Description |
+|-----|------|-------------|
+| `column` | String | Table column to be checked. The DataType of the column must be a String
+| `regex` | String | POSIX regex.
+| `threshold` | String | See above description of threshold.
+
 #### `rowCount`
 
 The minimum number of rows a table must have to pass the validator.
@@ -372,6 +383,15 @@ tables:
               column: occupation
               minLength: 1
               maxLength: 5
+
+      # stringRegexCheck - checks if the string in the column matches the pattern specified by `regex`, counts number of rows in which there is a mismatch.
+            - type: stringRegexCheck
+              column: occupation
+              regex: ^ENGINEER$ (matches the word ENGINEER)
+
+            - type: stringRegexCheck
+              column: occupation
+              regex: \w (matches any alphanumeric string)
 ```
 
 ## Working with OOZIE Workflows
