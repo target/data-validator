@@ -28,18 +28,11 @@ case class StringRegexCheck(
     ret
   }
 
-  private def cmpExpr(colExpr: Expression,
-                      value: Option[Json],
-                      cmp: (Expression, Expression) => Expression
-                     ): Option[Expression] = {
-    value.map { v => cmp(colExpr, createLiteralOrUnresolvedAttribute(StringType, v)) }
-  }
-
   override def colTest(schema: StructType, dict: VarSubstitution): Expression = {
 
     val colExp = UnresolvedAttribute(column)
 
-    val regexExpression = cmpExpr(colExp, regex, RLike)
+    val regexExpression = regex.map { r => RLike(colExp, createLiteralOrUnresolvedAttribute(StringType, r)) }
 
     val ret = regexExpression match {
          /*
