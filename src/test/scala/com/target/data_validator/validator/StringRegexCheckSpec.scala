@@ -9,7 +9,7 @@ import org.apache.spark.sql.catalyst.expressions._
 import org.apache.spark.sql.types._
 import org.scalatest.{FunSpec, Matchers}
 
-class StringRegexCheckSpec extends FunSpec with Matchers with TestingSparkSession {
+class StringRegexCheckSpec extends FunSpec with Matchers with TestingSparkSession with Mocker {
 
   val schema = StructType(
     List(
@@ -26,14 +26,12 @@ class StringRegexCheckSpec extends FunSpec with Matchers with TestingSparkSessio
     Row(null, 2.00)
   )
 
-  def mkDataFrame(spark: SparkSession, data: List[Row]): DataFrame = spark.createDataFrame(sc.parallelize(data), schema)
-
   describe("StringRegexCheck") {
 
     describe("configCheck") {
 
       it("error if regex is not defined") {
-        val df = mkDataFrame(spark, defData)
+        val df = mkDataFrame(spark, defData, schema)
         val sut = StringRegexCheck("item", None, None)
         assert(sut.configCheck(df))
         assert(sut.getEvents contains ValidatorError("Must define a regex."))
@@ -41,27 +39,18 @@ class StringRegexCheckSpec extends FunSpec with Matchers with TestingSparkSessio
       }
 
       it("error if column is not found in df") {
-        val df = mkDataFrame(spark, defData)
-        val sut = StringRegexCheck(
-          "bad_column_name",
-          Some(Json.fromString("I%")),
-          None
-        )
+        val df = mkDataFrame(spark, defData, schema)
+        val sut = StringRegexCheck( "bad_column_name", Some(Json.fromString("I%")), None)
         assert(sut.configCheck(df))
         assert(sut.getEvents contains ValidatorError("Column: 'bad_column_name' not found in schema."))
         assert(sut.failed)
       }
 
       it("error if col type is not String") {
-        val df = mkDataFrame(spark, defData)
-        val sut = StringRegexCheck(
-          "baseprice",
-          Some(Json.fromString("I%")),
-          None
-        )
+        val df = mkDataFrame(spark, defData, schema)
+        val sut = StringRegexCheck("baseprice", Some(Json.fromString("I%")), None)
         assert(sut.configCheck(df))
-        assert(sut.getEvents contains
-          ValidatorError("Data type of column 'baseprice' must be String, but was found to be DoubleType"))
+        assert(sut.getEvents contains ValidatorError("Data type of column 'baseprice' must be String, but was found to be DoubleType"))
         assert(sut.failed)
       }
     }
@@ -69,27 +58,20 @@ class StringRegexCheckSpec extends FunSpec with Matchers with TestingSparkSessio
     describe("substitute vars") {
 
       it("variable column name isn't correct") {
-        val dict = new VarSubstitution
         val sut = StringRegexCheck("$column", Some(Json.fromString("I%")), None)
-        assert(sut.substituteVariables(dict) == sut)
+        assert(sut.substituteVariables(mkPrams()) == sut)
         assert(sut.failed)
       }
 
       it("substitute without threshold") {
-        val dict = new VarSubstitution
-        dict.addString("column", "item")
-        dict.addString("regex", "I%")
+        val dict = mkPrams(List(("column", "item"), ("regex", "I%")))
         val sut = StringRegexCheck("$column", Some(Json.fromString("${regex}")), None)
         assert(sut.substituteVariables(dict) == StringRegexCheck("item", Some(Json.fromString("I%")), None))
         assert(!sut.failed)
       }
 
       it("substitute with threshold") {
-        val dict = new VarSubstitution
-        dict.addString("column", "item")
-        dict.addString("regex", "I%")
-        val threshold = Json.fromInt(100)
-        dict.add("threshold", threshold)
+        val dict = mkPrams(List(("column", "item"), ("regex", "I%")), List(("threshold", Json.fromInt(100))))
         val sut = StringRegexCheck("$column", Some(Json.fromString("${regex}")), Some("${threshold}"))
         assert(sut.substituteVariables(dict) == StringRegexCheck("item", Some(Json.fromString("I%")), Some("100")))
         assert(!sut.failed)
@@ -99,9 +81,8 @@ class StringRegexCheckSpec extends FunSpec with Matchers with TestingSparkSessio
     describe("colTest") {
 
       it("regex pattern ab%") {
-        val dict = new VarSubstitution
         val sut = StringRegexCheck("item", Some(Json.fromString("ab%")), None)
-        assert(sut.colTest(schema, dict).sql ==
+        assert(sut.colTest(schema, mkPrams()).sql ==
           And(Not(RLike(UnresolvedAttribute("item"), Literal.create("ab%", StringType))), IsNotNull(UnresolvedAttribute("item"))).sql)
       }
     }
@@ -120,11 +101,7 @@ class StringRegexCheckSpec extends FunSpec with Matchers with TestingSparkSessio
         val json = io.circe.yaml.parser.parse(yaml).right.getOrElse(Json.Null)
         val sut = json.as[Array[ValidatorBase]]
         assert(sut.isRight)
-        assert(sut.right.get contains StringRegexCheck(
-          "item",
-          Some(Json.fromString("ab%")),
-          Some("10%")
-        ))
+        assert(sut.right.get contains StringRegexCheck("item", Some(Json.fromString("ab%")), Some("10%")))
       }
 
       it("fromJson with regex") {
@@ -138,11 +115,7 @@ class StringRegexCheckSpec extends FunSpec with Matchers with TestingSparkSessio
         val json = io.circe.yaml.parser.parse(yaml).right.getOrElse(Json.Null)
         val sut = json.as[Array[ValidatorBase]]
         assert(sut.isRight)
-        assert(sut.right.get contains StringRegexCheck(
-          "item",
-          Some(Json.fromString("ab%")),
-          None
-        ))
+        assert(sut.right.get contains StringRegexCheck("item", Some(Json.fromString("ab%")), None))
       }
 
       it("fromJson with threshold") {
@@ -156,11 +129,7 @@ class StringRegexCheckSpec extends FunSpec with Matchers with TestingSparkSessio
         val json = io.circe.yaml.parser.parse(yaml).right.getOrElse(Json.Null)
         val sut = json.as[Array[ValidatorBase]]
         assert(sut.isRight)
-        assert(sut.right.get contains StringRegexCheck(
-          "item",
-          None,
-          Some("10%")
-        ))
+        assert(sut.right.get contains StringRegexCheck("item", None, Some("10%")))
       }
 
       it("fromJson without regex and threshold") {
@@ -173,19 +142,15 @@ class StringRegexCheckSpec extends FunSpec with Matchers with TestingSparkSessio
         val json = io.circe.yaml.parser.parse(yaml).right.getOrElse(Json.Null)
         val sut = json.as[Array[ValidatorBase]]
         assert(sut.isRight)
-        assert(sut.right.get contains StringRegexCheck(
-          "item",
-          None,
-          None
-        ))
+        assert(sut.right.get contains StringRegexCheck("item", None, None))
       }
     }
 
     describe("Regex Match Check") {
 
       it("String regex check fails : numFailures=1 : numFailuresToReport=2") {
-        val dict = new VarSubstitution
-        val df = mkDataFrame(spark, defData)
+        val dict = mkPrams()
+        val df = mkDataFrame(spark, defData, schema)
         val sut = StringRegexCheck("item", Some(Json.fromString("^It")), None) // scalastyle:ignore
         val config = ValidatorConfig(1, 2, None, detailedErrors = true, None,
           None, List(ValidatorDataFrame(df, None, None, sut :: Nil)))
@@ -201,8 +166,8 @@ class StringRegexCheckSpec extends FunSpec with Matchers with TestingSparkSessio
       }
 
       it("String regex check fails : numFailures=2 : numFailuresToReport=2") {
-        val dict = new VarSubstitution
-        val df = mkDataFrame(spark, defData)
+        val dict = mkPrams()
+        val df = mkDataFrame(spark, defData, schema)
         val sut = StringRegexCheck("item", Some(Json.fromString("^Item2")), None) // scalastyle:ignore
         val config = ValidatorConfig(1, 2, None, detailedErrors = true, None,
           None, List(ValidatorDataFrame(df, None, None, sut :: Nil)))
@@ -222,8 +187,8 @@ class StringRegexCheckSpec extends FunSpec with Matchers with TestingSparkSessio
       }
 
       it("String regex check fails : numFailures=2 : numFailuresToReport=1") {
-        val dict = new VarSubstitution
-        val df = mkDataFrame(spark, defData)
+        val dict = mkPrams()
+        val df = mkDataFrame(spark, defData, schema)
         val sut = StringRegexCheck("item", Some(Json.fromString("^Item2")), None) // scalastyle:ignore
         val config = ValidatorConfig(1, 1, None, detailedErrors = true, None,
           None, List(ValidatorDataFrame(df, None, None, sut :: Nil)))
@@ -243,8 +208,8 @@ class StringRegexCheckSpec extends FunSpec with Matchers with TestingSparkSessio
       }
 
       it("String regex check passes 1") {
-        val dict = new VarSubstitution
-        val df = mkDataFrame(spark, defData)
+        val dict = mkPrams()
+        val df = mkDataFrame(spark, defData, schema)
         val sut = StringRegexCheck("item", Some(Json.fromString("^I")), None) // scalastyle:ignore
         val config = ValidatorConfig(1, 2, None, detailedErrors = true, None,
           None, List(ValidatorDataFrame(df, None, None, sut :: Nil)))
@@ -256,8 +221,8 @@ class StringRegexCheckSpec extends FunSpec with Matchers with TestingSparkSessio
       }
 
       it("String regex check passes 2") {
-        val dict = new VarSubstitution
-        val df = mkDataFrame(spark, defData)
+        val dict = mkPrams()
+        val df = mkDataFrame(spark, defData, schema)
         val sut = StringRegexCheck("item", Some(Json.fromString("\\w")), None) // scalastyle:ignore
         val config = ValidatorConfig(1, 2, None, detailedErrors = true, None,
           None, List(ValidatorDataFrame(df, None, None, sut :: Nil)))
