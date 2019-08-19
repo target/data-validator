@@ -71,7 +71,7 @@ class StringRegexCheckSpec extends FunSpec with Matchers with TestingSparkSessio
       }
 
       it("substitute with threshold") {
-        val dict = mkPrams(List(("column", "item"), ("regex", "I%")), List(("threshold", Json.fromInt(100))))
+        val dict = mkPrams(List(("column", "item"), ("regex", "I%"), ("threshold", Json.fromInt(100))))
         val sut = StringRegexCheck("$column", Some(Json.fromString("${regex}")), Some("${threshold}"))
         assert(sut.substituteVariables(dict) == StringRegexCheck("item", Some(Json.fromString("I%")), Some("100")))
         assert(!sut.failed)
