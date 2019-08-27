@@ -59,19 +59,19 @@ class StringRegexCheckSpec extends FunSpec with Matchers with TestingSparkSessio
 
       it("variable column name isn't correct") {
         val sut = StringRegexCheck("$column", Some(Json.fromString("I%")), None)
-        assert(sut.substituteVariables(mkPrams()) == sut)
+        assert(sut.substituteVariables(mkParams()) == sut)
         assert(sut.failed)
       }
 
       it("substitute without threshold") {
-        val dict = mkPrams(List(("column", "item"), ("regex", "I%")))
+        val dict = mkParams(List(("column", "item"), ("regex", "I%")))
         val sut = StringRegexCheck("$column", Some(Json.fromString("${regex}")), None)
         assert(sut.substituteVariables(dict) == StringRegexCheck("item", Some(Json.fromString("I%")), None))
         assert(!sut.failed)
       }
 
       it("substitute with threshold") {
-        val dict = mkPrams(List(("column", "item"), ("regex", "I%"), ("threshold", Json.fromInt(100))))
+        val dict = mkParams(List(("column", "item"), ("regex", "I%"), ("threshold", Json.fromInt(100))))
         val sut = StringRegexCheck("$column", Some(Json.fromString("${regex}")), Some("${threshold}"))
         assert(sut.substituteVariables(dict) == StringRegexCheck("item", Some(Json.fromString("I%")), Some("100")))
         assert(!sut.failed)
@@ -82,7 +82,7 @@ class StringRegexCheckSpec extends FunSpec with Matchers with TestingSparkSessio
 
       it("regex pattern ab%") {
         val sut = StringRegexCheck("item", Some(Json.fromString("ab%")), None)
-        assert(sut.colTest(schema, mkPrams()).sql ==
+        assert(sut.colTest(schema, mkParams()).sql ==
           And(Not(RLike(UnresolvedAttribute("item"), Literal.create("ab%", StringType))), IsNotNull(UnresolvedAttribute("item"))).sql)
       }
     }
@@ -149,7 +149,7 @@ class StringRegexCheckSpec extends FunSpec with Matchers with TestingSparkSessio
     describe("Regex Match Check") {
 
       it("String regex check fails : numFailures=1 : numFailuresToReport=2") {
-        val dict = mkPrams()
+        val dict = mkParams()
         val df = mkDataFrame(spark, defData, schema)
         val sut = StringRegexCheck("item", Some(Json.fromString("^It")), None) // scalastyle:ignore
         val config = ValidatorConfig(1, 2, None, detailedErrors = true, None,
@@ -166,7 +166,7 @@ class StringRegexCheckSpec extends FunSpec with Matchers with TestingSparkSessio
       }
 
       it("String regex check fails : numFailures=2 : numFailuresToReport=2") {
-        val dict = mkPrams()
+        val dict = mkParams()
         val df = mkDataFrame(spark, defData, schema)
         val sut = StringRegexCheck("item", Some(Json.fromString("^Item2")), None) // scalastyle:ignore
         val config = ValidatorConfig(1, 2, None, detailedErrors = true, None,
@@ -187,7 +187,7 @@ class StringRegexCheckSpec extends FunSpec with Matchers with TestingSparkSessio
       }
 
       it("String regex check fails : numFailures=2 : numFailuresToReport=1") {
-        val dict = mkPrams()
+        val dict = mkParams()
         val df = mkDataFrame(spark, defData, schema)
         val sut = StringRegexCheck("item", Some(Json.fromString("^Item2")), None) // scalastyle:ignore
         val config = ValidatorConfig(1, 1, None, detailedErrors = true, None,
@@ -208,7 +208,7 @@ class StringRegexCheckSpec extends FunSpec with Matchers with TestingSparkSessio
       }
 
       it("String regex check passes 1") {
-        val dict = mkPrams()
+        val dict = mkParams()
         val df = mkDataFrame(spark, defData, schema)
         val sut = StringRegexCheck("item", Some(Json.fromString("^I")), None) // scalastyle:ignore
         val config = ValidatorConfig(1, 2, None, detailedErrors = true, None,
@@ -221,7 +221,7 @@ class StringRegexCheckSpec extends FunSpec with Matchers with TestingSparkSessio
       }
 
       it("String regex check passes 2") {
-        val dict = mkPrams()
+        val dict = mkParams()
         val df = mkDataFrame(spark, defData, schema)
         val sut = StringRegexCheck("item", Some(Json.fromString("\\w")), None) // scalastyle:ignore
         val config = ValidatorConfig(1, 2, None, detailedErrors = true, None,

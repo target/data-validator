@@ -287,11 +287,11 @@ At least one of `minLength` or `maxLength` must be specified. The data type of `
 Takes 2 to 3 parameters, described in the table below. If the `column` value does not match the pattern specified by the `regex`, the check will fail.
 A value for `regex` must be specified. The data type of `column` must be String.
 
-| Arg | Type | Description |
-|-----|------|-------------|
-| `column` | String | Table column to be checked. The DataType of the column must be a String
-| `regex` | String | POSIX regex.
-| `threshold` | String | See above description of threshold.
+| Arg         | Type   | Description                                                             |
+|-------------|--------|-------------------------------------------------------------------------|
+| `column`    | String | Table column to be checked. The DataType of the column must be a String |
+| `regex`     | String | POSIX regex.                                                            |
+| `threshold` | String | See above description of threshold.                                     |
 
 #### `rowCount`
 

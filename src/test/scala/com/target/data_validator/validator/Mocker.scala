@@ -9,13 +9,14 @@ trait Mocker{
 
   def mkDataFrame(spark: SparkSession, data: List[Row], schema: StructType): DataFrame = spark.createDataFrame(spark.sparkContext.parallelize(data), schema)
 
-  def mkPrams(params: List[Tuple2[String, Any]] = List.empty): VarSubstitution = {
+  def mkParams(params: List[Tuple2[String, Any]] = List.empty): VarSubstitution = {
     val dict = new VarSubstitution
-    params.foreach(pair => pair._2 match {
-      case p: Json => dict.add(pair._1, pair._2.asInstanceOf[Json])
-      case p: String => dict.addString(pair._1, pair._2.asInstanceOf[String])
+    params.foreach { pair =>
+      pair._2 match {
+        case p: Json => dict.add(pair._1, pair._2.asInstanceOf[Json])
+        case p: String => dict.addString(pair._1, pair._2.asInstanceOf[String])
+      }
     }
-    )
     dict
   }
 }
