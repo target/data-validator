@@ -1,13 +1,15 @@
 on: pull_request
-name: PullRequest
+name: Pull Request
 jobs:
   compileData-validator:
     name: compile data-validator
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@master
-    - name: compile data-validator
-      uses: docker://amazoncorretto:8
+    - name: Checkout
+      uses: actions/checkout@master
+    - name: Set up JDK 1.8
+      uses: actions/setup-java@v1
       with:
-        entrypoint: bin/sbt
-        args: clean compile test package
+        java-version: 1.8
+    - name: Run tests
+      run: bin/sbt clean compile test package
