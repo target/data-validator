@@ -198,9 +198,36 @@ To validate an `.orc` file, specify `orcFile` and the path to the file, see belo
   checks:
 ```
 
+#### Parquet File
+
+To validate an `.parquet` file, specify `parquetFile` and the path to the file, see below.
+
+```yaml
+- parquetFile: /path/to/parquet/file
+  keyColumns:
+    - col1
+    - col2
+  checks:
+```
+
 ### Validators
 
- The third section are the validators. Currently 5 validators are supported `columnMaxCheck`, `negativeCheck`, `nullCheck`, `rangeCheck` and `rowCount`. To specify a validator, you first specify the `type` as one of the validators, then specify the arguments for that validator.
+  The third section are the validators. To specify a validator, you
+first specify the type as one of the validators, then specify the
+arguments for that validator. Some of the validators support an error
+threshold. This options allows the user to specify the number of errors
+or percentage of errors they can tolerate.  In some use cases, it
+might not be possible to eliminate all errors in the data.
+
+##### Thresholds
+
+Thresholds can be specified as an absolute number of errors, or a percentage of the row count.
+If the threshold is `>= 1` it is considered an absolute number of errors. For example `1000` would fail the check if there are more then 1000 rows that failed the check.
+
+If the threshold is `< 1` it is considered a fraction of the row count. For example `0.25` would fail the check if more then `rowCount * 0.25` of the rows fail the check.
+If the threshold ends in a `%` its considered a percentage of the row count. For eample `33%` would fail the check if more then `rowCount * 0.33` of the rows fail the check.
+
+Currently supported validators are listed below:
 
 #### `columnMaxCheck`
 
@@ -218,6 +245,7 @@ Takes a single parameter, the column name to check. The validator will fail if a
 | Arg | Type | Description |
 |-----|------|-------------|
 | `column` | String | Table column to be checked for negative values.  If it contains a `null` validator will fail.  **Note:** Column must be of a `NumericType` or the check will fail during the config check.
+| `threshold` | String | See above description of threshold.
 
 #### `nullCheck`
 
@@ -226,6 +254,7 @@ Takes a single parameter, the column name to check. The validator will fail if a
 | Arg | Type | Description |
 |-----|------|-------------|
 | `column` | String | Table column to be checked for `null`.  If it contains a `null` validator will fail.
+| `threshold` | String | See above description of threshold.
 
 #### `rangeCheck`
 
@@ -237,8 +266,32 @@ Takes 2 - 4 parameters, described below. If the value in the column doesn't fall
 | `minValue` | \* | lower bound of the range, or other column in table. Type depends on the type of the `column`.
 | `maxValue` | \* | upper bound of the range, or other column in table. Type depends on the type of the `column`.
 | `inclusive` | Boolean | Include `minValue` and `maxValue` as part of the range.
+| `threshold` | String | See above description of threshold.
 
 **Note:** To specify another column in the table, you must prefix the column name with a **`** (backtick).
+
+#### `stringLengthCheck`
+
+Takes 2 to 4 parameters, described in the table below. If the length of the string in the column doesn't fall within the range specified by (`minLength`, `maxLength`), both inclusive, the check will fail.
+At least one of `minLength` or `maxLength` must be specified. The data type of `column` must be String.
+
+| Arg | Type | Description |
+|-----|------|-------------|
+| `column` | String | Table column to be checked. The DataType of the column must be a String
+| `minLength` | Integer | Lower bound of the length of the string, inclusive.
+| `maxLength` | Integer | Upper bound of the length of the string, inclusive.
+| `threshold` | String | See above description of threshold.
+
+#### `stringRegexCheck`
+
+Takes 2 to 3 parameters, described in the table below. If the `column` value does not match the pattern specified by the `regex`, the check will fail.
+A value for `regex` must be specified. The data type of `column` must be String.
+
+| Arg         | Type   | Description                                                             |
+|-------------|--------|-------------------------------------------------------------------------|
+| `column`    | String | Table column to be checked. The DataType of the column must be a String |
+| `regex`     | String | POSIX regex.                                                            |
+| `threshold` | String | See above description of threshold.                                     |
 
 #### `rowCount`
 
@@ -249,6 +302,15 @@ The minimum number of rows a table must have to pass the validator.
 | `minNumRows` | Long | The minimum number of rows a table must have to pass. **Note:** Currently this cannot be a variable.
 
 See Example Config file below to see how the checks are configured.
+
+#### `uniqueCheck`
+
+This check is used to make sure all rows in the table are unique, only the columns specified are used to determine uniqueness.
+This is a costly check and requires an additional pass through the table.
+
+| Arg | Type | Description |
+|-----|------|-------------|
+| `columns` | Array[String] | Each set of values in these columns must be unique.
 
 ## Example Config
 
@@ -315,6 +377,21 @@ tables:
       # nullCheck - checks if the column is null, counts number of rows with null for this column.
       - type: nullCheck
         column: occupation
+
+      # stringLengthCheck - checks if the length of the string in the column falls within the specified range, counts number of rows in which the length of the string is outside the specified range.
+            - type: stringLengthCheck
+              column: occupation
+              minLength: 1
+              maxLength: 5
+
+      # stringRegexCheck - checks if the string in the column matches the pattern specified by `regex`, counts number of rows in which there is a mismatch.
+            - type: stringRegexCheck
+              column: occupation
+              regex: ^ENGINEER$ (matches the word ENGINEER)
+
+            - type: stringRegexCheck
+              column: occupation
+              regex: \w (matches any alphanumeric string)
 ```
 
 ## Working with OOZIE Workflows

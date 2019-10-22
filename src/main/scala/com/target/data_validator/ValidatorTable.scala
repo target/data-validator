@@ -1,6 +1,6 @@
 package com.target.data_validator
 
-import com.target.data_validator.validator.{ColumnBased, RowBased, ValidatorBase}
+import com.target.data_validator.validator.{CheapCheck, ColumnBased, CostlyCheck, RowBased, ValidatorBase}
 import org.apache.spark.sql.{Column, DataFrame, Row, SparkSession}
 import org.apache.spark.sql.catalyst.expressions.{Alias, Expression}
 import org.apache.spark.sql.catalyst.expressions.aggregate.{Count, Sum}
@@ -75,9 +75,13 @@ abstract class ValidatorTable(
 
   def quickChecks(session: SparkSession, dict: VarSubstitution)(implicit vc: ValidatorConfig): Boolean = {
     val dataFrame = open(session).get
-    val checkSelects: Seq[Expression] = checks.map {
+    val qc: List[CheapCheck] = checks.flatMap {
+      case cc: CheapCheck => Some(cc)
+      case _ => None
+    }
+    val checkSelects: Seq[Expression] = qc.map {
       case colChk: ColumnBased => colChk.select(dataFrame.schema, dict)
-      case chk => Sum(chk.select(dataFrame.schema, dict)).toAggregateExpression()
+      case chk: RowBased => Sum(chk.select(dataFrame.schema, dict)).toAggregateExpression()
     }
 
     val cols: Seq[Column] = createCountSelect() ++ checkSelects.zipWithIndex.map {
@@ -98,8 +102,8 @@ abstract class ValidatorTable(
     logger.info(s"Total Rows Processed: $count")
     addEvent(ValidatorCounter(s"RowCount for $label", count))
 
-    val failed = checks.zipWithIndex.map {
-      case (check: ValidatorBase, idx: Int) => check.quickCheck(results, count, idx + 1)
+    val failed = qc.zipWithIndex.map {
+      case (check: CheapCheck, idx: Int) => check.quickCheck(results, count, idx + 1)
     }.exists(x => x)
 
     if (failed) {
@@ -110,6 +114,15 @@ abstract class ValidatorTable(
       }
     }
     failed
+  }
+
+  def costlyChecks(session: SparkSession, dict: VarSubstitution)(implicit  vc: ValidatorConfig): Boolean = {
+    val df = open(session).get
+    val cc = checks.flatMap {
+      case cc: CostlyCheck => Some(cc)
+      case _ => None
+    }
+    cc.map(_.costlyCheck(df)).exists(x => x)
   }
 
   def quickErrorDetails(dataFrame: DataFrame, dict: VarSubstitution)(implicit vc: ValidatorConfig): Unit = {

@@ -48,7 +48,13 @@ case class ValidatorConfig(
   }
 
   def quickChecks(session: SparkSession, dict: VarSubstitution): Boolean = {
+    logger.info("Running Quick Checks...")
     tables.map(_.quickChecks(session, dict)(this)).exists(x => x)
+  }
+
+  def costlyChecks(session: SparkSession, dict: VarSubstitution): Boolean = {
+    logger.info("Running Costly Checks...")
+    tables.map(_.costlyChecks(session, dict)(this)).exists(x => x)
   }
 
   def generateHTMLReport(): Tag = html(h1("Validator Report"), hr(), tables.map(_.generateHTMLReport()))

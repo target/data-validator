@@ -10,10 +10,13 @@ object JsonDecoders extends LazyLogging {
   implicit val decodeChecks: Decoder[ValidatorBase] = new Decoder[ValidatorBase] {
     final def apply(c: HCursor): Decoder.Result[ValidatorBase] = c.downField("type").as[String].flatMap {
       case "rowCount" => c.as[MinNumRows]
-      case "nullCheck" => c.as[NullCheck]
-      case "negativeCheck" => c.as[NegativeCheck]
+      case "nullCheck" => NullCheck.fromJson(c)
+      case "negativeCheck" => NegativeCheck.fromJson(c)
       case "columnMaxCheck" => c.as[ColumnMaxCheck]
       case "rangeCheck" => RangeCheck.fromJson(c)
+      case "uniqueCheck" => UniqueCheck.fromJson(c)
+      case "stringLengthCheck" => StringLengthCheck.fromJson(c)
+      case "stringRegexCheck" => StringRegexCheck.fromJson(c)
       case x => logger.error(s"Unknown Check `$x` in config!")
         throw new RuntimeException(s"Unknown Check in config `$x`")
     }

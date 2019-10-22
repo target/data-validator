@@ -23,6 +23,7 @@ object JsonEncoders extends LazyLogging {
     override def apply(a: ValidatorEvent): Json = a match {
       case vc: ValidatorCounter => Json.obj(
         ("type", Json.fromString("counter")),
+        ("name", Json.fromString(vc.name)),
         ("value", Json.fromLong(vc.value))
       )
       case vg: ValidatorGood => Json.obj(

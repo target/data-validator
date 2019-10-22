@@ -23,10 +23,6 @@ abstract class ValidatorBase(
 
   def configCheck(df: DataFrame): Boolean
 
-  def select(schema: StructType, dict: VarSubstitution): Expression
-
-  def quickCheck(r: Row, count: Long, idx: Int): Boolean
-
   def generateHTMLReport: Tag = {
     val d = div(cls := "check_report")
     if (failed) {
@@ -64,7 +60,7 @@ abstract class ValidatorBase(
         addEvent(ValidatorError(msg))
       }
     } else {
-      val msg = s"Column: $column not found in table."
+      val msg = s"Column: '$column' not found in table."
       logger.error(msg)
       addEvent(ValidatorError(msg))
     }
@@ -74,7 +70,9 @@ abstract class ValidatorBase(
   private[validator] def findColumnInDataFrame(dataFrame: DataFrame, column: String): Option[StructField] = {
     val ret = dataFrame.schema.fields.find(_.name == column)
     if (ret.isEmpty) {
-      addEvent(ValidatorError(s"Column: $column not found in schema."))
+      val msg = s"Column: '$column' not found in schema."
+      logger.error(msg)
+      addEvent(ValidatorError(msg))
     }
     ret
   }
@@ -243,4 +241,20 @@ object ValidatorBase extends LazyLogging {
     logger.debug(s"areTypesCompatible colType: $dataType value[${value.getClass.getCanonicalName}]: $value ret: $ret")
     ret
   }
+}
+
+/**
+* CheapChecks are checks that can be combined into the same pass through a table.
+*/
+trait CheapCheck extends ValidatorBase {
+  def select(schema: StructType, dict: VarSubstitution): Expression
+
+  def quickCheck(r: Row, count: Long, idx: Int): Boolean
+}
+
+/**
+* CostlyChecks are checks that require their own pass through the table and therefore are most costly.
+*/
+trait CostlyCheck extends ValidatorBase {
+  def costlyCheck(df: DataFrame): Boolean
 }
