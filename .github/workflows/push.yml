@@ -1,0 +1,13 @@
+on: push
+name: Push
+jobs:
+  compileData-validator:
+    name: compile data-validator
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: compile data-validator
+      uses: docker://amazoncorretto:8
+      with:
+        entrypoint: bin/sbt
+        args: clean compile test package
