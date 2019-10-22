@@ -1,9 +1,10 @@
 package com.target.data_validator
 
+import java.nio.file.Files
+
 import com.target.TestingSparkSession
 import io.circe.{parser, Json}
 import org.scalatest.{FunSpec, Matchers}
-
 import scala.io.Source.fromFile
 import scala.util.Random._
 import scalatags.Text.all._
@@ -17,11 +18,11 @@ class IOSpec extends FunSpec with Matchers with TestingSparkSession {
              | "three": { "a":1.0,"b":2.0,"c":3.0 }
              |}
            """.stripMargin).right.getOrElse(Json.Null)
-
-  val tempDir: String = System.getProperty("java.io.tmpdir")
-
+  
   def createRandomTempFilename: String = {
-    tempDir + "%d.tmp".format(Math.abs(nextInt))
+    val useDefault = null
+    val file = Files.createTempFile("data-validator_temp", useDefault)
+    file.toAbsolutePath.toString
   }
 
   def rm(filename: String): Boolean = {
