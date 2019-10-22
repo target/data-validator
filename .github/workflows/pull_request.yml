@@ -1,8 +1,8 @@
 on: pull_request
 name: Pull Request
 jobs:
-  compileData-validator:
-    name: compile data-validator
+  build:
+    name: Compile, Test, and Package
     runs-on: ubuntu-latest
     steps:
     - name: Checkout

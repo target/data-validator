@@ -10,7 +10,7 @@ val circeVersion = "0.10.0"
 enablePlugins(GitVersioning)
 git.useGitDescribe := true
 
-val artifactoryUrl:Option[java.net.URL] = sys.env.get("ARTIFACTORY_URL").map(new java.net.URL(_))
+val artifactoryUrl: Option[java.net.URL] = sys.env.get("ARTIFACTORY_URL").map(new java.net.URL(_))
 
 // Publish info
 publishTo := artifactoryUrl.map(url =>"Artifactory Realm" at url.toString)
