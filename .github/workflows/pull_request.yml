@@ -11,5 +11,7 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 1.8
+    - name: Fetch dependencies
+      run: bin/sbt update
     - name: Run tests
       run: bin/sbt clean compile test package
