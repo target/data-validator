@@ -1,13 +1,28 @@
 on: push
 name: Push
 jobs:
-  compileData-validator:
-    name: compile data-validator
+  compile:
+    name: Compile and Release
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@master
-    - name: compile data-validator
-      uses: docker://amazoncorretto:8
+    - name: Checkout
+      uses: actions/checkout@master
+    - name: Set up JDK 1.8
+      uses: actions/setup-java@v1
       with:
-        entrypoint: bin/sbt
-        args: clean compile test package
+        java-version: 1.8
+    - name: Fetch dependencies
+      run: bin/sbt update
+    - name: Run tests
+      run: bin/sbt clean compile test package
+    - name: Build a POM
+      run: bin/sbt makePom
+      if: startsWith(github.ref, 'refs/tags/')
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      # only on tagged pushes, so releases
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: target/scala-2.11/data-validator_2.11-*
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
