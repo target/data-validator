@@ -1,11 +1,11 @@
 package com.target.data_validator.validator
 
+import com.target.data_validator.{JsonEncoders, ValidatorError, VarSubstitution}
 import com.target.data_validator.JsonUtils.debugJson
 import com.target.data_validator.validator.ValidatorBase._
-import com.target.data_validator.{JsonEncoders, ValidatorError, VarSubstitution}
 import com.typesafe.scalalogging.LazyLogging
-import io.circe.syntax._
 import io.circe.{DecodingFailure, HCursor, Json}
+import io.circe.syntax._
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.catalyst.analysis.UnresolvedAttribute
 import org.apache.spark.sql.catalyst.expressions._
@@ -89,7 +89,7 @@ case class StringLengthCheck(
     val colType = findColumnInDataFrame(df, column)
     if (colType.isDefined) {
       val dataType = colType.get.dataType
-      if (!(dataType.isInstanceOf[StringType])) {
+      if (!dataType.isInstanceOf[StringType]) {
         addEvent(ValidatorError(s"Data type of column '$column' must be String, but was found to be $dataType"))
       }
     }

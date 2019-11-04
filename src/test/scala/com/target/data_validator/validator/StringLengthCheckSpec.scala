@@ -3,10 +3,10 @@ package com.target.data_validator.validator
 import com.target.TestingSparkSession
 import com.target.data_validator._
 import io.circe.Json
+import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 import org.apache.spark.sql.catalyst.analysis.UnresolvedAttribute
 import org.apache.spark.sql.catalyst.expressions._
 import org.apache.spark.sql.types._
-import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 import org.scalatest.{FunSpec, Matchers}
 
 import scala.util.Random
@@ -364,7 +364,7 @@ class StringLengthCheckSpec extends FunSpec with Matchers with TestingSparkSessi
         assert(config.quickChecks(spark, dict))
         assert(sut.failed)
         assert(sut.getEvents contains
-          ValidatorCheckEvent(failure = true, "StringLengthCheck on column 'item'", 4, 2))
+          ValidatorCheckEvent(failure = true, "StringLengthCheck on column 'item'", 4, 2)) // scalastyle:ignore
 
         assert(sut.getEvents contains
           ValidatorQuickCheckError(("item", "Item1") :: Nil, "Item1",
