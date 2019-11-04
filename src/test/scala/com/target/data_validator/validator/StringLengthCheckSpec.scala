@@ -364,7 +364,7 @@ class StringLengthCheckSpec extends FunSpec with Matchers with TestingSparkSessi
         assert(config.quickChecks(spark, dict))
         assert(sut.failed)
         assert(sut.getEvents contains
-          ValidatorCheckEvent(failure = true, "StringLengthCheck on column 'item'", 4, 2))
+          ValidatorCheckEvent(failure = true, "StringLengthCheck on column 'item'", 4, 2)) // scalastyle:ignore
 
         assert(sut.getEvents contains
           ValidatorQuickCheckError(("item", "Item1") :: Nil, "Item1",

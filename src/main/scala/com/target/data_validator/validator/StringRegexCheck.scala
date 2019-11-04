@@ -1,7 +1,6 @@
 package com.target.data_validator.validator
 
 import com.target.data_validator.{JsonEncoders, ValidatorError, VarSubstitution}
-import com.target.data_validator.JsonUtils.debugJson
 import com.target.data_validator.validator.ValidatorBase._
 import com.typesafe.scalalogging.LazyLogging
 import io.circe.{DecodingFailure, HCursor, Json}
@@ -12,10 +11,10 @@ import org.apache.spark.sql.catalyst.expressions._
 import org.apache.spark.sql.types.{StringType, StructType}
 
 case class StringRegexCheck(
-                             column: String,
-                             regex: Option[Json],
-                             threshold: Option[String]
-                            ) extends RowBased {
+  column: String,
+  regex: Option[Json],
+  threshold: Option[String]
+) extends RowBased {
 
   override def substituteVariables(dict: VarSubstitution): ValidatorBase = {
 
@@ -35,13 +34,13 @@ case class StringRegexCheck(
     val regexExpression = regex.map { r => RLike(colExp, createLiteralOrUnresolvedAttribute(StringType, r)) }
 
     val ret = regexExpression match {
-         /*
-           RLike returns false if the column value is null.
-           To avoid counting null values as validation failures (like other validations),
-           an explicit non null check on the column value is required.
-          */
-         case Some(x) => And(Not(x), IsNotNull(colExp))
-         case _ => throw new RuntimeException("Must define a regex.")
+      /*
+        RLike returns false if the column value is null.
+        To avoid counting null values as validation failures (like other validations),
+        an explicit non null check on the column value is required.
+       */
+      case Some(x) => And(Not(x), IsNotNull(colExp))
+      case _ => throw new RuntimeException("Must define a regex.")
     }
     logger.debug(s"Expr: $ret")
     ret
@@ -59,7 +58,7 @@ case class StringRegexCheck(
     val colType = findColumnInDataFrame(df, column)
     if (colType.isDefined) {
       val dataType = colType.get.dataType
-      if (!(dataType.isInstanceOf[StringType])) {
+      if (!dataType.isInstanceOf[StringType]) {
         addEvent(ValidatorError(s"Data type of column '$column' must be String, but was found to be $dataType"))
       }
     }
@@ -90,8 +89,6 @@ object StringRegexCheck extends LazyLogging {
     logger.debug(s"column: $column")
     logger.debug(s"regex: $regex type: ${regex.getClass.getCanonicalName}")
     logger.debug(s"threshold: $threshold type: ${threshold.getClass.getCanonicalName}")
-
-    c.focus.foreach {f => logger.info(s"StringRegexCheckJson: ${f.spaces2}")}
     scala.util.Right(StringRegexCheck(column, regex, threshold))
   }
 }
