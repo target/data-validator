@@ -12,10 +12,10 @@ import org.apache.spark.sql.catalyst.expressions._
 import org.apache.spark.sql.types.{StringType, StructType}
 
 case class StringRegexCheck(
-                             column: String,
-                             regex: Option[Json],
-                             threshold: Option[String]
-                            ) extends RowBased {
+  column: String,
+  regex: Option[Json],
+  threshold: Option[String]
+) extends RowBased {
 
   override def substituteVariables(dict: VarSubstitution): ValidatorBase = {
 
@@ -35,13 +35,13 @@ case class StringRegexCheck(
     val regexExpression = regex.map { r => RLike(colExp, createLiteralOrUnresolvedAttribute(StringType, r)) }
 
     val ret = regexExpression match {
-         /*
-           RLike returns false if the column value is null.
-           To avoid counting null values as validation failures (like other validations),
-           an explicit non null check on the column value is required.
-          */
-         case Some(x) => And(Not(x), IsNotNull(colExp))
-         case _ => throw new RuntimeException("Must define a regex.")
+      /*
+        RLike returns false if the column value is null.
+        To avoid counting null values as validation failures (like other validations),
+        an explicit non null check on the column value is required.
+       */
+      case Some(x) => And(Not(x), IsNotNull(colExp))
+      case _ => throw new RuntimeException("Must define a regex.")
     }
     logger.debug(s"Expr: $ret")
     ret

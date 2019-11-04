@@ -12,28 +12,28 @@ import org.apache.spark.sql.catalyst.expressions._
 import org.apache.spark.sql.types.{IntegerType, StringType, StructType}
 
 case class StringLengthCheck(
-                       column: String,
-                       minLength: Option[Json],
-                       maxLength: Option[Json],
-                       threshold: Option[String]
-                     ) extends RowBased {
+  column: String,
+  minLength: Option[Json],
+  maxLength: Option[Json],
+  threshold: Option[String]
+) extends RowBased {
 
   override def substituteVariables(dict: VarSubstitution): ValidatorBase = {
 
     val ret = StringLengthCheck(
-                                  getVarSub(column, "column", dict),
-                                  minLength.map(getVarSubJson(_, "minLength", dict)),
-                                  maxLength.map(getVarSubJson(_, "maxLength", dict)),
-                                  threshold.map(getVarSub(_, "threshold", dict))
-                               )
+      getVarSub(column, "column", dict),
+      minLength.map(getVarSubJson(_, "minLength", dict)),
+      maxLength.map(getVarSubJson(_, "maxLength", dict)),
+      threshold.map(getVarSub(_, "threshold", dict))
+    )
     getEvents.foreach(ret.addEvent)
     ret
   }
 
   private def cmpExpr(colExpr: Expression,
-                      value: Option[Json],
-                      cmp: (Expression, Expression) => Expression
-                     ): Option[Expression] = {
+    value: Option[Json],
+    cmp: (Expression, Expression) => Expression
+  ): Option[Expression] = {
     value.map { v => cmp(colExpr, createLiteralOrUnresolvedAttribute(IntegerType, v)) }
   }
 
@@ -57,20 +57,20 @@ case class StringLengthCheck(
   private def checkMinLessThanOrEqualToMax(values: List[Json]): Unit = {
 
     if (values.forall(_.isNumber)) {
-        values.flatMap(_.asNumber) match {
-          case mv :: xv :: Nil if mv.toDouble > xv.toDouble =>
-            addEvent(ValidatorError(s"min: ${minLength.get} must be less than or equal to max: ${maxLength.get}"))
-          case _ =>
-        }
+      values.flatMap(_.asNumber) match {
+        case mv :: xv :: Nil if mv.toDouble > xv.toDouble =>
+          addEvent(ValidatorError(s"min: ${minLength.get} must be less than or equal to max: ${maxLength.get}"))
+        case _ =>
+      }
     } else if (values.forall(_.isString)) {
-        values.flatMap(_.asString) match {
-          case mv :: xv :: Nil if mv == xv =>
-            addEvent(ValidatorError(s"Min[String]: $mv must be less than max[String]: $xv"))
-          case _ =>
-        }
+      values.flatMap(_.asString) match {
+        case mv :: xv :: Nil if mv == xv =>
+          addEvent(ValidatorError(s"Min[String]: $mv must be less than max[String]: $xv"))
+        case _ =>
+      }
     } else {
-        // Not Strings or Numbers
-        addEvent(ValidatorError(s"Unsupported type in ${values.map(debugJson).mkString(", ")}"))
+      // Not Strings or Numbers
+      addEvent(ValidatorError(s"Unsupported type in ${values.map(debugJson).mkString(", ")}"))
     }
   }
 
