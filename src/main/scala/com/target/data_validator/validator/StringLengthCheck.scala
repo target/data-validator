@@ -123,8 +123,6 @@ object StringLengthCheck extends LazyLogging {
     logger.debug(s"minLength: $minLengthJ type: ${minLengthJ.getClass.getCanonicalName}")
     logger.debug(s"maxLength: $maxLengthJ type: ${maxLengthJ.getClass.getCanonicalName}")
     logger.debug(s"threshold: $threshold type: ${threshold.getClass.getCanonicalName}")
-
-    c.focus.foreach {f => logger.info(s"StringLengthCheckJson: ${f.spaces2}")}
     scala.util.Right(StringLengthCheck(column, minLengthJ, maxLengthJ, threshold))
   }
 }

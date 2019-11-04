@@ -89,8 +89,6 @@ object StringRegexCheck extends LazyLogging {
     logger.debug(s"column: $column")
     logger.debug(s"regex: $regex type: ${regex.getClass.getCanonicalName}")
     logger.debug(s"threshold: $threshold type: ${threshold.getClass.getCanonicalName}")
-
-    c.focus.foreach {f => logger.info(s"StringRegexCheckJson: ${f.spaces2}")}
     scala.util.Right(StringRegexCheck(column, regex, threshold))
   }
 }
