@@ -7,9 +7,9 @@ A tool to validate data in HIVE tables.
 Assemble fat jar: `sbt clean assembly`
 
 ```
-spark-submit --master local data-validator-assembly-0.7.0.jar --help
+spark-submit --master local data-validator-assembly-0.10.0.jar --help
 
-data-validator v0.7.0
+data-validator v0.10.0
 Usage: data-validator [options]
 
   --version
@@ -31,11 +31,12 @@ Usage: data-validator [options]
 spark-submit \
   --num-executors 10 \
   --executor-cores 2 \
-  data-validator-assembly-0.7.0.jar \
+  data-validator-assembly-0.10.0.jar \
   --config config.yaml \
-  --jsonReport report.json \
-  --vars ENV=prod,DB=census_income
+  --jsonReport report.json
 ```
+
+See the [Example Config](#example-config) below for the contents of `config.yaml`.
 
 ## Config file Description
 
@@ -65,12 +66,12 @@ throughout the program.
 | `numKeyCols` | Int | Yes | The number of columns from the table schema to use to uniquely identify a row in the table.
 | `numErrorsToReport` | Int | Yes | The number of detailed errors to include in Validator Report.
 | `detailedErrors` | Boolean | Yes | If a check fails, run a second pass and gather `numErrorToReport` examples of failure.
-| `email` |EmailConfig|No| See [EmailConfig](#EmailConfig).
+| `email` |EmailConfig|No| See [Email Config](#email-config).
 | `vars` | Map | No | A map of (key, value) pairs used for variable substitution in `tables` config. See next section.
-| `outputs`| Array | No | Describes where to send `.json` report. See [ValidatorOutput](#ValidatorOutput).
+| `outputs`| Array | No | Describes where to send `.json` report. See [Validator Output](#validator-output).
 | `tables` | List | Yes | List of table sources used to load tables to validate.
 
-#### EmailConfig
+#### Email Config
 
 | Variable | Type | Required | Description |
 |:---|:---|:---|:---:
@@ -135,7 +136,7 @@ vars:
 
 This runs the sql command that gets the max value from the column `age` from the table `adult` in the `census_income` database and stores it in `MAX_AGE`.
 
-### ValidatorOutput
+### Validator Output
 
 In addition to the `--jsonReport` command line option, the `.yaml` has a `outputs` section that directs the .json event report to a file or pipes it to a program. There is no current limit on the number of outputs.
 
@@ -379,19 +380,19 @@ tables:
         column: occupation
 
       # stringLengthCheck - checks if the length of the string in the column falls within the specified range, counts number of rows in which the length of the string is outside the specified range.
-            - type: stringLengthCheck
-              column: occupation
-              minLength: 1
-              maxLength: 5
+      - type: stringLengthCheck
+        column: occupation
+        minLength: 1
+        maxLength: 5
 
       # stringRegexCheck - checks if the string in the column matches the pattern specified by `regex`, counts number of rows in which there is a mismatch.
-            - type: stringRegexCheck
-              column: occupation
-              regex: ^ENGINEER$ (matches the word ENGINEER)
+      - type: stringRegexCheck
+        column: occupation
+        regex: ^ENGINEER$ # matches the word ENGINEER
 
-            - type: stringRegexCheck
-              column: occupation
-              regex: \w (matches any alphanumeric string)
+      - type: stringRegexCheck
+        column: occupation
+        regex: \w # matches any alphanumeric string
 ```
 
 ## Working with OOZIE Workflows
@@ -424,7 +425,7 @@ Example oozie wf snippet:
       <argument>${principal}</argument>
       <argument>--files</argument>
       <argument>config.yaml</argument>
-      <argument>data-validator-assembly-0.7.0.jar</argument>
+      <argument>data-validator-assembly-0.10.0.jar</argument>
       <argument>--config</argument>
       <argument>config.yaml</argument>
       <argument>--exitErrorOnFail</argument>
@@ -472,7 +473,7 @@ Example oozie wf snippet:
     <argument>${keytab}</argument>
     <argument>--principal</argument>
     <argument>${principal}</argument>
-    <argument>data-validator-assembly-0.7.0.jar</argument>
+    <argument>data-validator-assembly-0.10.0.jar</argument>
     <argument>--config</argument>
     <argument>config.yaml</argument>
     <argument>--exitErrorOnFail</argument>
@@ -515,7 +516,7 @@ A tool is provided to generate a sample `.orc` file for use in local development
 ```sh
 spark-submit \
   --master "local[*]"  \
-  data-validator-assembly-0.7.0.jar \
+  data-validator-assembly-0.10.0.jar \
   --config local_validators.yaml \
   --jsonReport report.json  \
   --htmlReport report.html
