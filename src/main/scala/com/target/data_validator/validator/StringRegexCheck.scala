@@ -1,11 +1,10 @@
 package com.target.data_validator.validator
 
-import com.target.data_validator.{JsonEncoders, ValidatorError, VarSubstitution}
-import com.target.data_validator.JsonUtils.debugJson
 import com.target.data_validator.validator.ValidatorBase._
+import com.target.data_validator.{JsonEncoders, ValidatorError, VarSubstitution}
 import com.typesafe.scalalogging.LazyLogging
-import io.circe.{DecodingFailure, HCursor, Json}
 import io.circe.syntax._
+import io.circe.{DecodingFailure, HCursor, Json}
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.catalyst.analysis.UnresolvedAttribute
 import org.apache.spark.sql.catalyst.expressions._

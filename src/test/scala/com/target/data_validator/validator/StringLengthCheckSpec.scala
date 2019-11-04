@@ -3,10 +3,10 @@ package com.target.data_validator.validator
 import com.target.TestingSparkSession
 import com.target.data_validator._
 import io.circe.Json
-import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 import org.apache.spark.sql.catalyst.analysis.UnresolvedAttribute
 import org.apache.spark.sql.catalyst.expressions._
 import org.apache.spark.sql.types._
+import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 import org.scalatest.{FunSpec, Matchers}
 
 import scala.util.Random
