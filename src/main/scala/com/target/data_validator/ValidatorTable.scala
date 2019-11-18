@@ -1,6 +1,8 @@
 package com.target.data_validator
 
+import com.hortonworks.hwc.HiveWarehouseSession
 import com.target.data_validator.validator.{CheapCheck, ColumnBased, CostlyCheck, RowBased, ValidatorBase}
+import io.circe.{Json}
 import org.apache.spark.sql.{Column, DataFrame, Row, SparkSession}
 import org.apache.spark.sql.catalyst.expressions.{Alias, Expression}
 import org.apache.spark.sql.catalyst.expressions.aggregate.{Count, Sum}
@@ -175,6 +177,7 @@ abstract class ValidatorTable(
 // Used with Hive
 //
 case class ValidatorHiveTable(
+  useHiveWarehouseConnector: Option[Json],
   db: String,
   table: String,
   keyColumns: Option[List[String]],
@@ -188,18 +191,37 @@ case class ValidatorHiveTable(
 ) {
 
   override def getDF(session: SparkSession): Try[DataFrame] = {
-    logger.info(s"Opening table: $db.$table")
-    Try(session.table(s"$db.$table"))
+
+    createConnector(session) match {
+      case Left(sparkSession) => {
+        logger.info(s"Opening table: $db.$table using SparkSession")
+        Try(sparkSession.table(s"$db.$table"))
+      }
+      case Right(hiveWarehouseSession) => {
+        logger.info(s"Opening table: $db.$table using HiveWarehouseConnector")
+        Try(hiveWarehouseSession.table(s"$db.$table"))
+      }
+    }
+  }
+
+  def createConnector(sparkSession: SparkSession): Either[SparkSession, HiveWarehouseSession] = {
+    if (useHiveWarehouseConnector.flatMap(_.asBoolean).getOrElse(false)) {
+      Right(HiveWarehouseSession.session(sparkSession).build())
+    }
+    else {
+      Left(sparkSession)
+    }
   }
 
   override def substituteVariables(dict: VarSubstitution): ValidatorTable = {
+    val newUseHiveWarehouseConnector = useHiveWarehouseConnector.map(x => getVarSubJson(x, "useHiveWarehouseConnector", dict)) // scalastyle:ignore
     val newDb = getVarSub(db, "db", dict)
     val newTable = getVarSub(table, "table", dict)
     val newKeyColumns = keyColumns.map(v => v.map(x => getVarSub(x, "keyCol", dict)))
     val newCondition = condition.map(x => getVarSub(x, "condition", dict))
     val newChecks = checks.map(_.substituteVariables(dict))
 
-    val ret = ValidatorHiveTable(newDb, newTable, newKeyColumns, newCondition, newChecks)
+    val ret = ValidatorHiveTable(newUseHiveWarehouseConnector, newDb, newTable, newKeyColumns, newCondition, newChecks)
     this.getEvents.foreach(ret.addEvent)
     ret
   }

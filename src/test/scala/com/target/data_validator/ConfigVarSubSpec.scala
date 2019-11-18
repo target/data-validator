@@ -22,6 +22,7 @@ class ConfigVarSubSpec extends FunSpec with Matchers with TestingSparkSession {
 
       it("ValidatorHiveTable var substitution should work") {
         val sut = ValidatorHiveTable(
+          None,
           "database$one",
           "table$two",
           Some(List("Col$three", "Col$four")),
@@ -30,7 +31,7 @@ class ConfigVarSubSpec extends FunSpec with Matchers with TestingSparkSession {
         )
         assert(
           sut.substituteVariables(dict) ==
-            ValidatorHiveTable("database1", "table2", Some(List("Col3", "Col4")), Some("5 == 6"), List.empty)
+            ValidatorHiveTable(None, "database1", "table2", Some(List("Col3", "Col4")), Some("5 == 6"), List.empty)
         )
       }
 

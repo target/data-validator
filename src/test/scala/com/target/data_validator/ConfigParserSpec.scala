@@ -24,6 +24,7 @@ class ConfigParserSpec extends FunSpec with BeforeAndAfterAll {
     ),
     List(
       ValidatorHiveTable(
+        None,
         "foo",
         "bar",
         Some(List("one", "two")),
