@@ -1,0 +1,8 @@
+language: scala
+scala:
+- 2.11.8
+
+script:
+- bin/sbt update
+- bin/sbt clean compile test package
+- bin/sbt makePom
