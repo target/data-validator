@@ -7,7 +7,6 @@ object EnvironmentVariables {
   type MaybeEnvVar = Try[Option[String]]
 
   val accessedEnvVars: mutable.Map[String, MaybeEnvVar] = mutable.Map.empty
-  private[this] def clearAccessList(): Unit = accessedEnvVars.clear()
 
   def get(key: String): EnvVarResult = {
     getWithHandlers(key)(
