@@ -1,7 +1,7 @@
 package com.target.data_validator
 
 import com.target.data_validator.EnvironmentVariables.{Inaccessible, Present, Unset}
-import org.scalatest.{FunSpec, Matchers, WordSpec}
+import org.scalatest.{Matchers, WordSpec}
 
 class EnvironmentVariablesSpec extends WordSpec with Matchers {
 
@@ -14,7 +14,7 @@ class EnvironmentVariablesSpec extends WordSpec with Matchers {
         EnvironmentVariables.get("NOPE") should be(Unset)
       }
       "an envvar isn't an envvar" in {
-        EnvironmentVariables.get(null) shouldBe a[Inaccessible] // scalastyle: off
+        EnvironmentVariables.get(null) shouldBe a[Inaccessible] // scalastyle:ignore
       }
     }
     "log envvars" when {
