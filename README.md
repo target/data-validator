@@ -1,4 +1,4 @@
-# data-validator [![Build Status](https://travis-ci.org/target/data-validator.svg?branch=master)](https://travis-ci.org/target/data-validator)
+# data-validator [![Build Status](https://travis-ci.org/target/data-validator.svg?branch=master)](https://travis-ci.org/target/data-validator) [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 A tool to validate data in HIVE tables.
 
