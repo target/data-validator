@@ -18,9 +18,10 @@ object EnvironmentVariables {
       .get
   }
 
-  def getWithHandlers[T](key: String)(whenError: PartialFunction[Throwable, T],
-                                      whenUnset: => T,
-                                      whenPresent: String => T
+  def getWithHandlers[T](key: String)(
+    whenError: PartialFunction[Throwable, T],
+    whenUnset: => T,
+    whenPresent: String => T
   ): Try[T] = {
     tryGet(key)
       .map(_.map(whenPresent).getOrElse(whenUnset))
