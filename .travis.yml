@@ -1,0 +1,19 @@
+language: scala
+jdk: openjdk8
+scala:
+- 2.11.12
+script:
+- bin/sbt update
+- bin/sbt clean compile test package
+- bin/sbt makePom
+deploy:
+  provider: releases
+  api_key:
+    secure: kx4YN1x+NXW7q8gfhOusS+SCC/6jXvci7crlla2d2X7n1y58EIDLJUUnTh8/g6uMZA/XNTnh6DuElllZiGC0G+v5ZIajy+QAGqmAP38zwSCuW6lmxt8Wsgf+58EyaCk0qlAojCORd6onQ++BGuaEHDQPsWPjZaBWCrXYmULy2xEctTcH4vQbwE5uITEEW8NnIv8yxixpAsxRQ4HrVokBi8FMxqJKFUOzAYiRHoGQav0yeB95doObUbnzSuMWzJZq29DVxKkH4+aVwweC/3lt0ZJWz6uclRhmS654NJzvSgunN3C4lo1hr+GppsfpQFOnnpE4LJI3XEBlqRAX32l1+6mARrKNAZQJkYSOKapHvCzyo1Is2EAfLNuanotk81BpRxgSjAhTocAsIbYp3k7VUsodvMzbtIBUb4cEDJSSog2bkY3pW4Ulv8QXDMUrhzKJ6lgKxt+2VfpO95ZnzUKIevW7X0EA1nfF1/edHi5zgoTFnekEzg//li5WPurF/xvDcDeDphLA0QGEVZTA/hYSpQvI63lK1iXMA+S/H3X0BTY3+RGxcucRGhg106Hhn098GCB6bcUN7W1Pe2USSNCgwc8+wptq1XMn3jYFltV5Sgxpgl3p3luehG0E7b7dLdzcprb+gbK0a4ojISmZ4LYkbi3Dk06CMvk1yXPhngcf4pw=
+  file_glob: true
+  file: target/scala-2.11/data-validator_2.11-*
+  skip_cleanup: true
+  name: ${TRAVIS_TAG}
+  on:
+    repo: target/data-validator
+    tags: true
