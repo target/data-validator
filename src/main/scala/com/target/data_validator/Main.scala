@@ -3,7 +3,7 @@ package com.target.data_validator
 import java.util.Properties
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.log4j.PropertyConfigurator
+import org.apache.log4j.{Level, Logger, PropertyConfigurator}
 import org.apache.spark.sql.SparkSession
 import scopt.OptionParser
 
@@ -93,6 +93,7 @@ object Main extends LazyLogging with EventLog {
     if (mainConfig.verbose) {
       logger.info("Verbose Flag detected")
       logger.info(s"Original config: $origConfig")
+      Logger.getRootLogger.setLevel(Level.DEBUG)
     }
 
     // Resolve config

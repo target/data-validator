@@ -36,7 +36,7 @@ case class NameEnv(name: String, env: String) extends ConfigVar {
       }
       case Present(value) => {
         val resolvedEnvVar = getVarSubJson(JsonUtils.string2Json(value), name, varSub)
-        logger.debug(s"name: $name env: $env getEnv: $value resolvedEnvVar: $resolvedEnvVar")
+        logger.info(s"name: $name env: $env getEnv: $value resolvedEnvVar: $resolvedEnvVar")
         varSub.add(name, resolvedEnvVar)
       }
     }
