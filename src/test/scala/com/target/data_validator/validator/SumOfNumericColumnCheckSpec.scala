@@ -98,8 +98,28 @@ class SumOfNumericColumnCheckSpec
     }
 
     describe("variable substitution") {
-      it("successfully substitutes") {
-        //var sut = SumOfNumericColumnCheck("$column", InclusiveThreshold(""))
+      it("success substitution") {
+        var dict = mkDict("threshold" -> "20", "column" -> "foo", "thresholdType" -> "under")
+        var sut = SumOfNumericColumnCheck("$column", "$thresholdType", Some(Json.fromString("$threshold")))
+        assert(sut.substituteVariables(dict) ==
+          SumOfNumericColumnCheck("foo", "under", Some(Json.fromInt(20))))
+        assert(!sut.failed)
+      }
+
+      it("error on substitution issues") {
+        var dict = mkDict()
+        var sut = SumOfNumericColumnCheck("$column", "$thresholdType", Some(Json.fromString("$threshold")))
+        assert(sut.substituteVariables(dict) == sut)
+        assert(sut.failed)
+        assert(sut.getEvents contains
+          ValidatorError("VariableSubstitution: Can't find values for the following keys, "
+            + "column"))
+        assert(sut.getEvents contains
+          ValidatorError("VariableSubstitution: Can't find values for the following keys, "
+            + "threshold"))
+        assert(sut.getEvents contains
+          ValidatorError("VariableSubstitution: Can't find values for the following keys, "
+            + "thresholdType"))
       }
     }
 
