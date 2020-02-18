@@ -8,11 +8,12 @@ import io.circe._
 import io.circe.generic.semiauto._
 import org.scalatest.{FunSpec, Matchers}
 
-class SumOfNumericColumnCheckSpec extends FunSpec with Matchers with TestingSparkSession {
-
-  val expectedThreshold = (4, Json.fromInt(4))
-  val expectedLower = (2, Json.fromInt(2))
-  val expectedUpper = (10, Json.fromInt(10))
+class SumOfNumericColumnCheckSpec
+  extends FunSpec
+    with Matchers
+    with TestingSparkSession
+    with SumOfNumericColumnCheckExamples
+    with SumOfNumericColumnCheckBasicSetup {
 
   describe("SumOfNumericColumnCheck") {
     describe("config parsing") {
@@ -101,6 +102,50 @@ class SumOfNumericColumnCheckSpec extends FunSpec with Matchers with TestingSpar
         //var sut = SumOfNumericColumnCheck("$column", InclusiveThreshold(""))
       }
     }
-  }
 
+    describe("check configuration") {
+      it("Column Exists") {
+        val df = mkDf(spark = spark, "price" -> List(1.99))
+        val sut = overCheck
+        assert(!sut.configCheck(df))
+      }
+
+      it("Column doesn't exist") {
+        val df = mkDf(spark = spark, ("lolnope" -> List(1.99)))
+        val sut = overCheck
+        assert(sut.configCheck(df))
+        assert(sut.failed)
+        assert(sut.getEvents contains ValidatorError("Column: price not found in schema."))
+      }
+
+      it("Column exists but is wrong type") {
+        val df = mkDf(spark = spark, ("price" -> List("eggs")))
+        val sut = overCheck
+        assert(sut.configCheck(df))
+        assert(sut.failed)
+        assert(sut.getEvents contains ValidatorError("Column: price found, but not of numericType type: StringType"))
+      }
+    }
+  }
+}
+trait SumOfNumericColumnCheckBasicSetup {
+  val config = ValidatorConfig(1, 1, None, false, None, None, List.empty)
+}
+trait SumOfNumericColumnCheckExamples {
+  val expectedThreshold = (4, Json.fromInt(4))
+  val expectedLower = (2, Json.fromInt(2))
+  val expectedUpper = (10, Json.fromInt(10))
+
+  val listWithSum6 = "price" -> List(1, 2, 3)
+
+  val overCheck: SumOfNumericColumnCheck =
+    SumOfNumericColumnCheck("price", "over", threshold = Some(expectedThreshold._2))
+  val underCheck: SumOfNumericColumnCheck =
+    SumOfNumericColumnCheck("price", "under", threshold = Some(expectedThreshold._2))
+  val betweenCheck: SumOfNumericColumnCheck =
+    SumOfNumericColumnCheck("price", "between",
+    lowerBound = Some(expectedLower._2), upperBound = Some(expectedUpper._2))
+  val outsideCheck: SumOfNumericColumnCheck =
+    SumOfNumericColumnCheck("price", "outside",
+    lowerBound = Some(expectedLower._2), upperBound = Some(expectedUpper._2))
 }
