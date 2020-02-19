@@ -146,13 +146,49 @@ class SumOfNumericColumnCheckSpec
         assert(sut.getEvents contains ValidatorError("Column: price found, but not of numericType type: StringType"))
       }
     }
+
+    describe("functionality") {
+      it("success") {
+        val df = mkDf(spark, listWithSum6) // scalastyle:ignore
+        val sut = ValidatorDataFrame(
+          df = df,
+          keyColumns = None,
+          condition = None,
+          checks = List(underCheck))
+        assert(!sut.quickChecks(spark, mkDict())(config))
+        assert(!sut.failed)
+      }
+
+      it("fails") {
+        val df = mkDf(spark, listWithSum6) // scalastyle:ignore
+        val sut = ValidatorDataFrame(df, None, None, List(underCheck))
+        assert(sut.quickChecks(spark, mkDict())(config))
+        assert(sut.failed)
+
+      }
+
+      it("threshold success") {
+        val df = mkDf(spark, listWithSum6) // scalastyle:ignore
+        val sut = ValidatorDataFrame(df, None, None, List(underCheck))
+        assert(!sut.quickChecks(spark, mkDict())(config))
+        assert(!sut.failed)
+
+      }
+
+      it("threshold failure") {
+        val df = mkDf(spark, listWithSum6) // scalastyle:ignore
+        val sut = ValidatorDataFrame(df, None, None, List(underCheck))
+        assert(sut.quickChecks(spark, mkDict())(config))
+        assert(sut.failed)
+      }
+    }
   }
 }
 trait SumOfNumericColumnCheckBasicSetup {
   val config = ValidatorConfig(1, 1, None, false, None, None, List.empty)
 }
 trait SumOfNumericColumnCheckExamples {
-  val expectedThreshold = (4, Json.fromInt(4))
+  val expectedThreshold = (8, Json.fromInt(8))
   val expectedLower = (2, Json.fromInt(2))
   val expectedUpper = (10, Json.fromInt(10))
 

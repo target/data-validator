@@ -2,7 +2,7 @@ package com.target.data_validator.validator
 
 import java.util.concurrent.atomic.AtomicInteger
 
-import com.target.data_validator.{ValidatorError, VarSubstitution}
+import com.target.data_validator.{ValidatorCheckEvent, ValidatorError, VarSubstitution}
 import com.target.data_validator.validator.JsonConverters._
 import com.target.data_validator.validator.SumOfNumericColumnCheck.InclusiveThreshold
 import com.typesafe.scalalogging.LazyLogging
@@ -10,7 +10,9 @@ import io.circe._
 import io.circe.CursorOp.DownField
 import io.circe.generic.semiauto._
 import org.apache.spark.sql.{DataFrame, Row}
-import org.apache.spark.sql.types.NumericType
+import org.apache.spark.sql.catalyst.analysis.UnresolvedAttribute
+import org.apache.spark.sql.catalyst.expressions.aggregate.Sum
+import org.apache.spark.sql.types._
 
 case class SumOfNumericColumnCheck(
   column: String,
@@ -20,7 +22,7 @@ case class SumOfNumericColumnCheck(
   upperBound: Option[Json] = None
 )
   // XXX: I think this condTest makes this only work on integer columns???
-  extends ColumnBased(column, ValidatorBase.I0) {
+  extends ColumnBased(column, Sum(UnresolvedAttribute(column)).toAggregateExpression()) {
 
   override def name: String = "SumOfNumericColumn"
 
@@ -31,9 +33,38 @@ case class SumOfNumericColumnCheck(
   private val sum = new AtomicInteger(0)
 
   override def quickCheck(r: Row, count: Long, idx: Int): Boolean = {
-    val rowValue = r.getAs[Int](column)
-    val sumAfterRow = sum.addAndGet(rowValue)
-    true
+    val dataType = r.schema(idx).dataType
+    val rawValueForLogging = r.get(idx)
+    logger.debug(s"${thresholdOperator.right.get} evaluating [$rawValueForLogging]")
+
+    failed = dataType match {
+      case IntegerType =>
+        thresholdOperator.right.get.isUnacceptable(r.getInt(idx))
+      case ShortType =>
+        thresholdOperator.right.get.isUnacceptable(r.getShort(idx))
+      /*
+      case LongType => thresholdOperator.right.get.isUnacceptable(r.getLong(idx))
+      case FloatType => thresholdOperator.right.get.isUnacceptable(r.getFloat(idx))
+      case DoubleType => thresholdOperator.right.get.isUnacceptable(r.getDouble(idx))
+      */
+      // TODO: apparently DecimalType is not a DataType
+      // case DecimalType => thresholdOperator.right.get.isUnacceptable(r.getDecimal(idx))
+      case ut =>
+        logger.error(s"quickCheck for type: $ut, Row: $r not Implemented! Please file this as a bug.")
+        true // Fail check!
+    }
+    if (failed) {
+      addEvent(
+        ValidatorCheckEvent(
+          failed,
+          s"sumOfNumericColumnCheck column[$dataType]: $column value: $rawValueForLogging " +
+            "doesn't satisfy ${thresholdOperator.right.get}",
+          count,
+          errorCount = 1
+        )
+      )
+    }
+    failed
   }
 
   override def substituteVariables(dict: VarSubstitution): ValidatorBase = {
@@ -113,6 +144,7 @@ object SumOfNumericColumnCheck extends LazyLogging {
       * @return true if the sum hasn't broken the threshold, false if it has
       */
     def isAcceptable(sum: Int): Boolean
+    def isUnacceptable(sum: Int): Boolean = !isAcceptable(sum)
     def toJsonFields: Iterable[(String, String)]
     def asJson: Json = {
       Json.fromFields(toJsonFields.map(stringPair2StringJsonPair))
