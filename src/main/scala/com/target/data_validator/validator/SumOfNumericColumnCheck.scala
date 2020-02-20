@@ -14,6 +14,9 @@ import org.apache.spark.sql.catalyst.analysis.UnresolvedAttribute
 import org.apache.spark.sql.catalyst.expressions.aggregate.Sum
 import org.apache.spark.sql.types._
 
+import scala.math.Numeric.Implicits._
+import scala.math.Ordering.Implicits._
+
 case class SumOfNumericColumnCheck(
   column: String,
   thresholdType: String,
@@ -21,13 +24,18 @@ case class SumOfNumericColumnCheck(
   lowerBound: Option[Json] = None,
   upperBound: Option[Json] = None
 )
-  // XXX: I think this condTest makes this only work on integer columns???
   extends ColumnBased(column, Sum(UnresolvedAttribute(column)).toAggregateExpression()) {
 
   override def name: String = "SumOfNumericColumn"
 
-  lazy val thresholdOperator: Either[InclusiveThreshold.Error, InclusiveThreshold] = {
-    InclusiveThreshold.fromCheck(thresholdType, threshold, lowerBound, upperBound)
+  import InclusiveThreshold.Implicits._
+  def thresholdOperator[T: Numeric](dataType: DataType): Either[InclusiveThreshold.Error, InclusiveThreshold[T]] = {
+    implicit val converter: Option[Json] => Option[T] = dataType match {
+      case IntegerType => optionalJsonToInt _
+      case LongType => optionalJsonToLong _
+    }
+
+    InclusiveThreshold.fromCheck[T](thresholdType, threshold, lowerBound, upperBound)
   }
 
   private val sum = new AtomicInteger(0)
@@ -35,13 +43,16 @@ case class SumOfNumericColumnCheck(
   override def quickCheck(r: Row, count: Long, idx: Int): Boolean = {
     val dataType = r.schema(idx).dataType
     val rawValueForLogging = r.get(idx)
-    logger.debug(s"${thresholdOperator.right.get} evaluating [$rawValueForLogging]")
+
+    // val operator: InclusiveThreshold[_] = thresholdOperator[Int].right.get
+
+    // logger.debug(s"${operator} evaluating [$rawValueForLogging]")
 
     failed = dataType match {
       case IntegerType =>
-        thresholdOperator.right.get.isUnacceptable(r.getInt(idx))
+        thresholdOperator[Int](IntegerType).right.get.isUnacceptable(r.getInt(idx))
       case ShortType =>
-        thresholdOperator.right.get.isUnacceptable(r.getShort(idx))
+        thresholdOperator[Short](ShortType).right.get.isUnacceptable(r.getShort(idx))
       /*
       case LongType => thresholdOperator.right.get.isUnacceptable(r.getLong(idx))
       case FloatType => thresholdOperator.right.get.isUnacceptable(r.getFloat(idx))
@@ -80,9 +91,11 @@ case class SumOfNumericColumnCheck(
   }
 
   override def configCheck(df: DataFrame): Boolean = {
+    /*
     if (thresholdOperator.isLeft) {
       addEvent(ValidatorError(thresholdOperator.left.get.msg))
     }
+    */
 
     findColumnInDataFrame(df, column) match {
       case Some(ft) if ft.dataType.isInstanceOf[NumericType] => Unit
@@ -101,9 +114,9 @@ case class SumOfNumericColumnCheck(
   override def toJson: Json = {
     val sumAtSerialization = sum.get()
     val additionalFieldsForReport = Json.fromFields(Set(
-      "type" -> Json.fromString("sumOfNumericColumn"),
-      "sum" -> Json.fromInt(sumAtSerialization),
-      "failed" -> Json.fromBoolean(!thresholdOperator.right.get.isAcceptable(sumAtSerialization))
+      "type" -> Json.fromString("sumOfNumericColumn")
+      // "sum" -> Json.fromInt(sumAtSerialization),
+      // "failed" -> Json.fromBoolean(!thresholdOperator.right.get.isAcceptable(sumAtSerialization))
     ))
 
     val base = SumOfNumericColumnCheck.encoder(this)
@@ -137,31 +150,30 @@ object SumOfNumericColumnCheck extends LazyLogging {
     }
   }
 
-  trait InclusiveThreshold {
+  trait InclusiveThreshold[T] {
     /**
       * Test the sum inclusively
       * @param sum the value to test
       * @return true if the sum hasn't broken the threshold, false if it has
       */
-    def isAcceptable(sum: Int): Boolean
-    def isUnacceptable(sum: Int): Boolean = !isAcceptable(sum)
+    def isAcceptable(sum: T): Boolean
+    def isUnacceptable(sum: T): Boolean = !isAcceptable(sum)
     def toJsonFields: Iterable[(String, String)]
     def asJson: Json = {
       Json.fromFields(toJsonFields.map(stringPair2StringJsonPair))
     }
   }
-  trait WatermarkInclusiveThreshold extends InclusiveThreshold {
-    def threshold: Int
+  trait WatermarkInclusiveThreshold[T] extends InclusiveThreshold[T] {
+    def threshold: T
 
     override def toJsonFields: Iterable[(String, String)] = List(
       "thresholdType" -> this.getClass.getSimpleName,
       "threshold" -> threshold.toString
     )
   }
-  trait RangedInclusiveThreshold extends InclusiveThreshold {
-    def lowerBound: Int
-    def upperBound: Int
-    lazy val range: Range.Inclusive = lowerBound.to(upperBound)
+  trait RangedInclusiveThreshold[T] extends InclusiveThreshold[T] {
+    def lowerBound: T
+    def upperBound: T
 
     override def toJsonFields: Iterable[(String, String)] = List(
       "thresholdType" -> this.getClass.getSimpleName,
@@ -169,46 +181,47 @@ object SumOfNumericColumnCheck extends LazyLogging {
       "upperBound" -> upperBound.toString
     )
   }
-  case class Over(threshold: Int) extends WatermarkInclusiveThreshold {
-    override def isAcceptable(sum: Int): Boolean = sum <= threshold
+  case class Over[T: Numeric](threshold: T) extends WatermarkInclusiveThreshold[T] {
+    override def isAcceptable(sum: T): Boolean = sum <= threshold
   }
-  case class Under(threshold: Int) extends WatermarkInclusiveThreshold {
-    override def isAcceptable(sum: Int): Boolean = sum >= threshold
+  case class Under[T: Numeric](threshold: T) extends WatermarkInclusiveThreshold[T] {
+    override def isAcceptable(sum: T): Boolean = sum >= threshold
   }
-  case class Between(lowerBound: Int, upperBound: Int) extends RangedInclusiveThreshold {
-    override def isAcceptable(sum: Int): Boolean = range.contains(sum)
+  case class Between[T: Numeric](lowerBound: T, upperBound: T) extends RangedInclusiveThreshold[T] {
+    override def isAcceptable(sum: T): Boolean = sum >= lowerBound && sum <= upperBound
   }
-  case class Outside(lowerBound: Int, upperBound: Int) extends RangedInclusiveThreshold {
-    override def isAcceptable(sum: Int): Boolean = !range.contains(sum)
+  case class Outside[T: Numeric](lowerBound: T, upperBound: T) extends RangedInclusiveThreshold[T] {
+    override def isAcceptable(sum: T): Boolean = sum <= lowerBound && sum >= upperBound
   }
 
   object InclusiveThreshold extends LazyLogging {
 
-    def fromCheck(thresholdType: String,
+    def fromCheck[T: Numeric](thresholdType: String,
                   threshold: Option[Json],
                   lowerBound: Option[Json],
-                  upperBound: Option[Json]): Either[Error, InclusiveThreshold] = {
+                  upperBound: Option[Json])
+                  (implicit convert: Option[Json] => Option[T]): Either[Error, InclusiveThreshold[T]] = {
       val operator = thresholdType match {
         case "over" =>
-          optionalJsonToInt(threshold)
-            .map(Over)
+          convert(threshold)
+            .map(Over[T])
             .toRight(Error(s"The threshold required for $thresholdType was missing or invalid: [$threshold]"))
         case "under" =>
-          optionalJsonToInt(threshold)
-            .map(Under)
+          convert(threshold)
+            .map(Under[T])
             .toRight(Error(s"The threshold required for $thresholdType was missing or invalid: [$threshold"))
         case "between" =>
           val op = for {
-            lower <- optionalJsonToInt(lowerBound)
-            upper <- optionalJsonToInt(upperBound)
-          } yield Between(lower, upper)
+            lower <- convert(lowerBound)
+            upper <- convert(upperBound)
+          } yield Between[T](lower, upper)
           op.toRight(
             Error(s"""A bound required for $thresholdType was missing or invalid: [$lowerBound -> $upperBound]"""))
         case "outside" =>
           val op = for {
-            lower <- optionalJsonToInt(lowerBound)
-            upper <- optionalJsonToInt(upperBound)
-          } yield Outside(lower, upper)
+            lower <- convert(lowerBound)
+            upper <- convert(upperBound)
+          } yield Outside[T](lower, upper)
           op.toRight(
             Error(s"""A bound required for $thresholdType was missing or invalid: [$lowerBound -> $upperBound]"""))
         case _ =>
@@ -217,12 +230,30 @@ object SumOfNumericColumnCheck extends LazyLogging {
       operator
     }
 
-    private def optionalJsonToInt(jsonWithNumber: Option[Json]): Option[Int] = {
-      jsonWithNumber.flatMap(_.asNumber.flatMap(_.toInt))
+    object Implicits {
+      /*
+      implicit def optionalJsonToT[T: Numeric](jsonWithNumber: Option[Json]): Option[T] = {
+        unboxAndConvert(jsonWithNumber)
+      }
+      */
+
+      implicit def optionalJsonToInt(jsonWithNumber: Option[Json]): Option[Int] = {
+        unboxAndConvert(jsonWithNumber)(_.toInt)
+      }
+      implicit def optionalJsonToShort(jsonWithNumber: Option[Json]): Option[Short] = {
+        unboxAndConvert(jsonWithNumber)(_.toShort)
+      }
+      implicit def optionalJsonToLong(jsonWithNumber: Option[Json]): Option[Long] = {
+        unboxAndConvert(jsonWithNumber)(_.toLong)
+      }
+      private def unboxAndConvert[T: Numeric](json: Option[Json])(converter: JsonNumber => Option[T]) = {
+        json.flatMap(_.asNumber.flatMap(converter))
+      }
     }
 
     case class Error(msg: String)
 
+    /*
     object Decoder extends Decoder[InclusiveThreshold] {
       val inclusiveThresholdTypes: Map[String, Decoder[InclusiveThreshold]] = { Map(
           "over" -> deriveDecoder[Over].asInstanceOf[Decoder[InclusiveThreshold]],
@@ -247,5 +278,6 @@ object SumOfNumericColumnCheck extends LazyLogging {
         }
       }
     }
+    */
   }
 }
