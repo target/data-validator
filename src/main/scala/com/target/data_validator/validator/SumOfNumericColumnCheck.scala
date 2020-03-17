@@ -46,8 +46,8 @@ case class SumOfNumericColumnCheck(
       case _ =>
         val msg = s"""
                      |Unknown threshold type $thresholdType or one of the following is required and not present:
-                     |threshold: $threshold (req'd for over/under)
-                     |lowerBound: $lowerBound upperBound: $upperBound (req'd for between/outside)
+                     |threshold: $threshold (required for over/under)
+                     |lowerBound: $lowerBound upperBound: $upperBound (required for between/outside)
               """.stripMargin
         logger.error(msg)
         addEvent(ValidatorError(msg))
