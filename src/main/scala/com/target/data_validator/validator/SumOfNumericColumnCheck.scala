@@ -1,7 +1,6 @@
 package com.target.data_validator.validator
 
-import com.target.data_validator.{ValidatorError, VarSubstitution}
-import com.typesafe.scalalogging.LazyLogging
+import com.target.data_validator.{ValidatorCheckEvent, ValidatorCounter, ValidatorError, VarSubstitution}
 import io.circe._
 import io.circe.generic.semiauto._
 import org.apache.spark.sql.{DataFrame, Row}
@@ -21,16 +20,21 @@ case class SumOfNumericColumnCheck(
 
   override def name: String = "SumOfNumericColumn"
 
+  private def createTypedLiteral(json: Json)(implicit dataType: DataType): Expression = {
+    ValidatorBase.createLiteral(dataType, json)
+  }
+
   override def quickCheck(r: Row, count: Long, idx: Int): Boolean = {
-    val dataType = r.schema(idx).dataType
+    implicit val dataType: DataType = r.schema(idx).dataType
     val rawValueForLogging = r.get(idx)
 
     val rowValueAsExpr: Expression = Literal.create(rawValueForLogging, dataType)
     // by the time this is executed, the options have been verified
-    lazy val thresholdAsExpr: Expression = ValidatorBase.createLiteral(dataType, threshold.get)
-    lazy val lowerBoundAsExpr: Expression = ValidatorBase.createLiteral(dataType, lowerBound.get)
-    lazy val upperBoundAsExpr: Expression = ValidatorBase.createLiteral(dataType, upperBound.get)
+    lazy val thresholdAsExpr: Expression = createTypedLiteral(threshold.get)
+    lazy val lowerBoundAsExpr: Expression = createTypedLiteral(lowerBound.get)
+    lazy val upperBoundAsExpr: Expression = createTypedLiteral(upperBound.get)
 
+    // TODO: could eliminate the Not
     val failedIfTrueExpr = thresholdType match {
       case "over" if threshold.isDefined =>
         Not(GreaterThan(rowValueAsExpr, thresholdAsExpr))
@@ -51,6 +55,9 @@ case class SumOfNumericColumnCheck(
     }
 
     val eval = failedIfTrueExpr.eval()
+
+    addEvent(ValidatorCounter("rowCount", count))
+    addEvent(ValidatorCheckEvent(failed, s"$name $thresholdType on $column: [$failedIfTrueExpr]", count, 1))
     eval.asInstanceOf[Boolean]
   }
 
@@ -92,13 +99,7 @@ case class SumOfNumericColumnCheck(
   }
 }
 
-object JsonConverters {
-  def stringPair2StringJsonPair(pair: (String, String)): (String, Json) = {
-    (pair._1, Json.fromString(pair._2))
-  }
-}
-
-object SumOfNumericColumnCheck extends LazyLogging {
+object SumOfNumericColumnCheck {
   val encoder: Encoder[SumOfNumericColumnCheck] = deriveEncoder[SumOfNumericColumnCheck]
   val decoder: Decoder[SumOfNumericColumnCheck] = deriveDecoder[SumOfNumericColumnCheck]
   def fromJson(c: HCursor): Either[DecodingFailure, ValidatorBase] = decoder.apply(c)
