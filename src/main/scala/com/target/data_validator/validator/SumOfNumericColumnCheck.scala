@@ -5,7 +5,7 @@ import io.circe._
 import io.circe.generic.semiauto._
 import org.apache.spark.sql.{DataFrame, Row}
 import org.apache.spark.sql.catalyst.analysis.UnresolvedAttribute
-import org.apache.spark.sql.catalyst.expressions.{And, Expression, GreaterThan, LessThan, Literal, Not, Or}
+import org.apache.spark.sql.catalyst.expressions.{And, Expression, GreaterThan, LessThan, Literal, Or}
 import org.apache.spark.sql.catalyst.expressions.aggregate.Sum
 import org.apache.spark.sql.types._
 
