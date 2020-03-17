@@ -45,8 +45,9 @@ case class SumOfNumericColumnCheck(
         Or(LessThan(rowValueAsExpr, lowerBoundAsExpr), GreaterThan(rowValueAsExpr, upperBoundAsExpr))
       case _ =>
         val msg = s"""
-                     |Unknown threshold type $thresholdType or one of the follow is required and not present:
-                     |threshold: $threshold, lowerBound: $lowerBound, upperBound: $upperBound
+                     |Unknown threshold type $thresholdType or one of the following is required and not present:
+                     |threshold: $threshold (req'd for over/under)
+                     |lowerBound: $lowerBound upperBound: $upperBound (req'd for between/outside)
               """.stripMargin
         logger.error(msg)
         addEvent(ValidatorError(msg))
