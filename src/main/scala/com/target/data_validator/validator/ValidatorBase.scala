@@ -249,6 +249,14 @@ object ValidatorBase extends LazyLogging {
 trait CheapCheck extends ValidatorBase {
   def select(schema: StructType, dict: VarSubstitution): Expression
 
+  /**
+    * Run a check on a particular column on a row
+    *
+    * @param r the row under inspection
+    * @param count the number of rows total
+    * @param idx the index of the column under inspection
+    * @return true if the check fails, false if is passes
+    */
   def quickCheck(r: Row, count: Long, idx: Int): Boolean
 }
 

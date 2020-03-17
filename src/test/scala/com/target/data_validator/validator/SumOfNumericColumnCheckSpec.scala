@@ -2,10 +2,9 @@ package com.target.data_validator.validator
 
 import com.target.TestingSparkSession
 import com.target.data_validator.TestHelpers.{mkDf, mkDict, parseYaml}
-import com.target.data_validator.validator.SumOfNumericColumnCheck._
 import com.target.data_validator.{ValidatorConfig, ValidatorDataFrame, ValidatorError}
 import io.circe._
-import io.circe.generic.semiauto._
+import org.apache.spark.sql.DataFrame
 import org.scalatest.{FunSpec, Matchers}
 
 class SumOfNumericColumnCheckSpec
@@ -148,36 +147,21 @@ class SumOfNumericColumnCheckSpec
     }
 
     describe("functionality") {
-      it("success") {
+      it(s"correctly checks that ${expectedThreshold._1} is not under ${listWithSum6._2.sum}") {
         val df = mkDf(spark, listWithSum6) // scalastyle:ignore
-        val sut = ValidatorDataFrame(
-          df = df,
-          keyColumns = None,
-          condition = None,
-          checks = List(underCheck))
+        val sut = testDfWithChecks(df, underCheck)
         assert(!sut.quickChecks(spark, mkDict())(config))
         assert(!sut.failed)
       }
-
-      it("fails") {
-        val df = mkDf(spark, listWithSum6) // scalastyle:ignore
-        val sut = ValidatorDataFrame(df, None, None, List(underCheck))
-        assert(sut.quickChecks(spark, mkDict())(config))
-        assert(sut.failed)
-
-      }
-
-      it("threshold success") {
-        val df = mkDf(spark, listWithSum6) // scalastyle:ignore
-        val sut = ValidatorDataFrame(df, None, None, List(underCheck))
+      it(s"correctly checks that ${expectedThreshold._1} is not over ${listWithSum9._2.sum}") {
+        val df = mkDf(spark, listWithSum9) // scalastyle:ignore
+        val sut = testDfWithChecks(df, overCheck)
         assert(!sut.quickChecks(spark, mkDict())(config))
         assert(!sut.failed)
-
       }
-
-      it("threshold failure") {
+      it(s"correctly checks that ${expectedThreshold._1} is over ${listWithSum6._2.sum}") {
         val df = mkDf(spark, listWithSum6) // scalastyle:ignore
-        val sut = ValidatorDataFrame(df, None, None, List(underCheck))
+        val sut = testDfWithChecks(df, overCheck)
         assert(sut.quickChecks(spark, mkDict())(config))
         assert(sut.failed)
       }
@@ -186,6 +170,10 @@ class SumOfNumericColumnCheckSpec
 }
 trait SumOfNumericColumnCheckBasicSetup {
   val config = ValidatorConfig(1, 1, None, false, None, None, List.empty)
+
+  def testDfWithChecks(df: DataFrame, checks: ValidatorBase*): ValidatorDataFrame = {
+    ValidatorDataFrame(df, None, None, checks.toList)
+  }
 }
 trait SumOfNumericColumnCheckExamples {
   val expectedThreshold = (8, Json.fromInt(8))
@@ -193,15 +181,16 @@ trait SumOfNumericColumnCheckExamples {
   val expectedUpper = (10, Json.fromInt(10))
 
   val listWithSum6 = "price" -> List(1, 2, 3)
+  val listWithSum9 = "price" -> List(3, 3, 3)
 
-  val overCheck: SumOfNumericColumnCheck =
+  def overCheck: SumOfNumericColumnCheck =
     SumOfNumericColumnCheck("price", "over", threshold = Some(expectedThreshold._2))
-  val underCheck: SumOfNumericColumnCheck =
+  def underCheck: SumOfNumericColumnCheck =
     SumOfNumericColumnCheck("price", "under", threshold = Some(expectedThreshold._2))
-  val betweenCheck: SumOfNumericColumnCheck =
+  def betweenCheck: SumOfNumericColumnCheck =
     SumOfNumericColumnCheck("price", "between",
     lowerBound = Some(expectedLower._2), upperBound = Some(expectedUpper._2))
-  val outsideCheck: SumOfNumericColumnCheck =
+  def outsideCheck: SumOfNumericColumnCheck =
     SumOfNumericColumnCheck("price", "outside",
     lowerBound = Some(expectedLower._2), upperBound = Some(expectedUpper._2))
 }
