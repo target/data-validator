@@ -34,16 +34,15 @@ case class SumOfNumericColumnCheck(
     lazy val lowerBoundAsExpr: Expression = createTypedLiteral(lowerBound.get)
     lazy val upperBoundAsExpr: Expression = createTypedLiteral(upperBound.get)
 
-    // TODO: could eliminate the Not
-    val failedIfTrueExpr = thresholdType match {
+    val failedIfFalseExpr = thresholdType match {
       case "over" if threshold.isDefined =>
-        Not(GreaterThan(rowValueAsExpr, thresholdAsExpr))
+        GreaterThan(rowValueAsExpr, thresholdAsExpr)
       case "under" if threshold.isDefined =>
-        Not(LessThan(rowValueAsExpr, thresholdAsExpr))
+        LessThan(rowValueAsExpr, thresholdAsExpr)
       case "between" if lowerBound.isDefined && upperBound.isDefined =>
-        Not(And(GreaterThan(rowValueAsExpr, lowerBoundAsExpr), LessThan(rowValueAsExpr, upperBoundAsExpr)))
+        And(GreaterThan(rowValueAsExpr, lowerBoundAsExpr), LessThan(rowValueAsExpr, upperBoundAsExpr))
       case "outside" if lowerBound.isDefined && upperBound.isDefined =>
-        Not(Or(LessThan(rowValueAsExpr, lowerBoundAsExpr), GreaterThan(rowValueAsExpr, upperBoundAsExpr)))
+        Or(LessThan(rowValueAsExpr, lowerBoundAsExpr), GreaterThan(rowValueAsExpr, upperBoundAsExpr))
       case _ =>
         val msg = s"""
                      |Unknown threshold type $thresholdType or one of the follow is required and not present:
@@ -51,14 +50,15 @@ case class SumOfNumericColumnCheck(
               """.stripMargin
         logger.error(msg)
         addEvent(ValidatorError(msg))
-        Literal.TrueLiteral
+        Literal.FalseLiteral
     }
 
-    val eval = failedIfTrueExpr.eval()
+    val failedIfFalse = failedIfFalseExpr.eval()
+    failed = !failedIfFalse.asInstanceOf[Boolean]
 
     addEvent(ValidatorCounter("rowCount", count))
-    addEvent(ValidatorCheckEvent(failed, s"$name $thresholdType on $column: [$failedIfTrueExpr]", count, 1))
-    eval.asInstanceOf[Boolean]
+    addEvent(ValidatorCheckEvent(failed, s"$name $thresholdType on $column: [$failedIfFalseExpr]", count, 1))
+    failed
   }
 
   override def substituteVariables(dict: VarSubstitution): ValidatorBase = {
