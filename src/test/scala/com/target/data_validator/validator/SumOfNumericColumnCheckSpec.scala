@@ -22,12 +22,12 @@ class SumOfNumericColumnCheckSpec
              |type: sumOfNumericColumnCheck
              |column: foo
              |thresholdType: over
-             |threshold: ${expectedThreshold_int_8._1}
+             |threshold: ${int_8._1}
              |""".stripMargin
         )
         val sut = JsonDecoders.decodeChecks.decodeJson(json)
         assert(sut == Right(
-          SumOfNumericColumnCheck("foo", "over", threshold = Some(expectedThreshold_int_8._2))))
+          SumOfNumericColumnCheck("foo", "over", threshold = Some(int_8._2))))
       }
       it("uses under threshold") {
         val json = parseYaml(
@@ -35,12 +35,12 @@ class SumOfNumericColumnCheckSpec
              |type: sumOfNumericColumnCheck
              |column: foo
              |thresholdType: under
-             |threshold: ${expectedThreshold_int_8._1}
+             |threshold: ${int_8._1}
              |""".stripMargin
         )
         val sut = JsonDecoders.decodeChecks.decodeJson(json)
         assert(sut == Right(
-          SumOfNumericColumnCheck("foo", "under", threshold = Some(expectedThreshold_int_8._2))))
+          SumOfNumericColumnCheck("foo", "under", threshold = Some(int_8._2))))
       }
       it("uses between threshold") {
         val json = parseYaml(
@@ -48,14 +48,14 @@ class SumOfNumericColumnCheckSpec
              |type: sumOfNumericColumnCheck
              |column: foo
              |thresholdType: between
-             |lowerBound: ${expectedLower_int_2._1}
-             |upperBound: ${expectedUpper_int_10._1}
+             |lowerBound: ${int_2._1}
+             |upperBound: ${int_10._1}
              |""".stripMargin
         )
         val sut = JsonDecoders.decodeChecks.decodeJson(json)
         assert(sut == Right(
           SumOfNumericColumnCheck("foo", "between",
-            lowerBound = Some(expectedLower_int_2._2), upperBound = Some(expectedUpper_int_10._2))))
+            lowerBound = Some(int_2._2), upperBound = Some(int_10._2))))
       }
       it("uses outside threshold") {
         val json = parseYaml(
@@ -63,14 +63,14 @@ class SumOfNumericColumnCheckSpec
              |type: sumOfNumericColumnCheck
              |column: foo
              |thresholdType: outside
-             |lowerBound: ${expectedLower_int_2._1}
-             |upperBound: ${expectedUpper_int_10._1}
+             |lowerBound: ${int_2._1}
+             |upperBound: ${int_10._1}
              |""".stripMargin
         )
         val sut = JsonDecoders.decodeChecks.decodeJson(json)
         assert(sut == Right(
           SumOfNumericColumnCheck("foo", "outside",
-            lowerBound = Some(expectedLower_int_2._2), upperBound = Some(expectedUpper_int_10._2))))
+            lowerBound = Some(int_2._2), upperBound = Some(int_10._2))))
       }
 
       it("is missing the column") {
@@ -78,7 +78,7 @@ class SumOfNumericColumnCheckSpec
           s"""
              |type: sumOfNumericColumnCheck
              |thresholdType: over
-             |threshold: ${expectedThreshold_int_8}
+             |threshold: ${int_8}
              |""".stripMargin
         )
         val sut = JsonDecoders.decodeChecks.decodeJson(json)
@@ -155,13 +155,13 @@ class SumOfNumericColumnCheckFunctionalSpec
 {
 
   "SumOfNumericColumnCheck with integers" should behave like functionsCorrectly[Int](
-    eight = expectedThreshold_int_8._1, six = intListWithSum6, nine = intListWithSum9,
+    eight = int_8._1, six = intListWithSum6, nine = intListWithSum9,
     under = underCheckForInt, over = overCheckForInt,
     between = betweenCheckForInt, outside = outsideCheckForInt
   )
 
   "SumOfNumericColumnCheck with longs" should behave like functionsCorrectly[Long](
-    eight = expectedThreshold_long_8._1, six = longListWithSum6, nine = longListWithSum9,
+    eight = long_8._1, six = longListWithSum6, nine = longListWithSum9,
     under = underCheckForLong, over = overCheckForLong,
     between = betweenCheckForLong, outside = outsideCheckForLong
   )
@@ -234,30 +234,30 @@ trait SumOfNumericColumnCheckBasicSetup {
 }
 trait SumOfNumericColumnCheckExamples extends TestPairMakers {
   // Int
-  val expectedThreshold_int_8: (Int, Json) = makeTestPair(8)
-  val expectedLower_int_2: (Int, Json) = makeTestPair(2)
-  val expectedUpper_int_10: (Int, Json) = makeTestPair(10)
+  val int_8: (Int, Json) = makeTestPair(8)
+  val int_2: (Int, Json) = makeTestPair(2)
+  val int_10: (Int, Json) = makeTestPair(10)
 
   val intListWithSum6: (String, List[Int]) = "price" -> List(1, 2, 3)
   val intListWithSum9: (String, List[Int]) = "price" -> List(3, 3, 3)
 
-  def overCheckForInt: SumOfNumericColumnCheck = overCheck(expectedThreshold_int_8._2)
-  def underCheckForInt: SumOfNumericColumnCheck = underCheck(expectedThreshold_int_8._2)
-  def betweenCheckForInt: SumOfNumericColumnCheck = betweenCheck(expectedLower_int_2._2, expectedUpper_int_10._2)
-  def outsideCheckForInt: SumOfNumericColumnCheck = outsideCheck(expectedLower_int_2._2, expectedThreshold_int_8._2)
+  def overCheckForInt: SumOfNumericColumnCheck = overCheck(int_8._2)
+  def underCheckForInt: SumOfNumericColumnCheck = underCheck(int_8._2)
+  def betweenCheckForInt: SumOfNumericColumnCheck = betweenCheck(int_2._2, int_10._2)
+  def outsideCheckForInt: SumOfNumericColumnCheck = outsideCheck(int_2._2, int_8._2)
 
   // Long
-  val expectedThreshold_long_8: (Long, Json) = makeTestPair(8L)
-  val expectedLower_long_2: (Long, Json) = makeTestPair(2L)
-  val expectedUpper_long_10: (Long, Json) = makeTestPair(10L)
+  val long_8: (Long, Json) = makeTestPair(8L)
+  val long_2: (Long, Json) = makeTestPair(2L)
+  val long_10: (Long, Json) = makeTestPair(10L)
 
   val longListWithSum6: (String, List[Long]) = "price" -> List(1L, 2L, 3L)
   val longListWithSum9: (String, List[Long]) = "price" -> List(3L, 3L, 3L)
 
-  def overCheckForLong: SumOfNumericColumnCheck = overCheck(expectedThreshold_long_8._2)
-  def underCheckForLong: SumOfNumericColumnCheck = underCheck(expectedThreshold_long_8._2)
-  def betweenCheckForLong: SumOfNumericColumnCheck = betweenCheck(expectedLower_long_2._2, expectedUpper_long_10._2)
-  def outsideCheckForLong: SumOfNumericColumnCheck = outsideCheck(expectedLower_long_2._2, expectedThreshold_long_8._2)
+  def overCheckForLong: SumOfNumericColumnCheck = overCheck(long_8._2)
+  def underCheckForLong: SumOfNumericColumnCheck = underCheck(long_8._2)
+  def betweenCheckForLong: SumOfNumericColumnCheck = betweenCheck(long_2._2, long_10._2)
+  def outsideCheckForLong: SumOfNumericColumnCheck = outsideCheck(long_2._2, long_8._2)
 
   // Helpers
   def overCheck(threshold: Json): SumOfNumericColumnCheck = SumOfNumericColumnCheck("price", "over", Some(threshold))
