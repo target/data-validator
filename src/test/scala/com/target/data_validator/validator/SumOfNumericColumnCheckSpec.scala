@@ -156,12 +156,14 @@ class SumOfNumericColumnCheckFunctionalSpec
 
   "SumOfNumericColumnCheck with integers" should behave like functionsCorrectly[Int](
     eight = expectedThreshold_int_8._1, six = intListWithSum6, nine = intListWithSum9,
-    under = underCheckForInt, over = overCheckForInt
+    under = underCheckForInt, over = overCheckForInt,
+    between = betweenCheckForInt, outside = outsideCheckForInt
   )
 
   "SumOfNumericColumnCheck with longs" should behave like functionsCorrectly[Long](
     eight = expectedThreshold_long_8._1, six = longListWithSum6, nine = longListWithSum9,
-    under = underCheckForLong, over = overCheckForLong
+    under = underCheckForLong, over = overCheckForLong,
+    between = betweenCheckForLong, outside = outsideCheckForLong
   )
 
 }
@@ -174,8 +176,24 @@ trait FunctionTestingForNumericalTypes
                           six: (String, List[T]),
                           nine: (String, List[T]),
                           under: SumOfNumericColumnCheck,
-                          over: SumOfNumericColumnCheck): Unit = {
+                          over: SumOfNumericColumnCheck,
+                          between: SumOfNumericColumnCheck,
+                          outside: SumOfNumericColumnCheck): Unit = {
 
+    it should s"correctly check that ${nine._2.sum} is outside " +
+      s"${outside.lowerBound.get.asNumber} and ${outside.upperBound.get.asNumber.get}" in {
+      val df = mkDf(spark, nine) // scalastyle:ignore
+      val sut = testDfWithChecks(df, outside)
+      assert(!sut.quickChecks(spark, mkDict())(config))
+      assert(!sut.failed)
+    }
+    it should s"correctly check that ${nine._2.sum} is between " +
+      s"${between.lowerBound.get.asNumber} and ${between.upperBound.get.asNumber.get}" in {
+      val df = mkDf(spark, nine) // scalastyle:ignore
+      val sut = testDfWithChecks(df, between)
+      assert(!sut.quickChecks(spark, mkDict())(config))
+      assert(!sut.failed)
+    }
     it should s"correctly check that ${eight} is not under ${six._2.sum}" in {
       val df = mkDf(spark, six) // scalastyle:ignore
       val sut = testDfWithChecks(df, under)
@@ -226,7 +244,7 @@ trait SumOfNumericColumnCheckExamples extends TestPairMakers {
   def overCheckForInt: SumOfNumericColumnCheck = overCheck(expectedThreshold_int_8._2)
   def underCheckForInt: SumOfNumericColumnCheck = underCheck(expectedThreshold_int_8._2)
   def betweenCheckForInt: SumOfNumericColumnCheck = betweenCheck(expectedLower_int_2._2, expectedUpper_int_10._2)
-  def outsideCheckForInt: SumOfNumericColumnCheck = outsideCheck(expectedLower_int_2._2, expectedUpper_int_10._2)
+  def outsideCheckForInt: SumOfNumericColumnCheck = outsideCheck(expectedLower_int_2._2, expectedThreshold_int_8._2)
 
   // Long
   val expectedThreshold_long_8: (Long, Json) = makeTestPair(8L)
@@ -239,15 +257,15 @@ trait SumOfNumericColumnCheckExamples extends TestPairMakers {
   def overCheckForLong: SumOfNumericColumnCheck = overCheck(expectedThreshold_long_8._2)
   def underCheckForLong: SumOfNumericColumnCheck = underCheck(expectedThreshold_long_8._2)
   def betweenCheckForLong: SumOfNumericColumnCheck = betweenCheck(expectedLower_long_2._2, expectedUpper_long_10._2)
-  def outsideCheckForLong: SumOfNumericColumnCheck = outsideCheck(expectedLower_long_2._2, expectedUpper_long_10._2)
+  def outsideCheckForLong: SumOfNumericColumnCheck = outsideCheck(expectedLower_long_2._2, expectedThreshold_long_8._2)
 
   // Helpers
   def overCheck(threshold: Json): SumOfNumericColumnCheck = SumOfNumericColumnCheck("price", "over", Some(threshold))
   def underCheck(threshold: Json): SumOfNumericColumnCheck = SumOfNumericColumnCheck("price", "under", Some(threshold))
   def betweenCheck(lower: Json, upper: Json): SumOfNumericColumnCheck =
-    SumOfNumericColumnCheck("price", "between", Some(lower), Some(upper))
+    SumOfNumericColumnCheck("price", "between", None, Some(lower), Some(upper))
   def outsideCheck(lower: Json, upper: Json): SumOfNumericColumnCheck =
-    SumOfNumericColumnCheck("price", "outside", Some(lower), Some(upper))
+    SumOfNumericColumnCheck("price", "outside", None, Some(lower), Some(upper))
 }
 
 /**
