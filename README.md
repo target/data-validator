@@ -313,6 +313,19 @@ This is a costly check and requires an additional pass through the table.
 |-----|------|-------------|
 | `columns` | Array[String] | Each set of values in these columns must be unique.
 
+#### `sumOfNumericColumnCheck`
+
+This check is used to ensure that the _sum_ of a numeric column is over or under a threshold or that it is
+within or outside a range.
+
+| Arg             | Type   | Description                                            |
+|-----------------|--------|--------------------------------------------------------|
+| `column`        | String | The column to consider                                 |
+| `thresholdType` | String | One of: `over`, `under`, `between`, `outside`          |
+| `threshold`     | Number | Single high water mark required for `over` and `under` |
+| `lowerBound`    | Number | Lower bound required for `between` and `outside`       |
+| `upperBound`    | Number | Upper bound required for `between` and `outside`       |
+
 ## Example Config
 
 ```yaml
