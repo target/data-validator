@@ -148,41 +148,53 @@ class SumOfNumericColumnCheckSpec
 
     describe("functionality") {
       describe("for integers") {
-        it(s"correctly checks that ${expectedThreshold_int_8._1} is not under ${intListWithSum6._2.sum}") {
-          val df = mkDf(spark, intListWithSum6) // scalastyle:ignore
-          val sut = testDfWithChecks(df, underCheckForInt)
+        val eight = expectedThreshold_int_8._1
+        val six = intListWithSum6
+        val nine = intListWithSum9
+        val under = underCheckForInt
+        val over = overCheckForInt
+
+        it(s"correctly checks that ${eight} is not under ${six._2.sum}") {
+          val df = mkDf(spark, six) // scalastyle:ignore
+          val sut = testDfWithChecks(df, under)
           assert(!sut.quickChecks(spark, mkDict())(config))
           assert(!sut.failed)
         }
-        it(s"correctly checks that ${expectedThreshold_int_8._1} is not over ${intListWithSum9._2.sum}") {
-          val df = mkDf(spark, intListWithSum9) // scalastyle:ignore
-          val sut = testDfWithChecks(df, overCheckForInt)
+        it(s"correctly checks that ${eight} is not over ${nine._2.sum}") {
+          val df = mkDf(spark, nine) // scalastyle:ignore
+          val sut = testDfWithChecks(df, over)
           assert(!sut.quickChecks(spark, mkDict())(config))
           assert(!sut.failed)
         }
-        it(s"correctly checks that ${expectedThreshold_int_8._1} is over ${intListWithSum6._2.sum}") {
-          val df = mkDf(spark, intListWithSum6) // scalastyle:ignore
-          val sut = testDfWithChecks(df, overCheckForInt)
+        it(s"correctly checks that ${eight} is over ${six._2.sum}") {
+          val df = mkDf(spark, six) // scalastyle:ignore
+          val sut = testDfWithChecks(df, over)
           assert(sut.quickChecks(spark, mkDict())(config))
           assert(sut.failed)
         }
       }
       describe("for longs") {
-        it(s"correctly checks that ${expectedThreshold_long_8._1} is not under ${longListWithSum6._2.sum}") {
-          val df = mkDf(spark, longListWithSum6) // scalastyle:ignore
-          val sut = testDfWithChecks(df, underCheckForLong)
+        val eight = expectedThreshold_long_8._1
+        val six = longListWithSum6
+        val nine = longListWithSum9
+        val under = underCheckForLong
+        val over = overCheckForLong
+
+        it(s"correctly checks that ${eight} is not under ${six._2.sum}") {
+          val df = mkDf(spark, six) // scalastyle:ignore
+          val sut = testDfWithChecks(df, under)
           assert(!sut.quickChecks(spark, mkDict())(config))
           assert(!sut.failed)
         }
-        it(s"correctly checks that ${expectedThreshold_long_8._1} is not over ${longListWithSum9._2.sum}") {
-          val df = mkDf(spark, longListWithSum9) // scalastyle:ignore
-          val sut = testDfWithChecks(df, overCheckForLong)
+        it(s"correctly checks that ${eight} is not over ${nine._2.sum}") {
+          val df = mkDf(spark, nine) // scalastyle:ignore
+          val sut = testDfWithChecks(df, over)
           assert(!sut.quickChecks(spark, mkDict())(config))
           assert(!sut.failed)
         }
-        it(s"correctly checks that ${expectedThreshold_long_8._1} is over ${longListWithSum6._2.sum}") {
-          val df = mkDf(spark, longListWithSum6) // scalastyle:ignore
-          val sut = testDfWithChecks(df, overCheckForLong)
+        it(s"correctly checks that ${eight} is over ${six._2.sum}") {
+          val df = mkDf(spark, six) // scalastyle:ignore
+          val sut = testDfWithChecks(df, over)
           assert(sut.quickChecks(spark, mkDict())(config))
           assert(sut.failed)
         }
