@@ -145,36 +145,6 @@ class SumOfNumericColumnCheckSpec
         assert(sut.getEvents contains ValidatorError("Column: price found, but not of numericType type: StringType"))
       }
     }
-
-    describe("functionality") {
-
-      describe("for longs") {
-        val eight = expectedThreshold_long_8._1
-        val six = longListWithSum6
-        val nine = longListWithSum9
-        val under = underCheckForLong
-        val over = overCheckForLong
-
-        it(s"correctly checks that ${eight} is not under ${six._2.sum}") {
-          val df = mkDf(spark, six) // scalastyle:ignore
-          val sut = testDfWithChecks(df, under)
-          assert(!sut.quickChecks(spark, mkDict())(config))
-          assert(!sut.failed)
-        }
-        it(s"correctly checks that ${eight} is not over ${nine._2.sum}") {
-          val df = mkDf(spark, nine) // scalastyle:ignore
-          val sut = testDfWithChecks(df, over)
-          assert(!sut.quickChecks(spark, mkDict())(config))
-          assert(!sut.failed)
-        }
-        it(s"correctly checks that ${eight} is over ${six._2.sum}") {
-          val df = mkDf(spark, six) // scalastyle:ignore
-          val sut = testDfWithChecks(df, over)
-          assert(sut.quickChecks(spark, mkDict())(config))
-          assert(sut.failed)
-        }
-      }
-    }
   }
 }
 
@@ -184,19 +154,25 @@ class SumOfNumericColumnCheckFunctionalSpec
     with SumOfNumericColumnCheckExamples
 {
 
-  "SumOfNumericColumnCheck with handle integers" should behave like functionsCorrectly(
+  "SumOfNumericColumnCheck with integers" should behave like functionsCorrectly[Int](
     eight = expectedThreshold_int_8._1, six = intListWithSum6, nine = intListWithSum9,
-    under = underCheckForInt, over = overCheckForInt)
+    under = underCheckForInt, over = overCheckForInt
+  )
+
+  "SumOfNumericColumnCheck with longs" should behave like functionsCorrectly[Long](
+    eight = expectedThreshold_long_8._1, six = longListWithSum6, nine = longListWithSum9,
+    under = underCheckForLong, over = overCheckForLong
+  )
 
 }
 
 trait FunctionTestingForNumericalTypes
   extends TestingSparkSession
     with SumOfNumericColumnCheckBasicSetup { this: FlatSpec =>
-  def functionsCorrectly(
-                          eight: Int,
-                          six: (String, List[Int]),
-                          nine: (String, List[Int]),
+  def functionsCorrectly[T: Numeric](
+                          eight: T,
+                          six: (String, List[T]),
+                          nine: (String, List[T]),
                           under: SumOfNumericColumnCheck,
                           over: SumOfNumericColumnCheck): Unit = {
 
