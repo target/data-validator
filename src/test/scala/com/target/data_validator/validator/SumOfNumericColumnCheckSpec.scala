@@ -5,7 +5,7 @@ import com.target.data_validator.{ValidatorConfig, ValidatorDataFrame, Validator
 import com.target.data_validator.TestHelpers.{mkDf, mkDict, parseYaml}
 import io.circe._
 import org.apache.spark.sql.DataFrame
-import org.scalatest.{FunSpec, Matchers}
+import org.scalatest.{FlatSpec, FunSpec, Matchers}
 
 class SumOfNumericColumnCheckSpec
   extends FunSpec
@@ -147,32 +147,7 @@ class SumOfNumericColumnCheckSpec
     }
 
     describe("functionality") {
-      describe("for integers") {
-        val eight = expectedThreshold_int_8._1
-        val six = intListWithSum6
-        val nine = intListWithSum9
-        val under = underCheckForInt
-        val over = overCheckForInt
 
-        it(s"correctly checks that ${eight} is not under ${six._2.sum}") {
-          val df = mkDf(spark, six) // scalastyle:ignore
-          val sut = testDfWithChecks(df, under)
-          assert(!sut.quickChecks(spark, mkDict())(config))
-          assert(!sut.failed)
-        }
-        it(s"correctly checks that ${eight} is not over ${nine._2.sum}") {
-          val df = mkDf(spark, nine) // scalastyle:ignore
-          val sut = testDfWithChecks(df, over)
-          assert(!sut.quickChecks(spark, mkDict())(config))
-          assert(!sut.failed)
-        }
-        it(s"correctly checks that ${eight} is over ${six._2.sum}") {
-          val df = mkDf(spark, six) // scalastyle:ignore
-          val sut = testDfWithChecks(df, over)
-          assert(sut.quickChecks(spark, mkDict())(config))
-          assert(sut.failed)
-        }
-      }
       describe("for longs") {
         val eight = expectedThreshold_long_8._1
         val six = longListWithSum6
@@ -202,6 +177,51 @@ class SumOfNumericColumnCheckSpec
     }
   }
 }
+
+class SumOfNumericColumnCheckFunctionalSpec
+  extends FlatSpec
+    with FunctionTestingForNumericalTypes
+    with SumOfNumericColumnCheckExamples
+{
+
+  "SumOfNumericColumnCheck with handle integers" should behave like functionsCorrectly(
+    eight = expectedThreshold_int_8._1, six = intListWithSum6, nine = intListWithSum9,
+    under = underCheckForInt, over = overCheckForInt)
+
+}
+
+trait FunctionTestingForNumericalTypes
+  extends TestingSparkSession
+    with SumOfNumericColumnCheckBasicSetup { this: FlatSpec =>
+  def functionsCorrectly(
+                          eight: Int,
+                          six: (String, List[Int]),
+                          nine: (String, List[Int]),
+                          under: SumOfNumericColumnCheck,
+                          over: SumOfNumericColumnCheck): Unit = {
+
+    it should s"correctly check that ${eight} is not under ${six._2.sum}" in {
+      val df = mkDf(spark, six) // scalastyle:ignore
+      val sut = testDfWithChecks(df, under)
+      assert(!sut.quickChecks(spark, mkDict())(config))
+      assert(!sut.failed)
+    }
+    it should s"correctly check that ${eight} is not over ${nine._2.sum}" in {
+      val df = mkDf(spark, nine) // scalastyle:ignore
+      val sut = testDfWithChecks(df, over)
+      assert(!sut.quickChecks(spark, mkDict())(config))
+      assert(!sut.failed)
+    }
+    it should s"correctly check that ${eight} is over ${six._2.sum}" in {
+      val df = mkDf(spark, six) // scalastyle:ignore
+      val sut = testDfWithChecks(df, over)
+      assert(sut.quickChecks(spark, mkDict())(config))
+      assert(sut.failed)
+    }
+  }
+}
+
+
 trait SumOfNumericColumnCheckBasicSetup {
   val useDetailedErrors = false
   val config: ValidatorConfig = ValidatorConfig(
