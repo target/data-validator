@@ -73,6 +73,21 @@ class SumOfNumericColumnCheckSpec
             lowerBound = Some(int_2._2), upperBound = Some(int_10._2))))
       }
 
+      it("uses over threshold, inclusively") {
+        val json = parseYaml(
+          s"""
+             |type: sumOfNumericColumnCheck
+             |column: foo
+             |thresholdType: over
+             |threshold: ${int_8._1}
+             |inclusive: true
+             |""".stripMargin
+        )
+        val sut = JsonDecoders.decodeChecks.decodeJson(json)
+        assert(sut == Right(
+          SumOfNumericColumnCheck("foo", "over", threshold = Some(int_8._2), inclusive = Some(true))))
+      }
+
       it("is missing the column") {
         val json = parseYaml(
           s"""
@@ -155,21 +170,24 @@ class SumOfNumericColumnCheckFunctionalSpec
 {
 
   "SumOfNumericColumnCheck with integers" should behave like functionsCorrectly[Int](
-    eight = int_8._1, six = intListWithSum6, nine = intListWithSum9,
+    eight = int_8._1, nine = int_9._1, sixPair = intListWithSum6, ninePair = intListWithSum9,
     under = underCheckForInt, over = overCheckForInt,
-    between = betweenCheckForInt, outside = outsideCheckForInt
+    between = betweenCheckForInt, outside = outsideCheckForInt,
+    overInclusive = overCheckInclusiveForInt
   )
 
   "SumOfNumericColumnCheck with longs" should behave like functionsCorrectly[Long](
-    eight = long_8._1, six = longListWithSum6, nine = longListWithSum9,
+    eight = long_8._1, nine = long_9._1, sixPair = longListWithSum6, ninePair = longListWithSum9,
     under = underCheckForLong, over = overCheckForLong,
-    between = betweenCheckForLong, outside = outsideCheckForLong
+    between = betweenCheckForLong, outside = outsideCheckForLong,
+    overInclusive = overCheckInclusiveForLong
   )
 
   "SumOfNumericColumnCheck with double" should behave like functionsCorrectly[Double](
-    eight = dbl_8._1, six = dblListWithSum6, nine = dblListWithSum9,
+    eight = dbl_8._1, nine = dbl_9._1, sixPair = dblListWithSum6, ninePair = dblListWithSum9,
     under = underCheckForLong, over = overCheckForLong,
-    between = betweenCheckForLong, outside = outsideCheckForLong
+    between = betweenCheckForLong, outside = outsideCheckForLong,
+    overInclusive = overCheckInclusiveForDouble
   )
 
 }
@@ -178,42 +196,51 @@ trait FunctionTestingForNumericalTypes
   extends TestingSparkSession
     with SumOfNumericColumnCheckBasicSetup { this: FlatSpec =>
   def functionsCorrectly[T: Numeric](
-                          eight: T,
-                          six: (String, List[T]),
-                          nine: (String, List[T]),
-                          under: SumOfNumericColumnCheck,
-                          over: SumOfNumericColumnCheck,
-                          between: SumOfNumericColumnCheck,
-                          outside: SumOfNumericColumnCheck): Unit = {
+                                      eight: T,
+                                      nine: T,
+                                      sixPair: (String, List[T]),
+                                      ninePair: (String, List[T]),
+                                      under: SumOfNumericColumnCheck,
+                                      over: SumOfNumericColumnCheck,
+                                      between: SumOfNumericColumnCheck,
+                                      outside: SumOfNumericColumnCheck,
+                                      overInclusive: SumOfNumericColumnCheck
+                                    ): Unit = {
 
-    it should s"correctly check that ${nine._2.sum} is outside " +
+    it should s"correctly check that ${ninePair._2.sum} is outside " +
       s"${outside.lowerBound.get.asNumber.get} and ${outside.upperBound.get.asNumber.get}" in {
-      val df = mkDf(spark, nine) // scalastyle:ignore
+      val df = mkDf(spark, ninePair) // scalastyle:ignore
       val sut = testDfWithChecks(df, outside)
       assert(!sut.quickChecks(spark, mkDict())(config))
       assert(!sut.failed)
     }
-    it should s"correctly check that ${nine._2.sum} is between " +
+    it should s"correctly check that ${ninePair._2.sum} is between " +
       s"${between.lowerBound.get.asNumber.get} and ${between.upperBound.get.asNumber.get}" in {
-      val df = mkDf(spark, nine) // scalastyle:ignore
+      val df = mkDf(spark, ninePair) // scalastyle:ignore
       val sut = testDfWithChecks(df, between)
       assert(!sut.quickChecks(spark, mkDict())(config))
       assert(!sut.failed)
     }
-    it should s"correctly check that ${eight} is not under ${six._2.sum}" in {
-      val df = mkDf(spark, six) // scalastyle:ignore
+    it should s"correctly check that ${eight} is not under ${sixPair._2.sum}" in {
+      val df = mkDf(spark, sixPair) // scalastyle:ignore
       val sut = testDfWithChecks(df, under)
       assert(!sut.quickChecks(spark, mkDict())(config))
       assert(!sut.failed)
     }
-    it should s"correctly check that ${eight} is not over ${nine._2.sum}" in {
-      val df = mkDf(spark, nine) // scalastyle:ignore
+    it should s"correctly check that ${eight} is not over ${ninePair._2.sum}" in {
+      val df = mkDf(spark, ninePair) // scalastyle:ignore
       val sut = testDfWithChecks(df, over)
       assert(!sut.quickChecks(spark, mkDict())(config))
       assert(!sut.failed)
     }
-    it should s"correctly check that ${eight} is over ${six._2.sum}" in {
-      val df = mkDf(spark, six) // scalastyle:ignore
+    it should s"correctly check that ${nine} is not over ${ninePair._2.sum} in inclusive mode" in {
+      val df = mkDf(spark, ninePair) // scalastyle:ignore
+      val sut = testDfWithChecks(df, overInclusive)
+      assert(!sut.quickChecks(spark, mkDict())(config))
+      assert(!sut.failed)
+    }
+    it should s"correctly check that ${eight} is over ${sixPair._2.sum}" in {
+      val df = mkDf(spark, sixPair) // scalastyle:ignore
       val sut = testDfWithChecks(df, over)
       assert(sut.quickChecks(spark, mkDict())(config))
       assert(sut.failed)
@@ -242,12 +269,14 @@ trait SumOfNumericColumnCheckExamples extends TestPairMakers {
   // Int
   val int_8: (Int, Json) = makeTestPair(8)
   val int_2: (Int, Json) = makeTestPair(2)
+  val int_9: (Int, Json) = makeTestPair(9)
   val int_10: (Int, Json) = makeTestPair(10)
 
   val intListWithSum6: (String, List[Int]) = "price" -> List(1, 2, 3)
   val intListWithSum9: (String, List[Int]) = "price" -> List(3, 3, 3)
 
   def overCheckForInt: SumOfNumericColumnCheck = overCheck(int_8._2)
+  def overCheckInclusiveForInt: SumOfNumericColumnCheck = overCheckInclusive(int_9._2)
   def underCheckForInt: SumOfNumericColumnCheck = underCheck(int_8._2)
   def betweenCheckForInt: SumOfNumericColumnCheck = betweenCheck(int_2._2, int_10._2)
   def outsideCheckForInt: SumOfNumericColumnCheck = outsideCheck(int_2._2, int_8._2)
@@ -255,12 +284,14 @@ trait SumOfNumericColumnCheckExamples extends TestPairMakers {
   // Long
   val long_8: (Long, Json) = makeTestPair(8L)
   val long_2: (Long, Json) = makeTestPair(2L)
+  val long_9: (Long, Json) = makeTestPair(9L)
   val long_10: (Long, Json) = makeTestPair(10L)
 
   val longListWithSum6: (String, List[Long]) = "price" -> List(1L, 2L, 3L)
   val longListWithSum9: (String, List[Long]) = "price" -> List(3L, 3L, 3L)
 
   def overCheckForLong: SumOfNumericColumnCheck = overCheck(long_8._2)
+  def overCheckInclusiveForLong: SumOfNumericColumnCheck = overCheckInclusive(long_9._2)
   def underCheckForLong: SumOfNumericColumnCheck = underCheck(long_8._2)
   def betweenCheckForLong: SumOfNumericColumnCheck = betweenCheck(long_2._2, long_10._2)
   def outsideCheckForLong: SumOfNumericColumnCheck = outsideCheck(long_2._2, long_8._2)
@@ -268,18 +299,22 @@ trait SumOfNumericColumnCheckExamples extends TestPairMakers {
   // Double
   val dbl_8: (Double, Json) = makeTestPair(8.0)
   val dbl_2: (Double, Json) = makeTestPair(2.0)
+  val dbl_9: (Double, Json) = makeTestPair(9.0)
   val dbl_10: (Double, Json) = makeTestPair(10.0)
 
   val dblListWithSum6: (String, List[Double]) = "price" -> List(1.0, 2.0, 3.0)
   val dblListWithSum9: (String, List[Double]) = "price" -> List(3.0, 3.0, 3.0)
 
   def overCheckForDouble: SumOfNumericColumnCheck = overCheck(dbl_8._2)
+  def overCheckInclusiveForDouble: SumOfNumericColumnCheck = overCheckInclusive(dbl_9._2)
   def underCheckForDouble: SumOfNumericColumnCheck = underCheck(dbl_8._2)
   def betweenCheckForDouble: SumOfNumericColumnCheck = betweenCheck(dbl_2._2, dbl_10._2)
   def outsideCheckForDouble: SumOfNumericColumnCheck = outsideCheck(dbl_2._2, dbl_8._2)
 
   // Helpers
   def overCheck(threshold: Json): SumOfNumericColumnCheck = SumOfNumericColumnCheck("price", "over", Some(threshold))
+  def overCheckInclusive(threshold: Json): SumOfNumericColumnCheck =
+    SumOfNumericColumnCheck("price", "over", Some(threshold), inclusive = Some(true))
   def underCheck(threshold: Json): SumOfNumericColumnCheck = SumOfNumericColumnCheck("price", "under", Some(threshold))
   def betweenCheck(lower: Json, upper: Json): SumOfNumericColumnCheck =
     SumOfNumericColumnCheck("price", "between", None, Some(lower), Some(upper))

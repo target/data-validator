@@ -5,7 +5,7 @@ import io.circe._
 import io.circe.generic.semiauto._
 import org.apache.spark.sql.{DataFrame, Row}
 import org.apache.spark.sql.catalyst.analysis.UnresolvedAttribute
-import org.apache.spark.sql.catalyst.expressions.{And, Expression, GreaterThan, LessThan, Literal, Or}
+import org.apache.spark.sql.catalyst.expressions._
 import org.apache.spark.sql.catalyst.expressions.aggregate.Sum
 import org.apache.spark.sql.types._
 
@@ -14,11 +14,14 @@ case class SumOfNumericColumnCheck(
   thresholdType: String,
   threshold: Option[Json] = None,
   lowerBound: Option[Json] = None,
-  upperBound: Option[Json] = None
+  upperBound: Option[Json] = None,
+  inclusive: Option[Boolean] = None
 )
   extends ColumnBased(column, Sum(UnresolvedAttribute(column)).toAggregateExpression()) {
 
   override def name: String = "SumOfNumericColumn"
+
+  def boundsAreInclusive: Boolean = inclusive.getOrElse(false)
 
   private def createTypedLiteral(json: Json)(implicit dataType: DataType): Expression = {
     ValidatorBase.createLiteral(dataType, json)
@@ -36,13 +39,29 @@ case class SumOfNumericColumnCheck(
 
     val failedIfFalseExpr = thresholdType match {
       case "over" if threshold.isDefined =>
-        GreaterThan(rowValueAsExpr, thresholdAsExpr)
+        if (boundsAreInclusive) {
+          GreaterThanOrEqual(rowValueAsExpr, thresholdAsExpr)
+        } else {
+          GreaterThan(rowValueAsExpr, thresholdAsExpr)
+        }
       case "under" if threshold.isDefined =>
-        LessThan(rowValueAsExpr, thresholdAsExpr)
+        if (boundsAreInclusive) {
+          LessThanOrEqual(rowValueAsExpr, thresholdAsExpr)
+        } else {
+          LessThan(rowValueAsExpr, thresholdAsExpr)
+        }
       case "between" if lowerBound.isDefined && upperBound.isDefined =>
-        And(GreaterThan(rowValueAsExpr, lowerBoundAsExpr), LessThan(rowValueAsExpr, upperBoundAsExpr))
+        if (boundsAreInclusive) {
+          And(GreaterThanOrEqual(rowValueAsExpr, lowerBoundAsExpr), LessThanOrEqual(rowValueAsExpr, upperBoundAsExpr))
+        } else {
+          And(GreaterThan(rowValueAsExpr, lowerBoundAsExpr), LessThan(rowValueAsExpr, upperBoundAsExpr))
+        }
       case "outside" if lowerBound.isDefined && upperBound.isDefined =>
-        Or(LessThan(rowValueAsExpr, lowerBoundAsExpr), GreaterThan(rowValueAsExpr, upperBoundAsExpr))
+        if (boundsAreInclusive) {
+          Or(LessThanOrEqual(rowValueAsExpr, lowerBoundAsExpr), GreaterThanOrEqual(rowValueAsExpr, upperBoundAsExpr))
+        } else {
+          Or(LessThan(rowValueAsExpr, lowerBoundAsExpr), GreaterThan(rowValueAsExpr, upperBoundAsExpr))
+        }
       case _ =>
         val msg = s"""
                      |Unknown threshold type $thresholdType or one of the following is required and not present:
@@ -56,7 +75,6 @@ case class SumOfNumericColumnCheck(
 
     val failedIfFalse = failedIfFalseExpr.eval()
     failed = !failedIfFalse.asInstanceOf[Boolean]
-
     addEvent(ValidatorCounter("rowCount", count))
     addEvent(ValidatorCheckEvent(failed, s"$name $thresholdType on $column: [$failedIfFalseExpr]", count, 1))
     failed
