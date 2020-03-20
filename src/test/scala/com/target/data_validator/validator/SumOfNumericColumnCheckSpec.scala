@@ -87,7 +87,7 @@ class SumOfNumericColumnCheckSpec
         val json = parseYaml(
           s"""
              |type: columnSumCheck
-             |maxValue: ${int_8}
+             |maxValue: $int_8
              |""".stripMargin
         )
         val sut = JsonDecoders.decodeChecks.decodeJson(json)
@@ -129,7 +129,7 @@ class SumOfNumericColumnCheckSpec
       }
 
       it("Column doesn't exist") {
-        val df = mkDf(spark = spark, ("lolnope" -> List(1.99)))
+        val df = mkDf(spark = spark, "lolnope" -> List(1.99))
         val sut = overCheckForInt
         assert(sut.configCheck(df))
         assert(sut.failed)
@@ -137,7 +137,7 @@ class SumOfNumericColumnCheckSpec
       }
 
       it("Column exists but is wrong type") {
-        val df = mkDf(spark = spark, ("price" -> List("eggs")))
+        val df = mkDf(spark = spark, "price" -> List("eggs"))
         val sut = overCheckForInt
         assert(sut.configCheck(df))
         assert(sut.failed)
@@ -196,25 +196,25 @@ trait FunctionTestingForNumericalTypes
       assert(!sut.quickChecks(spark, mkDict())(config))
       assert(!sut.failed)
     }
-    it should s"correctly check that ${eight} is not under ${sixPair._2.sum}" in {
+    it should s"correctly check that $eight is not under ${sixPair._2.sum}" in {
       val df = mkDf(spark, sixPair) // scalastyle:ignore
       val sut = testDfWithChecks(df, under)
       assert(!sut.quickChecks(spark, mkDict())(config))
       assert(!sut.failed)
     }
-    it should s"correctly check that ${eight} is not over ${ninePair._2.sum}" in {
+    it should s"correctly check that $eight is not over ${ninePair._2.sum}" in {
       val df = mkDf(spark, ninePair) // scalastyle:ignore
       val sut = testDfWithChecks(df, over)
       assert(!sut.quickChecks(spark, mkDict())(config))
       assert(!sut.failed)
     }
-    it should s"correctly check that ${nine} is not over ${ninePair._2.sum} in inclusive mode" in {
+    it should s"correctly check that $nine is not over ${ninePair._2.sum} in inclusive mode" in {
       val df = mkDf(spark, ninePair) // scalastyle:ignore
       val sut = testDfWithChecks(df, overInclusive)
       assert(!sut.quickChecks(spark, mkDict())(config))
       assert(!sut.failed)
     }
-    it should s"correctly check that ${eight} is over ${sixPair._2.sum}" in {
+    it should s"correctly check that $eight is over ${sixPair._2.sum}" in {
       val df = mkDf(spark, sixPair) // scalastyle:ignore
       val sut = testDfWithChecks(df, over)
       assert(sut.quickChecks(spark, mkDict())(config))

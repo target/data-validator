@@ -31,7 +31,7 @@ trait MinMaxChecks { this: ValidatorBase =>
     if (minMaxList.forall(_.isNumber)) {
       minMaxList.flatMap(_.asNumber) match {
         case mv :: xv :: Nil if mv.toDouble >= xv.toDouble =>
-          addEvent(ValidatorError(s"Min: ${mv} must be less than or equal to max: ${xv}"))
+          addEvent(ValidatorError(s"Min: $mv must be less than or equal to max: $xv"))
         case _ =>
       }
     } else if (minMaxList.forall(_.isString)) {
