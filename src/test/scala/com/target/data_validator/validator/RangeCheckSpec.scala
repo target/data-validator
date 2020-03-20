@@ -92,7 +92,7 @@ class RangeCheckSpec extends FunSpec with Matchers with TestingSparkSession {
         val df = mkDataFrame(spark, defData)
         assert(sut.configCheck(df))
         assert(sut.failed)
-        assert(sut.getEvents contains ValidatorError(s"Min: $minValue must be less than max: $maxValue"))
+        assert(sut.getEvents contains ValidatorError(s"Min: $minValue must be less than or equal to max: $maxValue"))
       }
     }
 

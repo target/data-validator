@@ -313,19 +313,16 @@ This is a costly check and requires an additional pass through the table.
 |-----|------|-------------|
 | `columns` | Array[String] | Each set of values in these columns must be unique.
 
-#### `sumOfNumericColumnCheck`
+#### `columnSumCheck`
 
-This check is used to ensure that the _sum_ of a numeric column is over or under a threshold or that it is
-within or outside a range. The bounds and threshold are _exclusive_ by default.
+This check sums a column in all rows. If the sum applied to the `column` doesn't fall within the range specified by (`minValue`, `maxValue`) the check will fail.
 
-| Arg             | Type    | Description                                            |
-|-----------------|---------|--------------------------------------------------------|
-| `column`        | String  | The column to consider                                 |
-| `thresholdType` | String  | One of: `over`, `under`, `between`, `outside`          |
-| `threshold`     | Number  | Single high water mark required for `over` and `under` |
-| `lowerBound`    | Number  | Lower bound required for `between` and `outside`       |
-| `upperBound`    | Number  | Upper bound required for `between` and `outside`       |
-| `inclusive`     | Boolean | Sets the threshold and bounds to be inclusive          |
+| Arg         | Type        | Description                                                            |
+|-------------|-------------|------------------------------------------------------------------------|
+| `column`    | String      | The column to be checked.                                              |
+| `minValue`  | NumericType | The lower bound of the sum.  Type depends on the type of the `column`. |
+| `maxValue`  | NumericType | The upper bound of the sum. Type depends on the type of the `column`.  |
+| `inclusive` | Boolean     | Include `minValue` and `maxValue` as part of the range.                |
 
 ## Example Config
 

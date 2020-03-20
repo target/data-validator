@@ -11,20 +11,34 @@ import org.apache.spark.sql.types._
 
 case class SumOfNumericColumnCheck(
   column: String,
-  thresholdType: String,
-  threshold: Option[Json] = None,
-  lowerBound: Option[Json] = None,
-  upperBound: Option[Json] = None,
-  inclusive: Option[Boolean] = None
+  minValue: Option[Json] = None,
+  maxValue: Option[Json] = None,
+  inclusive: Option[Json] = None
 )
-  extends ColumnBased(column, Sum(UnresolvedAttribute(column)).toAggregateExpression()) {
+  extends ColumnBased(column, Sum(UnresolvedAttribute(column)).toAggregateExpression())
+  with MinMaxChecks {
 
   override def name: String = "SumOfNumericColumn"
 
-  def boundsAreInclusive: Boolean = inclusive.getOrElse(false)
+  def boundsAreInclusive: Boolean = inclusive.flatMap(_.asBoolean).getOrElse(false)
 
   private def createTypedLiteral(json: Json)(implicit dataType: DataType): Expression = {
     ValidatorBase.createLiteral(dataType, json)
+  }
+
+  private def combineExpressions(
+                                  maxTest: => Option[Expression],
+                                  minTest: => Option[Expression]): Expression = {
+    (minTest, maxTest) match {
+      case (None, None) =>
+        val msg = "Both min and max tests were None in columnSumCheck. Were minValue and maxValue defined?"
+        logger.error(msg)
+        addEvent(ValidatorError(msg))
+        Literal.FalseLiteral
+      case (None, Some(maxOnly)) => maxOnly
+      case (Some(minOnly), None) => minOnly
+      case (Some(min), Some(max)) => And(min, max)
+    }
   }
 
   override def quickCheck(r: Row, count: Long, idx: Int): Boolean = {
@@ -33,66 +47,44 @@ case class SumOfNumericColumnCheck(
 
     val rowValueAsExpr: Expression = Literal.create(rawValueForLogging, dataType)
     // by the time this is executed, the options have been verified
-    lazy val thresholdAsExpr: Expression = createTypedLiteral(threshold.get)
-    lazy val lowerBoundAsExpr: Expression = createTypedLiteral(lowerBound.get)
-    lazy val upperBoundAsExpr: Expression = createTypedLiteral(upperBound.get)
+    lazy val minValueAsExpr: Option[Expression] = minValue.map(createTypedLiteral)
+    lazy val maxValueAsExpr: Option[Expression] = maxValue.map(createTypedLiteral)
 
-    val failedIfFalseExpr = thresholdType match {
-      case "over" if threshold.isDefined =>
-        if (boundsAreInclusive) {
-          GreaterThanOrEqual(rowValueAsExpr, thresholdAsExpr)
-        } else {
-          GreaterThan(rowValueAsExpr, thresholdAsExpr)
-        }
-      case "under" if threshold.isDefined =>
-        if (boundsAreInclusive) {
-          LessThanOrEqual(rowValueAsExpr, thresholdAsExpr)
-        } else {
-          LessThan(rowValueAsExpr, thresholdAsExpr)
-        }
-      case "between" if lowerBound.isDefined && upperBound.isDefined =>
-        if (boundsAreInclusive) {
-          And(GreaterThanOrEqual(rowValueAsExpr, lowerBoundAsExpr), LessThanOrEqual(rowValueAsExpr, upperBoundAsExpr))
-        } else {
-          And(GreaterThan(rowValueAsExpr, lowerBoundAsExpr), LessThan(rowValueAsExpr, upperBoundAsExpr))
-        }
-      case "outside" if lowerBound.isDefined && upperBound.isDefined =>
-        if (boundsAreInclusive) {
-          Or(LessThanOrEqual(rowValueAsExpr, lowerBoundAsExpr), GreaterThanOrEqual(rowValueAsExpr, upperBoundAsExpr))
-        } else {
-          Or(LessThan(rowValueAsExpr, lowerBoundAsExpr), GreaterThan(rowValueAsExpr, upperBoundAsExpr))
-        }
-      case _ =>
-        val msg = s"""
-                     |Unknown threshold type $thresholdType or one of the following is required and not present:
-                     |threshold: $threshold (required for over/under)
-                     |lowerBound: $lowerBound upperBound: $upperBound (required for between/outside)
-              """.stripMargin
-        logger.error(msg)
-        addEvent(ValidatorError(msg))
-        Literal.FalseLiteral
+    val failedIfFalseExpr = if (boundsAreInclusive) {
+      // use OrEqual here
+      val maxTest = maxValueAsExpr.map(LessThanOrEqual(rowValueAsExpr, _))
+      val minTest = minValueAsExpr.map(GreaterThanOrEqual(rowValueAsExpr, _))
+      combineExpressions(maxTest, minTest)
+    } else {
+      // no OrEqual here
+      val maxTest = maxValueAsExpr.map(LessThan(rowValueAsExpr, _))
+      val minTest = minValueAsExpr.map(GreaterThan(rowValueAsExpr, _))
+      combineExpressions(maxTest, minTest)
     }
 
     val failedIfFalse = failedIfFalseExpr.eval()
     failed = !failedIfFalse.asInstanceOf[Boolean]
     addEvent(ValidatorCounter("rowCount", count))
-    addEvent(ValidatorCheckEvent(failed, s"$name $thresholdType on $column: [$failedIfFalseExpr]", count, 1))
+    addEvent(ValidatorCheckEvent(failed, s"$name on $column: [$failedIfFalseExpr]", count, 1))
     failed
   }
 
   override def substituteVariables(dict: VarSubstitution): ValidatorBase = {
     val ret = copy(
       column = getVarSub(column, "column", dict),
-      thresholdType = getVarSub(thresholdType, "thresholdType", dict),
-      threshold = threshold.map(getVarSubJson(_, "threshold", dict)),
-      lowerBound = lowerBound.map(getVarSubJson(_, "lowerBound", dict)),
-      upperBound = upperBound.map(getVarSubJson(_, "upperBound", dict))
+      minValue = minValue.map(getVarSubJson(_, "minValue", dict)),
+      maxValue = maxValue.map(getVarSubJson(_, "maxValue", dict)),
+      inclusive = maxValue.map(getVarSubJson(_, "inclusive", dict))
     )
     this.getEvents.foreach(ret.addEvent)
     ret
   }
 
   override def configCheck(df: DataFrame): Boolean = {
+    checkValuesPresent()
+    checkInclusive()
+    checkMinLessThanMax()
+
     findColumnInDataFrame(df, column) match {
       case Some(ft) if ft.dataType.isInstanceOf[NumericType] => Unit
       case Some(ft) =>

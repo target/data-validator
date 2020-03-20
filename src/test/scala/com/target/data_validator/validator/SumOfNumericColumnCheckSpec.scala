@@ -19,91 +19,75 @@ class SumOfNumericColumnCheckSpec
       it("uses over threshold") {
         val json = parseYaml(
           s"""
-             |type: sumOfNumericColumnCheck
+             |type: columnSumCheck
              |column: foo
-             |thresholdType: over
-             |threshold: ${int_8._1}
+             |maxValue: ${int_8._1}
              |""".stripMargin
         )
         val sut = JsonDecoders.decodeChecks.decodeJson(json)
         assert(sut == Right(
-          SumOfNumericColumnCheck("foo", "over", threshold = Some(int_8._2))))
+          SumOfNumericColumnCheck("foo", maxValue = Some(int_8._2))))
       }
       it("uses under threshold") {
         val json = parseYaml(
           s"""
-             |type: sumOfNumericColumnCheck
+             |type: columnSumCheck
              |column: foo
-             |thresholdType: under
-             |threshold: ${int_8._1}
+             |minValue: ${int_8._1}
              |""".stripMargin
         )
         val sut = JsonDecoders.decodeChecks.decodeJson(json)
         assert(sut == Right(
-          SumOfNumericColumnCheck("foo", "under", threshold = Some(int_8._2))))
+          SumOfNumericColumnCheck("foo", minValue = Some(int_8._2))))
       }
       it("uses between threshold") {
         val json = parseYaml(
           s"""
-             |type: sumOfNumericColumnCheck
+             |type: columnSumCheck
              |column: foo
-             |thresholdType: between
-             |lowerBound: ${int_2._1}
-             |upperBound: ${int_10._1}
+             |minValue: ${int_2._1}
+             |maxValue: ${int_10._1}
              |""".stripMargin
         )
         val sut = JsonDecoders.decodeChecks.decodeJson(json)
         assert(sut == Right(
-          SumOfNumericColumnCheck("foo", "between",
-            lowerBound = Some(int_2._2), upperBound = Some(int_10._2))))
+          SumOfNumericColumnCheck("foo",
+            minValue = Some(int_2._2), maxValue = Some(int_10._2))))
       }
       it("uses outside threshold") {
         val json = parseYaml(
           s"""
-             |type: sumOfNumericColumnCheck
+             |type: columnSumCheck
              |column: foo
-             |thresholdType: outside
-             |lowerBound: ${int_2._1}
-             |upperBound: ${int_10._1}
+             |minValue: ${int_2._1}
+             |maxValue: ${int_10._1}
              |""".stripMargin
         )
         val sut = JsonDecoders.decodeChecks.decodeJson(json)
         assert(sut == Right(
-          SumOfNumericColumnCheck("foo", "outside",
-            lowerBound = Some(int_2._2), upperBound = Some(int_10._2))))
+          SumOfNumericColumnCheck("foo",
+            minValue = Some(int_2._2), maxValue = Some(int_10._2))))
       }
 
       it("uses over threshold, inclusively") {
         val json = parseYaml(
           s"""
-             |type: sumOfNumericColumnCheck
+             |type: columnSumCheck
              |column: foo
-             |thresholdType: over
-             |threshold: ${int_8._1}
+             |maxValue: ${int_8._1}
              |inclusive: true
              |""".stripMargin
         )
         val sut = JsonDecoders.decodeChecks.decodeJson(json)
         assert(sut == Right(
-          SumOfNumericColumnCheck("foo", "over", threshold = Some(int_8._2), inclusive = Some(true))))
+          SumOfNumericColumnCheck("foo", maxValue = Some(int_8._2), inclusive = Some(Json.fromBoolean(true)))))
       }
 
       it("is missing the column") {
         val json = parseYaml(
           s"""
-             |type: sumOfNumericColumnCheck
-             |thresholdType: over
-             |threshold: ${int_8}
-             |""".stripMargin
-        )
-        val sut = JsonDecoders.decodeChecks.decodeJson(json)
-        assert(sut.isLeft)
-      }
-      it("is missing the threshold entirely") {
-        val json = parseYaml(
-          s"""
-             |type: sumOfNumericColumnCheck
-             |column: foo
+             |type: columnSumCheck
+             |maxValue: ${int_8}
              |""".stripMargin
         )
         val sut = JsonDecoders.decodeChecks.decodeJson(json)
@@ -113,31 +97,31 @@ class SumOfNumericColumnCheckSpec
 
     describe("variable substitution") {
       it("success substitution") {
-        var dict = mkDict("threshold" -> "20", "column" -> "foo", "thresholdType" -> "under")
-        var sut = SumOfNumericColumnCheck("$column", "$thresholdType", Some(Json.fromString("$threshold")))
+        val dict = mkDict("minValue" -> "20", "column" -> "foo")
+        val sut = SumOfNumericColumnCheck("$column", Some(Json.fromString("$minValue")))
         assert(sut.substituteVariables(dict) ==
-          SumOfNumericColumnCheck("foo", "under", Some(Json.fromInt(20))))
+          SumOfNumericColumnCheck("foo", Some(Json.fromInt(20))))
         assert(!sut.failed)
       }
 
       it("error on substitution issues") {
-        var dict = mkDict()
-        var sut = SumOfNumericColumnCheck("$column", "$thresholdType", Some(Json.fromString("$threshold")))
+        val dict = mkDict()
+        val sut = SumOfNumericColumnCheck("$column", Some(Json.fromString("$minValue")))
         assert(sut.substituteVariables(dict) == sut)
         assert(sut.failed)
         assert(sut.getEvents contains
           ValidatorError("VariableSubstitution: Can't find values for the following keys, "
             + "column"))
-        assert(sut.getEvents contains
-          ValidatorError("VariableSubstitution: Can't find values for the following keys, "
-            + "threshold"))
-        assert(sut.getEvents contains
-          ValidatorError("VariableSubstitution: Can't find values for the following keys, "
-            + "thresholdType"))
       }
     }
 
     describe("check configuration") {
+      it("errors without a min or max declared") {
+        val df = mkDf(spark = spark, "price" -> List(1.99))
+        val sut = SumOfNumericColumnCheck("price")
+        assert(sut.configCheck(df))
+      }
+
       it("Column Exists") {
         val df = mkDf(spark = spark, "price" -> List(1.99))
         val sut = overCheckForInt
@@ -172,21 +156,21 @@ class SumOfNumericColumnCheckFunctionalSpec
   "SumOfNumericColumnCheck with integers" should behave like functionsCorrectly[Int](
     eight = int_8._1, nine = int_9._1, sixPair = intListWithSum6, ninePair = intListWithSum9,
     under = underCheckForInt, over = overCheckForInt,
-    between = betweenCheckForInt, outside = outsideCheckForInt,
+    between = betweenCheckForInt,
     overInclusive = overCheckInclusiveForInt
   )
 
   "SumOfNumericColumnCheck with longs" should behave like functionsCorrectly[Long](
     eight = long_8._1, nine = long_9._1, sixPair = longListWithSum6, ninePair = longListWithSum9,
     under = underCheckForLong, over = overCheckForLong,
-    between = betweenCheckForLong, outside = outsideCheckForLong,
+    between = betweenCheckForLong,
     overInclusive = overCheckInclusiveForLong
   )
 
   "SumOfNumericColumnCheck with double" should behave like functionsCorrectly[Double](
     eight = dbl_8._1, nine = dbl_9._1, sixPair = dblListWithSum6, ninePair = dblListWithSum9,
     under = underCheckForLong, over = overCheckForLong,
-    between = betweenCheckForLong, outside = outsideCheckForLong,
+    between = betweenCheckForLong,
     overInclusive = overCheckInclusiveForDouble
   )
 
@@ -203,19 +187,10 @@ trait FunctionTestingForNumericalTypes
                                       under: SumOfNumericColumnCheck,
                                       over: SumOfNumericColumnCheck,
                                       between: SumOfNumericColumnCheck,
-                                      outside: SumOfNumericColumnCheck,
                                       overInclusive: SumOfNumericColumnCheck
                                     ): Unit = {
-
-    it should s"correctly check that ${ninePair._2.sum} is outside " +
-      s"${outside.lowerBound.get.asNumber.get} and ${outside.upperBound.get.asNumber.get}" in {
-      val df = mkDf(spark, ninePair) // scalastyle:ignore
-      val sut = testDfWithChecks(df, outside)
-      assert(!sut.quickChecks(spark, mkDict())(config))
-      assert(!sut.failed)
-    }
     it should s"correctly check that ${ninePair._2.sum} is between " +
-      s"${between.lowerBound.get.asNumber.get} and ${between.upperBound.get.asNumber.get}" in {
+      s"${between.minValue.get.asNumber.get} and ${between.maxValue.get.asNumber.get}" in {
       val df = mkDf(spark, ninePair) // scalastyle:ignore
       val sut = testDfWithChecks(df, between)
       assert(!sut.quickChecks(spark, mkDict())(config))
@@ -279,7 +254,6 @@ trait SumOfNumericColumnCheckExamples extends TestPairMakers {
   def overCheckInclusiveForInt: SumOfNumericColumnCheck = overCheckInclusive(int_9._2)
   def underCheckForInt: SumOfNumericColumnCheck = underCheck(int_8._2)
   def betweenCheckForInt: SumOfNumericColumnCheck = betweenCheck(int_2._2, int_10._2)
-  def outsideCheckForInt: SumOfNumericColumnCheck = outsideCheck(int_2._2, int_8._2)
 
   // Long
   val long_8: (Long, Json) = makeTestPair(8L)
@@ -294,7 +268,6 @@ trait SumOfNumericColumnCheckExamples extends TestPairMakers {
   def overCheckInclusiveForLong: SumOfNumericColumnCheck = overCheckInclusive(long_9._2)
   def underCheckForLong: SumOfNumericColumnCheck = underCheck(long_8._2)
   def betweenCheckForLong: SumOfNumericColumnCheck = betweenCheck(long_2._2, long_10._2)
-  def outsideCheckForLong: SumOfNumericColumnCheck = outsideCheck(long_2._2, long_8._2)
 
   // Double
   val dbl_8: (Double, Json) = makeTestPair(8.0)
@@ -309,17 +282,16 @@ trait SumOfNumericColumnCheckExamples extends TestPairMakers {
   def overCheckInclusiveForDouble: SumOfNumericColumnCheck = overCheckInclusive(dbl_9._2)
   def underCheckForDouble: SumOfNumericColumnCheck = underCheck(dbl_8._2)
   def betweenCheckForDouble: SumOfNumericColumnCheck = betweenCheck(dbl_2._2, dbl_10._2)
-  def outsideCheckForDouble: SumOfNumericColumnCheck = outsideCheck(dbl_2._2, dbl_8._2)
 
   // Helpers
-  def overCheck(threshold: Json): SumOfNumericColumnCheck = SumOfNumericColumnCheck("price", "over", Some(threshold))
+  def overCheck(threshold: Json): SumOfNumericColumnCheck = SumOfNumericColumnCheck("price", Some(threshold))
   def overCheckInclusive(threshold: Json): SumOfNumericColumnCheck =
-    SumOfNumericColumnCheck("price", "over", Some(threshold), inclusive = Some(true))
-  def underCheck(threshold: Json): SumOfNumericColumnCheck = SumOfNumericColumnCheck("price", "under", Some(threshold))
+    SumOfNumericColumnCheck("price", Some(threshold), inclusive = Some(Json.fromBoolean(true)))
+  def underCheck(threshold: Json): SumOfNumericColumnCheck = SumOfNumericColumnCheck("price", None, Some(threshold))
   def betweenCheck(lower: Json, upper: Json): SumOfNumericColumnCheck =
-    SumOfNumericColumnCheck("price", "between", None, Some(lower), Some(upper))
+    SumOfNumericColumnCheck("price", Some(lower), Some(upper))
   def outsideCheck(lower: Json, upper: Json): SumOfNumericColumnCheck =
-    SumOfNumericColumnCheck("price", "outside", None, Some(lower), Some(upper))
+    SumOfNumericColumnCheck("price", Some(lower), Some(upper))
 }
 
 /**
