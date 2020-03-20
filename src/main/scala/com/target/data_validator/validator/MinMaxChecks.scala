@@ -9,11 +9,11 @@ trait MinMaxChecks { this: ValidatorBase =>
   val maxValue: Option[Json]
   val inclusive: Option[Json]
 
-  lazy val minMaxList: List[Json] = (minValue::maxValue::Nil).flatten
+  lazy val minMaxList: List[Json] = (minValue :: maxValue :: Nil).flatten
 
   def checkValuesPresent(): Unit = {
-    if (minMaxList.isEmpty) {
-      addEvent(ValidatorError("Must define minValue or maxValue or both."))
+    if (minMaxList.isEmpty || minMaxList.size > 2) {
+      addEvent(ValidatorError(s"Min or Max or both must be defined"))
     }
   }
 
@@ -28,10 +28,6 @@ trait MinMaxChecks { this: ValidatorBase =>
     * Checks that the first element of a list of two numbers is less than the second element.
     */
   def checkMinLessThanMax(): Unit = {
-    if (minMaxList.isEmpty || minMaxList.size > 2) {
-      addEvent(ValidatorError(s"min or max or both must be defined ${minMaxList.size}"))
-    }
-
     if (minMaxList.forall(_.isNumber)) {
       minMaxList.flatMap(_.asNumber) match {
         case mv :: xv :: Nil if mv.toDouble >= xv.toDouble =>
