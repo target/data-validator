@@ -18,9 +18,14 @@ trait MinMaxChecks { this: ValidatorBase =>
   }
 
   def checkInclusive(): Unit = {
-    if (inclusive.isDefined && inclusive.get.asBoolean.isEmpty) {
-      logger.error(s"Inclusive defined but not Bool, $inclusive")
-      addEvent(ValidatorError(s"Inclusive flag is defined, but is not a boolean, inclusive: ${inclusive.get}"))
+    def errorInclusiveIsNonBoolean(): Unit = {
+      val msg = s"Config property 'inclusive' defined but not boolean, is: ${inclusive.get.toString()}"
+      logger.error(msg)
+      addEvent(ValidatorError(msg))
+    }
+
+    if (inclusive.exists(_.asBoolean.isEmpty)) {
+      errorInclusiveIsNonBoolean()
     }
   }
 

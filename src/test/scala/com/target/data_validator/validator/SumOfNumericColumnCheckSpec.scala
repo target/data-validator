@@ -143,6 +143,22 @@ class SumOfNumericColumnCheckSpec
         assert(sut.failed)
         assert(sut.getEvents contains ValidatorError("Column: price found, but not of numericType type: StringType"))
       }
+
+      it("parses and checks without caring about arg order") {
+        val json = parseYaml(
+          s"""
+             |type: columnSumCheck
+             |column: foo
+             |maxValue: ${int_8._1}
+             |inclusive: true
+             |""".stripMargin
+        )
+        val sut = JsonDecoders.decodeChecks.decodeJson(json).right.get
+        assert(sut.asInstanceOf[SumOfNumericColumnCheck] ==
+          SumOfNumericColumnCheck("foo", maxValue = Some(int_8._2), inclusive = Some(Json.fromBoolean(true))))
+        val df = mkDf(spark = spark, "foo" -> List(6))
+        assert(!sut.configCheck(df))
+      }
     }
   }
 }

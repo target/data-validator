@@ -81,6 +81,7 @@ case class SumOfNumericColumnCheck(
   }
 
   override def configCheck(df: DataFrame): Boolean = {
+    logger.debug(s"Full check config: ${this.toString}")
     checkValuesPresent()
     checkInclusive()
     checkMinLessThanMax()
