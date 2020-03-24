@@ -74,7 +74,7 @@ case class ColumnSumCheck(
       column = getVarSub(column, "column", dict),
       minValue = minValue.map(getVarSubJson(_, "minValue", dict)),
       maxValue = maxValue.map(getVarSubJson(_, "maxValue", dict)),
-      inclusive = maxValue.map(getVarSubJson(_, "inclusive", dict))
+      inclusive = inclusive.map(getVarSubJson(_, "inclusive", dict))
     )
     this.getEvents.foreach(ret.addEvent)
     ret
