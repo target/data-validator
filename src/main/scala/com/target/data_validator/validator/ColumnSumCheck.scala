@@ -9,16 +9,16 @@ import org.apache.spark.sql.catalyst.expressions._
 import org.apache.spark.sql.catalyst.expressions.aggregate.Sum
 import org.apache.spark.sql.types._
 
-case class SumOfNumericColumnCheck(
+case class ColumnSumCheck(
   column: String,
   minValue: Option[Json] = None,
   maxValue: Option[Json] = None,
   inclusive: Option[Json] = None
 )
   extends ColumnBased(column, Sum(UnresolvedAttribute(column)).toAggregateExpression())
-  with MinMaxChecks {
+    with MinMaxChecks {
 
-  override def name: String = "SumOfNumericColumn"
+  override def name: String = "columnSumCheck"
 
   def boundsAreInclusive: Boolean = inclusive.flatMap(_.asBoolean).getOrElse(false)
 
@@ -27,8 +27,8 @@ case class SumOfNumericColumnCheck(
   }
 
   private def combineExpressions(
-                                  maxTest: => Option[Expression],
-                                  minTest: => Option[Expression]): Expression = {
+    maxTest: => Option[Expression],
+    minTest: => Option[Expression]): Expression = {
     (minTest, maxTest) match {
       case (None, None) =>
         val msg = "Both min and max tests were None in columnSumCheck. Were minValue and maxValue defined?"
@@ -102,17 +102,17 @@ case class SumOfNumericColumnCheck(
 
   override def toJson: Json = {
     val additionalFieldsForReport = Json.fromFields(Set(
-      "type" -> Json.fromString("sumOfNumericColumn"),
+      "type" -> Json.fromString("columnSumCheck"),
       "failed" -> Json.fromBoolean(failed)
     ))
 
-    val base = SumOfNumericColumnCheck.encoder(this)
+    val base = ColumnSumCheck.encoder(this)
     base.deepMerge(additionalFieldsForReport)
   }
 }
 
-object SumOfNumericColumnCheck {
-  val encoder: Encoder[SumOfNumericColumnCheck] = deriveEncoder[SumOfNumericColumnCheck]
-  val decoder: Decoder[SumOfNumericColumnCheck] = deriveDecoder[SumOfNumericColumnCheck]
+object ColumnSumCheck {
+  val encoder: Encoder[ColumnSumCheck] = deriveEncoder[ColumnSumCheck]
+  val decoder: Decoder[ColumnSumCheck] = deriveDecoder[ColumnSumCheck]
   def fromJson(c: HCursor): Either[DecodingFailure, ValidatorBase] = decoder.apply(c)
 }
