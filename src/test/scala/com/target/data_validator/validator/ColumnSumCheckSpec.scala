@@ -142,12 +142,6 @@ class ColumnSumCheckSpec
 
     describe("check configuration") {
 
-      it("errors without a min or max declared") {
-        val df = mkDf(spark = spark, dblListWithSum6)
-        val sut = ColumnSumCheck("price")
-        assert(sut.configCheck(df))
-      }
-
       it("Column Exists") {
         val df = mkDf(spark = spark, "price" -> List(1.99))
         val sut = overCheckForInt
