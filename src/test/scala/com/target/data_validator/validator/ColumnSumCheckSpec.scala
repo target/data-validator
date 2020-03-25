@@ -186,6 +186,19 @@ class ColumnSumCheckSpec
       val detailedErrors = false
       val longListWithSum6 = "price" -> List(1L, 2L, 3L)
 
+      it("no bounds creates an error") {
+        val check = ColumnSumCheck("price")
+        val df = mkDf(spark, longListWithSum6)
+        val sut = ValidatorDataFrame(df, None, None, List(check))
+        val config = ValidatorConfig(1, 1, None, detailedErrors, None, None, List.empty)
+        assert(sut.quickChecks(spark, mkDict())(config))
+        assert(sut.failed)
+        assert(sut.getEvents.exists {
+          evt => evt.isInstanceOf[ValidatorError] &&
+            evt.asInstanceOf[ValidatorError].msg.contains("min and max tests were None")
+        })
+      }
+
       it("lower bound success") {
         val check = ColumnSumCheck(
           "price",
