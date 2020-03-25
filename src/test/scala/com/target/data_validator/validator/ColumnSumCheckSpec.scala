@@ -181,7 +181,7 @@ class ColumnSumCheckSpec
       }
     }
 
-    describe("functionality") {
+    describe("quickCheck functionality") {
 
       val detailedErrors = false
       val longListWithSum6 = "price" -> List(1L, 2L, 3L)
@@ -302,6 +302,25 @@ class ColumnSumCheckSpec
 
     }
 
+    describe("json reporting") {
+      val detailedErrors = false
+      val longListWithSum6 = "price" -> List(1L, 2L, 3L)
+      it("emits expected json") {
+        val check = ColumnSumCheck(
+          "price",
+          minValue = Some(Json.fromLong(1L)),
+          maxValue = Some(Json.fromLong(6L)),
+          inclusive = Some(Json.fromBoolean(true))
+        )
+        val df = mkDf(spark, longListWithSum6)
+        val sut = ValidatorDataFrame(df, None, None, List(check))
+        val config = ValidatorConfig(1, 1, None, detailedErrors, None, None, List.empty)
+        sut.configCheck(spark, mkDict())
+        sut.quickChecks(spark, mkDict())(config)
+        val json = sut.checks.head.toJson
+        json.asObject.get.keys should contain allOf("type", "failed")
+      }
+    }
   }
 }
 
