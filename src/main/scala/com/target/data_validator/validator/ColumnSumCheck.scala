@@ -30,6 +30,7 @@ case class ColumnSumCheck(
     maxTest: => Option[Expression],
     minTest: => Option[Expression]): Expression = {
     (minTest, maxTest) match {
+      // this first case is unreachable in practice because configCheck should fail before this is called
       case (None, None) =>
         val msg = "Both min and max tests were None in columnSumCheck. Were minValue and maxValue defined?"
         logger.error(msg)

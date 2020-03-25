@@ -260,6 +260,46 @@ class ColumnSumCheckSpec
         assert(!sut.failed)
       }
 
+      it("upper and lower bound success") {
+        val check = ColumnSumCheck(
+          "price",
+          minValue = Some(Json.fromLong(5L)),
+          maxValue = Some(Json.fromLong(10L))
+        )
+        val df = mkDf(spark, longListWithSum6)
+        val sut = ValidatorDataFrame(df, None, None, List(check))
+        val config = ValidatorConfig(1, 1, None, detailedErrors, None, None, List.empty)
+        assert(!sut.quickChecks(spark, mkDict())(config))
+        assert(!sut.failed)
+      }
+
+      it("upper and lower bound failure") {
+        val check = ColumnSumCheck(
+          "price",
+          minValue = Some(Json.fromLong(1L)),
+          maxValue = Some(Json.fromLong(6L))
+        )
+        val df = mkDf(spark, longListWithSum6)
+        val sut = ValidatorDataFrame(df, None, None, List(check))
+        val config = ValidatorConfig(1, 1, None, detailedErrors, None, None, List.empty)
+        assert(sut.quickChecks(spark, mkDict())(config))
+        assert(sut.failed)
+      }
+
+      it("upper bound and lower inclusive success") {
+        val check = ColumnSumCheck(
+          "price",
+          minValue = Some(Json.fromLong(1L)),
+          maxValue = Some(Json.fromLong(6L)),
+          inclusive = Some(Json.fromBoolean(true))
+        )
+        val df = mkDf(spark, longListWithSum6)
+        val sut = ValidatorDataFrame(df, None, None, List(check))
+        val config = ValidatorConfig(1, 1, None, detailedErrors, None, None, List.empty)
+        assert(!sut.quickChecks(spark, mkDict())(config))
+        assert(!sut.failed)
+      }
+
     }
 
   }
