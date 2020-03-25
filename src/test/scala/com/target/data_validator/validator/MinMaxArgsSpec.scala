@@ -1,7 +1,7 @@
 package com.target.data_validator.validator
 
 import com.target.TestingSparkSession
-import com.target.data_validator.VarSubstitution
+import com.target.data_validator.{ValidatorError, VarSubstitution}
 import io.circe.Json
 import org.apache.spark.sql.DataFrame
 import org.scalatest.{FunSpec, Matchers, WordSpec}
@@ -139,6 +139,7 @@ class MinMaxArgsSpec extends WordSpec with Matchers with TestingSparkSession {
               maxValue = Option(Json.fromString("3")))
             sut.checkMinLessThanMax()
             sut.getEvents shouldNot be(empty)
+            sut.getEvents.head.asInstanceOf[ValidatorError].msg should startWith("Unsupported type")
           }
         }
       }
