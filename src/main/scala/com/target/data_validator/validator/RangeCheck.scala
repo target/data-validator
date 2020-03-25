@@ -16,7 +16,7 @@ case class RangeCheck(
   minValue: Option[Json],
   maxValue: Option[Json],
   inclusive: Option[Json],
-  threshold: Option[String]) extends RowBased with MinMaxChecks {
+  threshold: Option[String]) extends RowBased with MinMaxArgs {
 
   override def substituteVariables(dict: VarSubstitution): ValidatorBase = {
     val ret = RangeCheck(

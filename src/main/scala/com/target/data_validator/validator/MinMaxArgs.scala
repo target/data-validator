@@ -4,7 +4,7 @@ import com.target.data_validator.JsonUtils.debugJson
 import com.target.data_validator.ValidatorError
 import io.circe.Json
 
-trait MinMaxChecks { this: ValidatorBase =>
+trait MinMaxArgs { this: ValidatorBase =>
   val minValue: Option[Json]
   val maxValue: Option[Json]
   val inclusive: Option[Json]

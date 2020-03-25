@@ -16,7 +16,7 @@ case class ColumnSumCheck(
   inclusive: Option[Json] = None
 )
   extends ColumnBased(column, Sum(UnresolvedAttribute(column)).toAggregateExpression())
-    with MinMaxChecks {
+    with MinMaxArgs {
 
   override def name: String = "columnSumCheck"
 
