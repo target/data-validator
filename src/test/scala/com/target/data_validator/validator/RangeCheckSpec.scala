@@ -34,6 +34,27 @@ class RangeCheckSpec extends FunSpec with Matchers with TestingSparkSession {
 
     describe("configCheck") {
 
+      it("error if min and max are not defined") {
+        val dict = new VarSubstitution
+        val df = mkDataFrame(spark, defData)
+        val sut = RangeCheck("item", None, None, None, None)
+        assert(sut.configCheck(df))
+      }
+
+      it("error if min and max are different types") {
+        val dict = new VarSubstitution
+        val df = mkDataFrame(spark, defData)
+        val sut = RangeCheck(
+          "avg",
+          Some(Json.fromInt(0)),
+          Some(Json.fromString("ten")),
+          None,
+          None
+        )
+        assert(sut.configCheck(df))
+        assert(sut.failed)
+      }
+
       it("error if column is not found in df") {
         val dict = new VarSubstitution
         val df = mkDataFrame(spark, defData)
@@ -61,6 +82,17 @@ class RangeCheckSpec extends FunSpec with Matchers with TestingSparkSession {
         )
         assert(sut.configCheck(df))
         assert(sut.failed)
+      }
+
+      it("minValue less than maxValue fails configCheck") {
+        val dict = new VarSubstitution
+        val maxValue = Math.abs(Random.nextInt(1000)) //scalastyle:ignore
+        val minValue = maxValue + 10
+        val sut = RangeCheck("avg", Some(Json.fromInt(minValue)), Some(Json.fromInt(maxValue)), None, None)
+        val df = mkDataFrame(spark, defData)
+        assert(sut.configCheck(df))
+        assert(sut.failed)
+        assert(sut.getEvents contains ValidatorError(s"Min: $minValue must be less than max: $maxValue"))
       }
     }
 

@@ -16,7 +16,7 @@ case class RangeCheck(
   minValue: Option[Json],
   maxValue: Option[Json],
   inclusive: Option[Json],
-  threshold: Option[String]) extends RowBased with MinMaxArgs {
+  threshold: Option[String]) extends RowBased {
 
   override def substituteVariables(dict: VarSubstitution): ValidatorBase = {
     val ret = RangeCheck(
@@ -60,18 +60,47 @@ case class RangeCheck(
     ret
   }
 
+  private def checkMinLessThanMax(values: List[Json]): Unit = {
+
+    if (values.forall(_.isNumber)) {
+      values.flatMap(_.asNumber) match {
+        case mv :: xv :: Nil if mv.toDouble >= xv.toDouble =>
+          addEvent(ValidatorError(s"Min: ${minValue.get} must be less than max: ${maxValue.get}"))
+        case _ =>
+      }
+    } else if (values.forall(_.isString)) {
+      values.flatMap(_.asString) match {
+        case mv :: xv :: Nil if mv == xv =>
+          addEvent(ValidatorError(s"Min[String]: $mv must be less than max[String]: $xv"))
+        case _ =>
+      }
+    } else {
+      // Not Strings or Numbers
+      addEvent(ValidatorError(s"Unsupported type in ${values.map(debugJson).mkString(", ")}"))
+    }
+  }
+
   override def configCheck(df: DataFrame): Boolean = {
-    checkValuesPresent()
-    checkInclusive()
-    checkMinLessThanMax()
+
+    val values = (minValue::maxValue::Nil).flatten
+    if (values.isEmpty) {
+      addEvent(ValidatorError("Must defined minValue or maxValue or both."))
+    }
+
+    checkMinLessThanMax(values)
 
     val colType = findColumnInDataFrame(df, column)
     if (colType.isDefined) {
       val dataType = colType.get.dataType
 
-      if (minMaxList.map(c => checkValue(df.schema, column, dataType, c)).exists(x => x)) {
+      if (values.map(c => checkValue(df.schema, column, dataType, c)).exists(x => x)) {
         addEvent(ValidatorError(s"Range constraint types not compatible with column[$dataType]:'$column'"))
       }
+    }
+
+    if (inclusive.isDefined && inclusive.get.asBoolean.isEmpty) {
+      logger.error(s"Inclusive defined but not Bool, $inclusive")
+      addEvent(ValidatorError(s"Inclusive flag is defined, but is not a boolean, inclusive: ${inclusive.get}"))
     }
 
     failed

@@ -19,6 +19,7 @@ object TestHelpers {
   }
 
   def guessType(v: Any): DataType = v.getClass.getCanonicalName match {
+    case "java.lang.Short" => ShortType
     case "java.lang.String" => StringType
     case "java.lang.Integer" => IntegerType
     case "java.lang.Double" => DoubleType
