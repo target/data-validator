@@ -67,9 +67,9 @@ case class ColumnSumCheck(
 
     val bounds = minValue.getOrElse("-Inf") :: maxValue.getOrElse("Inf") :: Nil
     val prettyBounds = if (inclusiveBounds.right.get) {
-      r.getString(idx) + " in " + bounds.mkString("[", " , ", "]")
+      r.get(idx) + " in " + bounds.mkString("[", " , ", "]")
     } else {
-      r.getString(idx) + " in " + bounds.mkString("(", " , ", ")")
+      r.get(idx) + " in " + bounds.mkString("(", " , ", ")")
     }
     val errorValue = if (failed) 1 else 0
     addEvent(ValidatorCheckEvent(failed, s"$name on '$column': $prettyBounds", count, errorValue))
