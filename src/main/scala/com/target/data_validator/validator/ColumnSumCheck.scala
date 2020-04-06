@@ -15,9 +15,11 @@ case class ColumnSumCheck(
   inclusive: Option[Json] = None
 ) extends ColumnBased(column, Sum(UnresolvedAttribute(column)).toAggregateExpression()) {
 
-  private val minOrMax: Either[String, Unit] = (minValue, maxValue) match {
-    case (None, None) => Left("'minValue' or 'maxValue' or both must be defined")
-    case _ => Right()
+  private val minOrMax: Either[String, Unit] = if (minValue.isEmpty && maxValue.isEmpty) {
+      Left("'minValue' or 'maxValue' or both must be defined")
+    } else {
+      Right()
+    }
   }
 
   private val lowerBound: Either[String, Double] = minValue match {
