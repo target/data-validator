@@ -313,6 +313,17 @@ This is a costly check and requires an additional pass through the table.
 |-----|------|-------------|
 | `columns` | Array[String] | Each set of values in these columns must be unique.
 
+#### `columnSumCheck`
+
+This check sums a column in all rows. If the sum applied to the `column` doesn't fall within the range specified by (`minValue`, `maxValue`) the check will fail.
+
+| Arg         | Type        | Description                                                            |
+|-------------|-------------|------------------------------------------------------------------------|
+| `column`    | String      | The column to be checked.                                              |
+| `minValue`  | NumericType | The lower bound of the sum.  Type depends on the type of the `column`. |
+| `maxValue`  | NumericType | The upper bound of the sum. Type depends on the type of the `column`.  |
+| `inclusive` | Boolean     | Include `minValue` and `maxValue` as part of the range.                |
+
 ## Example Config
 
 ```yaml
