@@ -67,12 +67,12 @@ case class ColumnSumCheck(
 
     val bounds = minValue.getOrElse("-Inf") :: maxValue.getOrElse("Inf") :: Nil
     val prettyBounds = if (inclusiveBounds.right.get) {
-      bounds.mkString("[", " , ", "]")
+      r.getString(idx) + " in " + bounds.mkString("[", " , ", "]")
     } else {
-      bounds.mkString("(", " , ", ")")
+      r.getString(idx) + " in " + bounds.mkString("(", " , ", ")")
     }
     val errorValue = if (failed) 1 else 0
-    addEvent(ValidatorCheckEvent(failed, s"$name on '$column' in $prettyBounds", count, errorValue))
+    addEvent(ValidatorCheckEvent(failed, s"$name on '$column': $prettyBounds", count, errorValue))
     failed
   }
 
