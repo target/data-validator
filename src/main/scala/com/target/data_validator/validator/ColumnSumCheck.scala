@@ -8,8 +8,6 @@ import org.apache.spark.sql.catalyst.analysis.UnresolvedAttribute
 import org.apache.spark.sql.catalyst.expressions.aggregate.Sum
 import org.apache.spark.sql.types._
 
-import scala.util.{Failure, Success, Try}
-
 case class ColumnSumCheck(
   column: String,
   minValue: Option[Json] = None,
@@ -17,49 +15,36 @@ case class ColumnSumCheck(
   inclusive: Option[Json] = None
 ) extends ColumnBased(column, Sum(UnresolvedAttribute(column)).toAggregateExpression()) {
 
-  private val minOrMax: Try[Unit] = Try {
-    (minValue, maxValue) match {
-      case (None, None) => throw new Exception("'minValue' or 'maxValue' or both must be defined")
-      case _ =>
-    }
+  private val minOrMax: Either[String, Unit] = (minValue, maxValue) match {
+    case (None, None) => Left("'minValue' or 'maxValue' or both must be defined")
+    case _ => Right()
   }
 
-  private val lowerBound: Try[Double] = Try {
-    minValue match {
-      case Some(json) => json.asNumber match {
-        case Some(number) => number.toDouble
-        case None => throw new Exception(s"'minValue' defined but type is not a Number, is: ${json.name}")
-      }
-      case None => Double.MinValue
-    }
+  private val lowerBound: Either[String, Double] = minValue match {
+    case Some(json) =>
+      if (json.isNumber) { Right(json.asNumber.get.toDouble) }
+      else { Left(s"'minValue' defined but type is not a Number, is: ${json.name}") }
+    case None => Right(Double.MinValue)
   }
 
-  private val upperBound: Try[Double] = Try {
-    maxValue match {
-      case Some(json) => json.asNumber match {
-        case Some(number) => number.toDouble
-        case None => throw new Exception(s"'maxValue' defined but type is not a Number, is: ${json.name}")
-      }
-      case None => Double.MaxValue
-    }
+  private val upperBound: Either[String, Double] = maxValue match {
+    case Some(json) =>
+      if (json.isNumber) { Right(json.asNumber.get.toDouble) }
+      else { Left(s"'maxValue' defined but type is not a Number, is: ${json.name}") }
+    case None => Right(Double.MaxValue)
   }
 
-  private val minLessThanMax: Try[Unit] = Try {
-    (lowerBound, upperBound) match {
-      case (Success(lower), Success(upper)) if lower >= upper =>
-        throw new Exception(s"'minValue': $lower must be less than 'maxValue': $upper")
-      case _ =>
-    }
+  private val minLessThanMax: Either[String, Unit] = (lowerBound, upperBound) match {
+    case (Right(lower), Right(upper)) if lower >= upper =>
+      Left(s"'minValue': $lower must be less than 'maxValue': $upper")
+    case _ => Right()
   }
 
-  private val inclusiveBounds: Try[Boolean] = Try {
-    inclusive match {
-      case Some(json) => json.asBoolean match {
-        case Some(bool) => bool
-        case None => throw new Exception(s"'inclusive' defined but type is not Boolean, is: ${json.name}")
-      }
-      case None => false
-    }
+  private val inclusiveBounds: Either[String, Boolean] = inclusive match {
+    case Some(json) =>
+      if (json.isBoolean) { Right(json.asBoolean.get) }
+      else { Left(s"'inclusive' defined but type is not Boolean, is: ${json.name}") }
+    case None => Right(false)
   }
 
   override def name: String = "columnSumCheck"
@@ -67,8 +52,8 @@ case class ColumnSumCheck(
   override def quickCheck(r: Row, count: Long, idx: Int): Boolean = {
 
     def evaluate(sum: Double): Boolean = {
-      if (inclusiveBounds.get) { sum > upperBound.get || sum < lowerBound.get}
-      else { sum >= upperBound.get || sum <= lowerBound.get}
+      if (inclusiveBounds.right.get) { sum > upperBound.right.get || sum < lowerBound.right.get}
+      else { sum >= upperBound.right.get || sum <= lowerBound.right.get}
     }
 
     failed = r.schema(idx).dataType match {
@@ -80,7 +65,14 @@ case class ColumnSumCheck(
       case ut => throw new Exception(s"Unsupported type for $name found in schema: $ut")
     }
 
-    addEvent(ValidatorCheckEvent(failed, s"$name on '$column'", count, 1))
+    val bounds = minValue.getOrElse("-Inf") :: maxValue.getOrElse("Inf") :: Nil
+    val prettyBounds = if (inclusiveBounds.right.get) {
+      bounds.mkString("[", " , ", "]")
+    } else {
+      bounds.mkString("(", " , ", ")")
+    }
+    val errorValue = if (failed) 1 else 0
+    addEvent(ValidatorCheckEvent(failed, s"$name on '$column' in $prettyBounds", count, errorValue))
     failed
   }
 
@@ -104,8 +96,7 @@ case class ColumnSumCheck(
       minLessThanMax,
       inclusiveBounds
     ).foreach {
-      case Failure(x) =>
-        val msg = x.getMessage
+      case Left(msg) =>
         logger.error(msg)
         addEvent(ValidatorError(msg))
       case _ =>
