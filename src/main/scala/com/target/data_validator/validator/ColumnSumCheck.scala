@@ -20,7 +20,6 @@ case class ColumnSumCheck(
     } else {
       Right()
     }
-  }
 
   private val lowerBound: Either[String, Double] = minValue match {
     case Some(json) =>
@@ -67,7 +66,7 @@ case class ColumnSumCheck(
       case ut => throw new Exception(s"Unsupported type for $name found in schema: $ut")
     }
 
-    val bounds = minValue.getOrElse("-Inf") :: maxValue.getOrElse("Inf") :: Nil
+    val bounds = minValue.getOrElse("") :: maxValue.getOrElse("") :: Nil
     val prettyBounds = if (inclusiveBounds.right.get) {
       r.get(idx) + " in " + bounds.mkString("[", " , ", "]")
     } else {
