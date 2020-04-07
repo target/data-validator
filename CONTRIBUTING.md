@@ -26,5 +26,7 @@
 
 Follow the new checks procedure, but instead of providing a configuration example, clearly explain:
 
-1. How the current state of things negatively affects you or encumbers your use of Data Validator
+1. How the current state of things negatively affects the extensibility of Data Validator.
 2. How you intend to remedy the situation with the minimum amount of code changed
+
+**Do not mix refactoring with the addition of a new check in the same pull request.** We will reject and ask that they be done in separate PRs to keep things manageable.
