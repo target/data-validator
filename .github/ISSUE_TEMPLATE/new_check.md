@@ -14,7 +14,7 @@ assignees: ''
 # What does the configuration look like?
 
 <!-- 
-Provide an example of how you would like the configuration for the check to look. 
+Provide documentation of how you envision the configuration of the validator to function.  Please follow the style of other validators in the README, see https://github.com/target/data-validator#validators.
 Most of our rework requests are the result of an unclear vision for the interface to the check!
 -->
 
