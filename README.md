@@ -1,4 +1,4 @@
-# data-validator
+# data-validator [![Build Status](https://travis-ci.org/target/data-validator.svg?branch=master)](https://travis-ci.org/target/data-validator) [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 A tool to validate data in HIVE tables.
 
@@ -312,6 +312,17 @@ This is a costly check and requires an additional pass through the table.
 | Arg | Type | Description |
 |-----|------|-------------|
 | `columns` | Array[String] | Each set of values in these columns must be unique.
+
+#### `columnSumCheck`
+
+This check sums a column in all rows. If the sum applied to the `column` doesn't fall within the range specified by (`minValue`, `maxValue`) the check will fail.
+
+| Arg         | Type        | Description                                                            |
+|-------------|-------------|------------------------------------------------------------------------|
+| `column`    | String      | The column to be checked.                                              |
+| `minValue`  | NumericType | The lower bound of the sum.  Type depends on the type of the `column`. |
+| `maxValue`  | NumericType | The upper bound of the sum. Type depends on the type of the `column`.  |
+| `inclusive` | Boolean     | Include `minValue` and `maxValue` as part of the range.                |
 
 ## Example Config
 
