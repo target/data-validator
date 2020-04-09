@@ -2,6 +2,7 @@ package com.target.data_validator
 
 import java.net.InetAddress
 
+import com.target.data_validator.EnvironmentVariables.MaybeEnvVar
 import com.typesafe.scalalogging.LazyLogging
 import io.circe.Json
 import io.circe.generic.auto._
@@ -101,8 +102,12 @@ object ValidatorConfig {
   }
 
   private def envToJson: Json = {
-    val env = System.getenv.asScala.toList.map(x => (x._1, Json.fromString(x._2)))
-    Json.obj(env: _*)
+    def extractFromAccessionList(pair: (String, MaybeEnvVar)) = {
+      pair._1 -> Json.fromString(pair._2.map(_.getOrElse("<unset>")).getOrElse("<inaccessible>"))
+    }
+
+    val env = EnvironmentVariables.accessedEnvVars.map(extractFromAccessionList)
+    Json.obj(env.toSeq: _*)
   }
 
   private def runtimeInfoJson(spark: SparkSession): Json = {

@@ -1,6 +1,7 @@
 package com.target.data_validator
 
 import cats.syntax.functor._
+import com.target.data_validator.EnvironmentVariables.{Error, Inaccessible, Present, Unset}
 import com.typesafe.scalalogging.LazyLogging
 import io.circe.{Decoder, Json}
 import io.circe.generic.auto._
@@ -21,18 +22,23 @@ case class NameValue(name: String, value: Json) extends ConfigVar {
 }
 
 case class NameEnv(name: String, env: String) extends ConfigVar {
+
   override def addEntry(spark: SparkSession, varSub: VarSubstitution): Boolean = {
     val newEnv = getVarSub(env, name, varSub)
-    Option(System.getenv(newEnv)) match {
-      case None =>
+    EnvironmentVariables.get(newEnv) match {
+      case Inaccessible(message) => logger.error(message); true
+      case Error(message) => logger.error(message); true
+      case Unset => {
         val msg = s"Variable '$name' cannot be processed env variable '$newEnv' not found!"
         logger.error(msg)
         addEvent(ValidatorError(msg))
         true
-      case Some(v) =>
-        val resolvedEnvVar = getVarSubJson(JsonUtils.string2Json(v), name, varSub)
-        logger.debug(s"name: $name env: $env getEnv: $v resolvedEnvVar: $resolvedEnvVar")
+      }
+      case Present(value) => {
+        val resolvedEnvVar = getVarSubJson(JsonUtils.string2Json(value), name, varSub)
+        logger.info(s"name: $name env: $env getEnv: $value resolvedEnvVar: $resolvedEnvVar")
         varSub.add(name, resolvedEnvVar)
+      }
     }
   }
 }
