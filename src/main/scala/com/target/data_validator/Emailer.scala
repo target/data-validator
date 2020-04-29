@@ -114,10 +114,20 @@ object Emailer extends LazyLogging {
     }
     catch {
       case sfe: SendFailedException =>
-        logger.error(s"Failed to send message, $sfe")
+        logger.error(s"Failure to send email: $sfe")
+        if (sfe.getValidSentAddresses.nonEmpty) {
+          logger.error(s"Email sent to ${sfe.getValidSentAddresses.mkString(",")}")
+        }
+        if (sfe.getValidUnsentAddresses.nonEmpty) {
+          logger.error(s"Email not sent to ${sfe.getValidUnsentAddresses.mkString(",")}")
+        }
+        if (sfe.getInvalidAddresses.nonEmpty) {
+          logger.error(s"Invalid addresses: ${sfe.getInvalidAddresses.mkString(",")}")
+        }
+
         true
       case me: MessagingException =>
-        logger.error(s"MessingException while trying to send email, $me")
+        logger.error(s"Failure to send email: $me")
         true
     }
   }
