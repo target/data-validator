@@ -1,4 +1,4 @@
-package com.tgt.edabi.dse.data_validator.stats
+package com.target.data_validator.stats
 
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.expressions.{MutableAggregationBuffer, UserDefinedAggregateFunction}

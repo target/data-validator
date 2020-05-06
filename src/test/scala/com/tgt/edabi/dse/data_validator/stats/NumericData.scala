@@ -1,5 +1,7 @@
 package com.tgt.edabi.dse.data_validator.stats
 
+import com.target.data_validator.stats.{Bin, FirstPassStats, Histogram, SecondPassStats}
+
 case class NumericData(value1: Double)
 
 object NumericData {
