@@ -24,18 +24,18 @@ class SecondPassStatsAggregator(firstPassStats: FirstPassStats) extends UserDefi
     */
   override def bufferSchema: StructType = StructType(
     List(
-      StructField("count",        LongType),
+      StructField("count", LongType),
       StructField("sumOfSquares", DoubleType),
-      StructField("bin1count",    LongType),
-      StructField("bin2count",    LongType),
-      StructField("bin3count",    LongType),
-      StructField("bin4count",    LongType),
-      StructField("bin5count",    LongType),
-      StructField("bin6count",    LongType),
-      StructField("bin7count",    LongType),
-      StructField("bin8count",    LongType),
-      StructField("bin9count",    LongType),
-      StructField("bin10count",   LongType)
+      StructField("bin1count", LongType),
+      StructField("bin2count", LongType),
+      StructField("bin3count", LongType),
+      StructField("bin4count", LongType),
+      StructField("bin5count", LongType),
+      StructField("bin6count", LongType),
+      StructField("bin7count", LongType),
+      StructField("bin8count", LongType),
+      StructField("bin9count", LongType),
+      StructField("bin10count", LongType)
     )
   )
 
@@ -70,7 +70,8 @@ class SecondPassStatsAggregator(firstPassStats: FirstPassStats) extends UserDefi
     buffer(count) = buffer.getLong(count) + 1
     buffer(sumOfSquares) = buffer.getDouble(sumOfSquares) + math.pow(input.getDouble(0) - firstPassStats.mean, 2)
     // determine the index of the bin that we should increment
-    val binIndex = binStart + math.min(NUMBER_OF_BINS - 1, math.floor((input.getDouble(0) - firstPassStats.min) / binSize).toInt)
+    val binIndex =
+      binStart + math.min(NUMBER_OF_BINS - 1, math.floor((input.getDouble(0) - firstPassStats.min) / binSize).toInt)
     buffer(binIndex) = buffer.getLong(binIndex) + 1
   }
 

@@ -1,7 +1,6 @@
-package com.tgt.edabi.dse.data_validator.stats
+package com.target.data_validator.stats
 
-import com.target.data_validator.stats.{FirstPassStats, FirstPassStatsAggregator}
-import com.tgt.edabi.dse.TestingSparkSession
+import com.target.TestingSparkSession
 import org.scalatest.{FunSpec, Matchers}
 
 class FirstPassStatsAggregatorSpec extends FunSpec with Matchers with TestingSparkSession {
