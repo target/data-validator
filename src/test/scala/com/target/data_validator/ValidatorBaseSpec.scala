@@ -182,10 +182,14 @@ class ValidatorBaseSpec extends FunSpec with Matchers with TestingSparkSession {
     it("quickCheck() should fail when rowCount < minNumRows") {
       val dict = new VarSubstitution
       val df = spark.createDataFrame(sc.parallelize(List(Row("Doug", 50), Row("Collin", 32))), schema) //scalastyle:ignore
-      val config = mkConfig(df, List(MinNumRows(10))) //scalastyle:ignore
+      val minNumRowsCheck = MinNumRows(10)
+      val config = mkConfig(df, List(minNumRowsCheck)) //scalastyle:ignore
       assert(config.quickChecks(spark, dict))
       assert(config.failed)
       assert(config.tables.head.failed)
+      assert(minNumRowsCheck.getEvents contains ColumnBasedValidatorCheckEvent(true,
+        List(("Expected", "10"), ("Actual", "2"), ("Error Pct", "80.00%")),
+        "MinNumRowsCheck Expected: 10 Actual: 2 Error %: 80.00%"))
     }
 
     it("quickCheck() should succeed when rowCount > minNumRows") {

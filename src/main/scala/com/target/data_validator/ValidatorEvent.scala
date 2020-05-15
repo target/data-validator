@@ -36,6 +36,16 @@ case class ValidatorCheckEvent(failure: Boolean, label: String, count: Long, err
   }
 }
 
+case class ColumnBasedValidatorCheckEvent(failure: Boolean,
+                                          data: List[Tuple2[String, String]],
+                                          msg: String) extends ValidatorEvent {
+  override def failed: Boolean = failure
+
+  override def toHTML: Text.all.Tag = {
+    div(cls:="checkEvent")(failedHTML, s" - ${msg}")
+  }
+}
+
 class ValidatorTimer(val label: String) extends ValidatorEvent {
   var duration = 0L
 

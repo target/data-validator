@@ -17,14 +17,15 @@ class ColumnBasedSpec extends FunSpec with Matchers with TestingSparkSession {
         StructField("key", StringType),
         StructField("data", StringType),
         StructField("number", IntegerType),
-        StructField("byte", ByteType)
+        StructField("byte", ByteType),
+        StructField("double", DoubleType)
       )
     )
 
     val sampleData = List(
-      Row("one", "2018/10/01", 3, 10.toByte),
-      Row("two", "2018/10/02", 2, 20.toByte),
-      Row("three", "2018/10/31", 1, 30.toByte)
+      Row("one", "2018/10/01", 3, 10.toByte, 2.0),
+      Row("two", "2018/10/02", 2, 20.toByte, 3.5),
+      Row("three", "2018/10/31", 1, 30.toByte, 1.7)
     )
 
     def mkValidatorConfig(checks: List[ValidatorBase]): ValidatorConfig =
@@ -63,10 +64,15 @@ class ColumnBasedSpec extends FunSpec with Matchers with TestingSparkSession {
 
     it("should fail when value doesn't match max column value") {
       val dict = new VarSubstitution
-      val sut = mkValidatorConfig(List(ColumnMaxCheck("data", Json.fromString("2018/11/01"))))
+      val columnMaxCheck = ColumnMaxCheck("data", Json.fromString("2018/11/01"))
+      val sut = mkValidatorConfig(List(columnMaxCheck))
       assert(!sut.configCheck(spark, dict))
       assert(sut.quickChecks(spark, dict))
       assert(sut.failed)
+      assert(columnMaxCheck.getEvents contains
+        ColumnBasedValidatorCheckEvent(true,
+          List(("Expected", "2018/11/01"), ("Actual", "2018/10/31")),
+          "ColumnMaxCheck data[StringType]: Expected: 2018/11/01, Actual: 2018/10/31"))
     }
 
     it("should not fail with numeric column matches max value") {
@@ -79,10 +85,36 @@ class ColumnBasedSpec extends FunSpec with Matchers with TestingSparkSession {
 
     it("should fail when numeric column doesn't match max value") {
       val dict = new VarSubstitution
-      val sut = mkValidatorConfig(List(ColumnMaxCheck("number", Json.fromInt(100)))) // scalastyle:ignore
+      val columnMaxCheck = ColumnMaxCheck("number", Json.fromInt(100))
+      val sut = mkValidatorConfig(List(columnMaxCheck)) // scalastyle:ignore
       assert(!sut.configCheck(spark, dict))
       assert(sut.quickChecks(spark, dict))
       assert(sut.failed)
+      assert(columnMaxCheck.getEvents contains
+        ColumnBasedValidatorCheckEvent(true,
+          List(("Expected", "100"), ("Actual", "3"), ("Error Pct", "97.00%")),
+          "ColumnMaxCheck number[IntegerType]: Expected: 100, Actual: 3. Error %: 97.00%"))
+    }
+
+    it("should not fail when double column matches max value") {
+      val dict = new VarSubstitution
+      val sut = mkValidatorConfig(List(ColumnMaxCheck("double", Json.fromDouble(3.5).get)))
+      assert(!sut.configCheck(spark, dict))
+      assert(!sut.quickChecks(spark, dict))
+      assert(!sut.failed)
+    }
+
+    it("should fail when double column doesn't match max value") {
+      val dict = new VarSubstitution
+      val columnMaxCheck = ColumnMaxCheck("double", Json.fromDouble(5.0).get)
+      val sut = mkValidatorConfig(List(columnMaxCheck)) // scalastyle:ignore
+      assert(!sut.configCheck(spark, dict))
+      assert(sut.quickChecks(spark, dict))
+      assert(sut.failed)
+      assert(columnMaxCheck.getEvents contains
+        ColumnBasedValidatorCheckEvent(true,
+          List(("Expected", "5.0"), ("Actual", "3.5"), ("Error Pct", "30.00%")),
+          "ColumnMaxCheck double[DoubleType]: Expected: 5.0, Actual: 3.5. Error %: 30.00%"))
     }
 
     it("should fail when byte column and value overflows") {

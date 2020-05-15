@@ -5,6 +5,8 @@ import com.typesafe.scalalogging.LazyLogging
 import io.circe._
 import io.circe.syntax._
 
+import scala.collection.mutable.ListBuffer
+
 object JsonEncoders extends LazyLogging {
 
   // Used by ValidatorQuickCheckError to make sure Json types are right.
@@ -47,6 +49,14 @@ object JsonEncoders extends LazyLogging {
         ("count", Json.fromLong(vce.count)),
         ("errorCount", Json.fromLong(vce.errorCount))
       )
+      case cbvce: ColumnBasedValidatorCheckEvent =>
+        val fields = new ListBuffer[Tuple2[String, Json]]
+        fields.append(("type", Json.fromString("columnBasedCheckEvent")))
+        fields.append(("failed", Json.fromBoolean(cbvce.failed)))
+        fields.append(("message", Json.fromString(cbvce.msg)))
+        cbvce.data.foreach(x => fields.append((x._1, Json.fromString(x._2))))
+        Json.fromFields(fields)
+
       case qce: ValidatorQuickCheckError => Json.obj(
         ("type", Json.fromString("quickCheckError")),
         ("failed", Json.fromBoolean(qce.failed)),
