@@ -8,6 +8,8 @@ import org.apache.spark.sql.Row
 import org.apache.spark.sql.types._
 import org.scalatest._
 
+import scala.collection.mutable.LinkedHashMap
+
 class ColumnBasedSpec extends FunSpec with Matchers with TestingSparkSession {
 
   describe("columnMaxCheck") {
@@ -71,7 +73,7 @@ class ColumnBasedSpec extends FunSpec with Matchers with TestingSparkSession {
       assert(sut.failed)
       assert(columnMaxCheck.getEvents contains
         ColumnBasedValidatorCheckEvent(true,
-          List(("Expected", "2018/11/01"), ("Actual", "2018/10/31")),
+          LinkedHashMap("expected" -> "2018/11/01", "actual" -> "2018/10/31").toMap,
           "ColumnMaxCheck data[StringType]: Expected: 2018/11/01, Actual: 2018/10/31"))
     }
 
@@ -92,8 +94,21 @@ class ColumnBasedSpec extends FunSpec with Matchers with TestingSparkSession {
       assert(sut.failed)
       assert(columnMaxCheck.getEvents contains
         ColumnBasedValidatorCheckEvent(true,
-          List(("Expected", "100"), ("Actual", "3"), ("Error Pct", "97.00%")),
+          LinkedHashMap("expected" -> "100", "actual" -> "3", "error_percent" -> "97.00%").toMap,
           "ColumnMaxCheck number[IntegerType]: Expected: 100, Actual: 3. Error %: 97.00%"))
+    }
+
+    it("should fail with undefined error % when numeric column doesn't match max value and expected value is 0") {
+      val dict = new VarSubstitution
+      val columnMaxCheck = ColumnMaxCheck("number", Json.fromInt(0))
+      val sut = mkValidatorConfig(List(columnMaxCheck)) // scalastyle:ignore
+      assert(!sut.configCheck(spark, dict))
+      assert(sut.quickChecks(spark, dict))
+      assert(sut.failed)
+      assert(columnMaxCheck.getEvents contains
+        ColumnBasedValidatorCheckEvent(true,
+          LinkedHashMap("expected" -> "0", "actual" -> "3", "error_percent" -> "undefined").toMap,
+          "ColumnMaxCheck number[IntegerType]: Expected: 0, Actual: 3. Error %: undefined"))
     }
 
     it("should not fail when double column matches max value") {
@@ -113,7 +128,7 @@ class ColumnBasedSpec extends FunSpec with Matchers with TestingSparkSession {
       assert(sut.failed)
       assert(columnMaxCheck.getEvents contains
         ColumnBasedValidatorCheckEvent(true,
-          List(("Expected", "5.0"), ("Actual", "3.5"), ("Error Pct", "30.00%")),
+          LinkedHashMap("expected" -> "5.0", "actual" -> "3.5", "error_percent" -> "30.00%").toMap,
           "ColumnMaxCheck double[DoubleType]: Expected: 5.0, Actual: 3.5. Error %: 30.00%"))
     }
 

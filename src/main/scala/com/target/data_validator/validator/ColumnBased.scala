@@ -10,7 +10,7 @@ import org.apache.spark.sql.catalyst.expressions.Expression
 import org.apache.spark.sql.catalyst.expressions.aggregate.Max
 import org.apache.spark.sql.types._
 
-import scala.collection.mutable.ListBuffer
+import scala.collection.mutable.LinkedHashMap
 import scala.math.abs
 
 abstract class ColumnBased(column: String, condTest: Expression) extends CheapCheck {
@@ -21,8 +21,20 @@ abstract class ColumnBased(column: String, condTest: Expression) extends CheapCh
 
   // calculates and returns the pct error as a string
   def calculatePctError(expected: Double, actual: Double, formatStr: String = "%4.2f%%"): String = {
-    val pct = abs(((expected - actual) * 100.0) / expected)
-    formatStr.format(pct)
+    var pct_error_str = ""
+
+    if (expected == actual) {
+      pct_error_str = formatStr.format(0.00) // if expected == actual, error % should be 0, even if expected is 0
+    }
+    else if (expected == 0.0) {
+      pct_error_str = "undefined"
+    }
+    else {
+      val pct = abs(((expected - actual) * 100.0) / expected)
+      pct_error_str = formatStr.format(pct)
+    }
+
+    pct_error_str
   }
 }
 
@@ -45,11 +57,11 @@ case class MinNumRows(minNumRows: Long) extends ColumnBased("", ValidatorBase.L0
 
   override def quickCheck(row: Row, count: Long, idx: Int): Boolean = {
     failed = count < minNumRows
-    val pctError = if (failed) calculatePctError(minNumRows, count) else "0.00"
+    val pctError = if (failed) calculatePctError(minNumRows, count) else "0.00%"
     addEvent(ValidatorCounter("rowCount", count))
     val msg = s"MinNumRowsCheck Expected: ${minNumRows} Actual: ${count} Error %: ${pctError}"
-    val data = List(("Expected", minNumRows.toString), ("Actual", count.toString), ("Error Pct", pctError))
-    addEvent(ColumnBasedValidatorCheckEvent(failed, data, msg))
+    val data = LinkedHashMap("expected" -> minNumRows.toString, "actual" -> count.toString, "error_percent" -> pctError)
+    addEvent(ColumnBasedValidatorCheckEvent(failed, data.toMap, msg))
     failed
   }
 
@@ -80,56 +92,51 @@ case class ColumnMaxCheck(column: String, value: Json)
     val rMax = row(idx)
     logger.info(s"rMax: $rMax colType: $dataType value: $value valueClass: ${value.getClass.getCanonicalName}")
 
-    var pctError = "0.00"
     var errorMsg = ""
-    val data = new ListBuffer[Tuple2[String, String]]
+    val data = new LinkedHashMap[String, String]
 
-    failed = dataType match {
-      case StringType => {
-        val expected = value.asString.getOrElse("")
-        val actual = row.getString(idx)
-        data.appendAll(List(("Expected", expected), ("Actual", actual)))
-        errorMsg = s"ColumnMaxCheck $column[$dataType]: Expected: $expected, Actual: $actual"
-        expected != actual
-      }
-      case d:NumericType => {
-        val num = value.asNumber.get
-        var expected = 0.0
-        var actual = 0.0
-        d match {
-          case ByteType =>
-            expected = num.toByte.getOrElse[Byte](-1)
-            actual = row.getByte(idx)
-          case ShortType =>
-            expected = num.toShort.getOrElse[Short](-1)
-            actual = row.getShort(idx)
-          case IntegerType =>
-            expected = num.toInt.getOrElse[Int](-1)
-            actual = row.getInt(idx)
-          case LongType =>
-            expected = num.toLong.getOrElse[Long](-1)
-            actual = row.getLong(idx)
-          case FloatType =>
-            expected = num.toDouble
-            actual = row.getFloat(idx)
-          case DoubleType =>
-            expected = num.toDouble
-            actual = row.getDouble(idx)
-        }
-        pctError = if(expected != actual) calculatePctError(expected, actual) else "0.00"
-        data.appendAll(List(("Expected", num.toString), ("Actual", rMax.toString), ("Error Pct", pctError)))
-        errorMsg = s"ColumnMaxCheck $column[$dataType]: Expected: $num, Actual: $rMax. Error %: ${pctError}"
-        expected != actual
-      }
-      case ut => {
-        logger.error(s"ColumnMaxCheck for type: $ut, Row: $row not implemented! Please file this as a bug.")
-        errorMsg = s"ColumnMaxCheck is not supported for data type ${dataType}"
-        true // Fail check!
-      }
+    val resultForString = () => {
+      val (expected, actual) = (value.asString.getOrElse(""), row.getString(idx))
+
+      failed = expected != actual
+      data += ("expected" -> expected, "actual" -> actual)
+      errorMsg = s"ColumnMaxCheck $column[StringType]: Expected: $expected, Actual: $actual"
     }
+
+    val resultForNumeric = () => {
+      val num = value.asNumber.get
+      var cmp_params = (0.0, 0.0) // (expected, actual)
+
+      dataType match {
+        case ByteType => cmp_params = (num.toByte.getOrElse[Byte](-1), row.getByte(idx))
+        case ShortType => cmp_params = (num.toShort.getOrElse[Short](-1), row.getShort(idx))
+        case IntegerType => cmp_params = (num.toInt.getOrElse[Int](-1), row.getInt(idx))
+        case LongType => cmp_params = (num.toLong.getOrElse[Long](-1), row.getLong(idx))
+        case FloatType => cmp_params = (num.toDouble, row.getFloat(idx))
+        case DoubleType => cmp_params = (num.toDouble, row.getDouble(idx))
+      }
+
+      failed = cmp_params._1 != cmp_params._2
+      val pctError = if(failed) calculatePctError(cmp_params._1, cmp_params._2) else "0.00%"
+      data += ("expected" -> num.toString, "actual" -> rMax.toString, "error_percent" -> pctError)
+      errorMsg = s"ColumnMaxCheck $column[$dataType]: Expected: $num, Actual: $rMax. Error %: ${pctError}"
+    }
+
+    val resultForOther = () => {
+      logger.error(s"ColumnMaxCheck for type: $dataType, Row: $row not implemented! Please open a bug report on the data-validator issue tracker.")
+      failed = true
+      errorMsg = s"ColumnMaxCheck is not supported for data type $dataType"
+    }
+
+    dataType match {
+      case StringType => resultForString()
+      case _:NumericType => resultForNumeric()
+      case _ => resultForOther()
+    }
+
     logger.debug(s"MaxValue compared Row: $row with value: $value failed: $failed")
     if (failed) {
-      addEvent(ColumnBasedValidatorCheckEvent(failed, data.toList, errorMsg))
+      addEvent(ColumnBasedValidatorCheckEvent(failed, data.toMap, errorMsg))
     }
     failed
   }
