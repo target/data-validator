@@ -8,15 +8,30 @@ import io.circe.generic.semiauto._
 import io.circe.syntax._
 import org.apache.spark.sql._
 import org.apache.spark.sql.catalyst.analysis.UnresolvedAttribute
+import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.NumericType
 
+import scala.concurrent.Promise
+import scala.util._
+
+/**
+  * This validator implements both [[CheapCheck]] via [[ColumnBased]] and [[CostlyCheck]].
+  *
+  * A second pass aggregation performed in the costlyCheck call produces histograms
+  *  describing the distribution of numeric values.
+  *
+  * @param column the column to collect stats on
+  */
 case class ColStats(column: String)
   extends ColumnBased(column, (new FirstPassStatsAggregator)(new Column(UnresolvedAttribute(column))).expr)
+   with CostlyCheck
 {
   import ValidatorBase._
   import com.target.data_validator.JsonEncoders.eventEncoder
 
   override def name: String = "colstats"
+
+  private val promiseToDoFirstPass: Promise[FirstPassStats] = Promise()
 
   override def configCheck(df: DataFrame): Boolean = {
     if (isColumnInDataFrame(df, column)) {
@@ -37,23 +52,16 @@ case class ColStats(column: String)
   }
 
   override def quickCheck(r: Row, count: Long, idx: Int): Boolean = {
-    val rStats = r.getStruct(idx)
-    val count = rStats.getLong(0)
-    val mean = rStats.getDouble(1)
-    val min = rStats.getDouble(2)
-    val max = rStats.getDouble(3)
-    val json = Json.obj(
-        ("name", Json.fromString("FirstPassStats")),
-        ("column", Json.fromString(column)),
-        ("count", Json.fromLong(count)),
-        ("min", Json.fromDoubleOrNull(min)),
-        ("mean", Json.fromDoubleOrNull(mean)),
-        ("max", Json.fromDoubleOrNull(max)))
+    promiseToDoFirstPass complete Try {
+      val rStats = r.getStruct(idx)
 
-    logger.info(s"VarJsonEvent:${json.spaces2}")
-
-    // TODO: integration between ColStats and reporting JSON
-    addEvent(JsonEvent(json))
+      FirstPassStats(
+        count = rStats.getLong(0),
+        mean = rStats.getDouble(1),
+        min = rStats.getDouble(2),
+        max = rStats.getDouble(3)
+      )
+    }
 
     false
   }
@@ -68,6 +76,35 @@ case class ColStats(column: String)
     ("failed", Json.fromBoolean(failed)),
     ("events", this.getEvents.asJson)
   )
+
+  override def costlyCheck(df: DataFrame): Boolean = {
+    import df.sparkSession.implicits._
+
+    promiseToDoFirstPass.future.value match {
+      case None =>
+        // This shouldn't be possible for users as the validator job executes quick checks AND THEN costly checks.
+        logger.error(
+          "ColStats costly histograms requires that 'quick checks' " +
+          "are executed first to generate first pass stats.")
+
+        true
+      case Some(Success(firstPassStats)) =>
+        val agg = new SecondPassStatsAggregator(firstPassStats)
+        val secondPassStats = df.select(agg(col(column))).as[SecondPassStats].head
+        val completeStats = CompleteStats(name = s"`$column` stats", column = column, firstPassStats, secondPassStats)
+        val json = completeStats.asJson
+
+        logger.info(s"VarJsonEvent:${json.spaces2}")
+        addEvent(JsonEvent(json))
+
+        false
+      case Some(Failure(e)) =>
+        logger.error("Error producting first pass of colstats", e)
+
+        true
+    }
+  }
+
 }
 
 object ColStats {
