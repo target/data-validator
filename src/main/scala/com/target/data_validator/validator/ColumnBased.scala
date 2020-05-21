@@ -21,20 +21,17 @@ abstract class ColumnBased(column: String, condTest: Expression) extends CheapCh
 
   // calculates and returns the pct error as a string
   def calculatePctError(expected: Double, actual: Double, formatStr: String = "%4.2f%%"): String = {
-    var pct_error_str = ""
 
     if (expected == actual) {
-      pct_error_str = formatStr.format(0.00) // if expected == actual, error % should be 0, even if expected is 0
+      formatStr.format(0.00) // if expected == actual, error % should be 0, even if expected is 0
     }
     else if (expected == 0.0) {
-      pct_error_str = "undefined"
+      "undefined"
     }
     else {
       val pct = abs(((expected - actual) * 100.0) / expected)
-      pct_error_str = formatStr.format(pct)
+      formatStr.format(pct)
     }
-
-    pct_error_str
   }
 }
 
@@ -93,9 +90,9 @@ case class ColumnMaxCheck(column: String, value: Json)
     logger.info(s"rMax: $rMax colType: $dataType value: $value valueClass: ${value.getClass.getCanonicalName}")
 
     var errorMsg = ""
-    val data = new LinkedHashMap[String, String]
+    val data = LinkedHashMap.empty[String, String]
 
-    val resultForString = () => {
+    def resultForString(): Unit = {
       val (expected, actual) = (value.asString.getOrElse(""), row.getString(idx))
 
       failed = expected != actual
@@ -103,7 +100,7 @@ case class ColumnMaxCheck(column: String, value: Json)
       errorMsg = s"ColumnMaxCheck $column[StringType]: Expected: $expected, Actual: $actual"
     }
 
-    val resultForNumeric = () => {
+    def resultForNumeric(): Unit = {
       val num = value.asNumber.get
       var cmp_params = (0.0, 0.0) // (expected, actual)
 
@@ -122,7 +119,7 @@ case class ColumnMaxCheck(column: String, value: Json)
       errorMsg = s"ColumnMaxCheck $column[$dataType]: Expected: $num, Actual: $rMax. Error %: ${pctError}"
     }
 
-    val resultForOther = () => {
+    def resultForOther(): Unit = {
       logger.error(s"ColumnMaxCheck for type: $dataType, Row: $row not implemented! Please open a bug report on the data-validator issue tracker.")
       failed = true
       errorMsg = s"ColumnMaxCheck is not supported for data type $dataType"
