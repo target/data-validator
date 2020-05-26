@@ -42,7 +42,7 @@ case class ColumnBasedValidatorCheckEvent(failure: Boolean,
   override def failed: Boolean = failure
 
   override def toHTML: Text.all.Tag = {
-    div(cls:="checkEvent")(failedHTML, s" - ${msg}")
+    div(cls:="checkEvent")(failedHTML, s" - $msg")
   }
 }
 

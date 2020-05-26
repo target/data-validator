@@ -10,7 +10,7 @@ import org.apache.spark.sql.catalyst.expressions.Expression
 import org.apache.spark.sql.catalyst.expressions.aggregate.Max
 import org.apache.spark.sql.types._
 
-import scala.collection.mutable.LinkedHashMap
+import scala.collection.mutable.ListMap
 import scala.math.abs
 
 abstract class ColumnBased(column: String, condTest: Expression) extends CheapCheck {
@@ -56,8 +56,9 @@ case class MinNumRows(minNumRows: Long) extends ColumnBased("", ValidatorBase.L0
     failed = count < minNumRows
     val pctError = if (failed) calculatePctError(minNumRows, count) else "0.00%"
     addEvent(ValidatorCounter("rowCount", count))
-    val msg = s"MinNumRowsCheck Expected: ${minNumRows} Actual: ${count} Error %: ${pctError}"
-    val data = LinkedHashMap("expected" -> minNumRows.toString, "actual" -> count.toString, "error_percent" -> pctError)
+    val msg = s"MinNumRowsCheck Expected: $minNumRows Actual: $count Relative Error: $pctError"
+    val data = ListMap("expected" -> minNumRows.toString, "actual" -> count.toString,
+                             "relative_error" -> pctError)
     addEvent(ColumnBasedValidatorCheckEvent(failed, data.toMap, msg))
     failed
   }
@@ -83,14 +84,13 @@ case class ColumnMaxCheck(column: String, value: Json)
 
   override def configCheck(df: DataFrame): Boolean = checkTypes(df, column, value)
 
-  // scalastyle:off
   override def quickCheck(row: Row, count: Long, idx: Int): Boolean = {
     val dataType = row.schema(idx).dataType
     val rMax = row(idx)
     logger.info(s"rMax: $rMax colType: $dataType value: $value valueClass: ${value.getClass.getCanonicalName}")
 
     var errorMsg = ""
-    val data = LinkedHashMap.empty[String, String]
+    val data = ListMap.empty[String, String]
 
     def resultForString(): Unit = {
       val (expected, actual) = (value.asString.getOrElse(""), row.getString(idx))
@@ -114,20 +114,23 @@ case class ColumnMaxCheck(column: String, value: Json)
       }
 
       failed = cmp_params._1 != cmp_params._2
-      val pctError = if(failed) calculatePctError(cmp_params._1, cmp_params._2) else "0.00%"
-      data += ("expected" -> num.toString, "actual" -> rMax.toString, "error_percent" -> pctError)
-      errorMsg = s"ColumnMaxCheck $column[$dataType]: Expected: $num, Actual: $rMax. Error %: ${pctError}"
+      val pctError = if (failed) calculatePctError(cmp_params._1, cmp_params._2) else "0.00%"
+      data += ("expected" -> num.toString, "actual" -> rMax.toString, "relative_error" -> pctError)
+      errorMsg = s"ColumnMaxCheck $column[$dataType]: Expected: $num, Actual: $rMax. Relative Error: ${pctError}"
     }
 
     def resultForOther(): Unit = {
-      logger.error(s"ColumnMaxCheck for type: $dataType, Row: $row not implemented! Please open a bug report on the data-validator issue tracker.")
+      logger.error(
+        s"""ColumnMaxCheck for type: $dataType, Row: $row not implemented!
+           |Please open a bug report on the data-validator issue tracker.""".stripMargin
+      )
       failed = true
       errorMsg = s"ColumnMaxCheck is not supported for data type $dataType"
     }
 
     dataType match {
       case StringType => resultForString()
-      case _:NumericType => resultForNumeric()
+      case _: NumericType => resultForNumeric()
       case _ => resultForOther()
     }
 
@@ -137,7 +140,6 @@ case class ColumnMaxCheck(column: String, value: Json)
     }
     failed
   }
-  // scalastyle:on
 
   override def toJson: Json = Json.obj(
     ("type", Json.fromString("columnMaxCheck")),

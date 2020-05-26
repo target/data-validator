@@ -10,7 +10,7 @@ import org.apache.spark.sql.catalyst.expressions.Literal
 import org.apache.spark.sql.types._
 import org.scalatest._
 
-import scala.collection.mutable.LinkedHashMap
+import scala.collection.mutable.ListMap
 import scala.util.Random
 
 class ValidatorBaseSpec extends FunSpec with Matchers with TestingSparkSession {
@@ -189,8 +189,8 @@ class ValidatorBaseSpec extends FunSpec with Matchers with TestingSparkSession {
       assert(config.failed)
       assert(config.tables.head.failed)
       assert(minNumRowsCheck.getEvents contains ColumnBasedValidatorCheckEvent(true,
-        LinkedHashMap("expected" -> "10", "actual" -> "2", "error_percent" -> "80.00%").toMap,
-        "MinNumRowsCheck Expected: 10 Actual: 2 Error %: 80.00%"))
+        ListMap("expected" -> "10", "actual" -> "2", "relative_error" -> "80.00%").toMap,
+        "MinNumRowsCheck Expected: 10 Actual: 2 Relative Error: 80.00%"))
     }
 
     it("quickCheck() should succeed when rowCount > minNumRows") {
@@ -203,8 +203,8 @@ class ValidatorBaseSpec extends FunSpec with Matchers with TestingSparkSession {
       assert(!config.failed)
       assert(!config.tables.exists(_.failed))
       assert(minNumRowsCheck.getEvents contains ColumnBasedValidatorCheckEvent(false,
-        LinkedHashMap("expected" -> "1", "actual" -> "2", "error_percent" -> "0.00%").toMap,
-        "MinNumRowsCheck Expected: 1 Actual: 2 Error %: 0.00%"))
+        ListMap("expected" -> "1", "actual" -> "2", "relative_error" -> "0.00%").toMap,
+        "MinNumRowsCheck Expected: 1 Actual: 2 Relative Error: 0.00%"))
     }
 
   }
