@@ -324,7 +324,7 @@ This check sums a column in all rows. If the sum applied to the `column` doesn't
 | `maxValue`  | NumericType | The upper bound of the sum. Type depends on the type of the `column`.  |
 | `inclusive` | Boolean     | Include `minValue` and `maxValue` as part of the range.                |
 
-*Note:** If bounds are non-inclusive, and the actual sum is eequal to one of the bounds, the relative error percentage will be undefined.
+**Note:** If bounds are non-inclusive, and the actual sum is eequal to one of the bounds, the relative error percentage will be undefined.
 
 ## Example Config
 
