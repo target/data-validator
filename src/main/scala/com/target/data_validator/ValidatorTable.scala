@@ -88,6 +88,7 @@ abstract class ValidatorTable(
     val dataFrame = open(session).get
     val firstPassTimer = new ValidatorTimer(s"$label: pre-processing stage")
 
+    addEvent(firstPassTimer)
     firstPassTimer.time {
       performFirstPass(dataFrame, checks.collect { case tp: TwoPassCheapCheck => tp })
     }
