@@ -75,23 +75,23 @@ abstract class ValidatorTable(
 
   private def performFirstPass(df: DataFrame, checks: List[TwoPassCheapCheck]): Unit = {
     if (checks.nonEmpty) {
-      val cols = checks.map {
-        check => check.firstPassSelect()
-      }
-      val row = df.select(cols: _*).head
+      val firstPassTimer = new ValidatorTimer(s"$label: pre-processing stage")
 
-      checks foreach { _ sinkFirstPassRow row }
+      addEvent(firstPassTimer)
+
+      firstPassTimer.time {
+        val cols = checks.map { _.firstPassSelect() }
+        val row = df.select(cols: _*).head
+
+        checks foreach { _ sinkFirstPassRow row }
+      }
     }
   }
 
   def quickChecks(session: SparkSession, dict: VarSubstitution)(implicit vc: ValidatorConfig): Boolean = {
     val dataFrame = open(session).get
-    val firstPassTimer = new ValidatorTimer(s"$label: pre-processing stage")
 
-    addEvent(firstPassTimer)
-    firstPassTimer.time {
-      performFirstPass(dataFrame, checks.collect { case tp: TwoPassCheapCheck => tp })
-    }
+    performFirstPass(dataFrame, checks.collect { case tp: TwoPassCheapCheck => tp })
 
     val qc: List[CheapCheck] = checks.flatMap {
       case cc: CheapCheck => Some(cc)
