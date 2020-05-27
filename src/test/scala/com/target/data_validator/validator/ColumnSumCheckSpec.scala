@@ -207,17 +207,9 @@ class ColumnSumCheckSpec extends FunSpec with Matchers with TestingSparkSession 
         assert(!sut.failed)
       }
 
-      it("upper bound success with short") {
+      it("upper bound success") {
         val check = ColumnSumCheck("foo", maxValue = Some(Json.fromDouble(10).get)) // scalastyle:ignore magic.number
         val df = mkDf(spark, "foo" -> List[Short](1, 2, 1))
-        val sut = ValidatorDataFrame(df, None, None, List(check))
-        assert(!sut.quickChecks(spark, mkDict())(config))
-        assert(!sut.failed)
-      }
-
-      it("upper bound success with byte") {
-        val check = ColumnSumCheck("foo", maxValue = Some(Json.fromDouble(10).get)) // scalastyle:ignore magic.number
-        val df = mkDf(spark, "foo" -> List[Byte](1, 2, 1))
         val sut = ValidatorDataFrame(df, None, None, List(check))
         assert(!sut.quickChecks(spark, mkDict())(config))
         assert(!sut.failed)

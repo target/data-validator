@@ -25,7 +25,6 @@ object TestHelpers {
     case "java.lang.Double" => DoubleType
     case "java.lang.Boolean" => BooleanType
     case "java.lang.Long" => LongType
-    case "java.lang.Byte" => ByteType
     case _ => throw new IllegalArgumentException(s"Unknown type '${v.getClass.getCanonicalName}'")
   }
 
