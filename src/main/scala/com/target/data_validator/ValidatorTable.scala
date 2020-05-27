@@ -1,12 +1,12 @@
 package com.target.data_validator
 
-import com.target.data_validator.validator.{CheapCheck, ColumnBased, CostlyCheck, RowBased, ValidatorBase}
-import org.apache.spark.sql.{Column, DataFrame, Row, SparkSession}
+import com.target.data_validator.validator._
+import org.apache.spark.sql._
 import org.apache.spark.sql.catalyst.expressions.{Alias, Expression}
 import org.apache.spark.sql.catalyst.expressions.aggregate.{Count, Sum}
 
 import scala.collection.mutable.ListBuffer
-import scala.util.{Failure, Success, Try}
+import scala.util._
 import scalatags.Text.all._
 
 abstract class ValidatorTable(
@@ -73,8 +73,25 @@ abstract class ValidatorTable(
     ret
   }
 
+  private def performFirstPass(df: DataFrame, checks: List[TwoPassCheapCheck]): Unit = {
+    if (checks.nonEmpty) {
+      val cols = checks.map {
+        check => check.firstPassSelect()
+      }
+      val row = df.select(cols: _*).head
+
+      checks foreach { _ sinkFirstPassRow row }
+    }
+  }
+
   def quickChecks(session: SparkSession, dict: VarSubstitution)(implicit vc: ValidatorConfig): Boolean = {
     val dataFrame = open(session).get
+    val firstPassTimer = new ValidatorTimer(s"$label: pre-processing stage")
+
+    firstPassTimer.time {
+      performFirstPass(dataFrame, checks.collect { case tp: TwoPassCheapCheck => tp })
+    }
+
     val qc: List[CheapCheck] = checks.flatMap {
       case cc: CheapCheck => Some(cc)
       case _ => None
