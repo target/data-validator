@@ -63,6 +63,7 @@ object JsonEncoders extends LazyLogging {
         ("src", Json.fromString(vs.src)),
         ("dest", vs.dest)
       )
+      case vj: JsonEvent => vj.json
     }
   }
 
@@ -92,6 +93,13 @@ object JsonEncoders extends LazyLogging {
         ("keyColumns", vp.keyColumns.asJson),
         ("checks", vp.checks.asJson),
         ("events", vp.getEvents.asJson))
+      case vdf: ValidatorDataFrame => Json.obj(
+        ("dfLabel", vdf.label.asJson),
+        ("failed", vdf.failed.asJson),
+        ("keyColumns", vdf.keyColumns.asJson),
+        ("checks", vdf.checks.asJson),
+        ("events", vdf.getEvents.asJson)
+      )
     }
   }
 
