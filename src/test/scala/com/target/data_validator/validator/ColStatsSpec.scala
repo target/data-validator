@@ -78,8 +78,8 @@ object ColStatsSpec {
   )
 
   val statsA = CompleteStats(
-    name = "`a` stats",
-    column = "a",
+    "`a` stats",
+    "a",
     20,
     11.5,
     2.0,
