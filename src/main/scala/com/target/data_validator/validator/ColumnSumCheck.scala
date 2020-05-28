@@ -63,6 +63,7 @@ case class ColumnSumCheck(
       case LongType => evaluate(r.getLong(idx))
       case FloatType => evaluate(r.getFloat(idx))
       case DoubleType => evaluate(r.getDouble(idx))
+      case ByteType => evaluate(r.getByte(idx))
       case ut => throw new Exception(s"Unsupported type for $name found in schema: $ut")
     }
 
