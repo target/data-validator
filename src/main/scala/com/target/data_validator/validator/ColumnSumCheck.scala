@@ -9,7 +9,7 @@ import org.apache.spark.sql.catalyst.analysis.UnresolvedAttribute
 import org.apache.spark.sql.catalyst.expressions.aggregate.Sum
 import org.apache.spark.sql.types._
 
-import scala.collection.mutable.ListMap
+import scala.collection.immutable.ListMap
 
 case class ColumnSumCheck(
   column: String,
@@ -80,16 +80,14 @@ case class ColumnSumCheck(
       }
     }
 
-    def getData(actualSum: Double, pctError: String): ListMap[String, String] = {
-      val data = (minValue, maxValue) match {
+    def getData(pctError: String): ListMap[String, String] = {
+      ((minValue, maxValue) match {
         case (Some(x), Some(y)) =>
           ListMap("lower_bound" -> x.asNumber.get.toString, "upper_bound" -> y.asNumber.get.toString)
         case (None, Some(y)) => ListMap("upper_bound" -> y.asNumber.get.toString)
         case (Some(x), None) => ListMap("lower_bound" -> x.asNumber.get.toString)
         case (None, None) => throw new RuntimeException("Must define at least one of minValue or maxValue.")
-      }
-
-      data += ("inclusive" -> isInclusive.toString, "actual" -> r(idx).toString, "relative_error" -> pctError)
+      }) + ("inclusive" -> isInclusive.toString, "actual" -> r(idx).toString, "relative_error" -> pctError)
     }
 
     val actualSum: Double = dataType match {
@@ -104,17 +102,17 @@ case class ColumnSumCheck(
 
     failed = evaluate(actualSum)
     val pctError = getPctError(actualSum)
-    val data = getData(actualSum, pctError)
+    val data = getData(pctError)
 
-    val bounds = minValue.getOrElse("") :: maxValue.getOrElse("") :: Nil
-    val prettyBounds = if (inclusiveBounds.right.get) {
-      bounds.mkString("[", " , ", "]")
+    val bounds = minValue.getOrElse(" ") :: maxValue.getOrElse("") :: Nil
+    val prettyBounds = if (isInclusive) {
+      bounds.mkString("[", ", ", "]")
     } else {
-      bounds.mkString("(", " , ", ")")
+      bounds.mkString("(", ", ", ")")
     }
 
     val msg = s"$name on $column[$dataType]: Expected Range: $prettyBounds Actual: ${r(idx)} Relative Error: $pctError"
-    addEvent(ColumnBasedValidatorCheckEvent(failed, data.toMap, msg))
+    addEvent(ColumnBasedValidatorCheckEvent(failed, data, msg))
     failed
   }
 

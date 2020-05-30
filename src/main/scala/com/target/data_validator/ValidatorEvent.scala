@@ -36,9 +36,11 @@ case class ValidatorCheckEvent(failure: Boolean, label: String, count: Long, err
   }
 }
 
-case class ColumnBasedValidatorCheckEvent(failure: Boolean,
-                                          data: Map[String, String],
-                                          msg: String) extends ValidatorEvent {
+case class ColumnBasedValidatorCheckEvent(
+  failure: Boolean,
+  data: Map[String, String],
+  msg: String
+) extends ValidatorEvent {
   override def failed: Boolean = failure
 
   override def toHTML: Text.all.Tag = {

@@ -10,7 +10,7 @@ import org.apache.spark.sql.catalyst.expressions.Expression
 import org.apache.spark.sql.catalyst.expressions.aggregate.Max
 import org.apache.spark.sql.types._
 
-import scala.collection.mutable.ListMap
+import scala.collection.immutable.ListMap
 import scala.math.abs
 
 abstract class ColumnBased(column: String, condTest: Expression) extends CheapCheck {
@@ -57,9 +57,8 @@ case class MinNumRows(minNumRows: Long) extends ColumnBased("", ValidatorBase.L0
     val pctError = if (failed) calculatePctError(minNumRows, count) else "0.00%"
     addEvent(ValidatorCounter("rowCount", count))
     val msg = s"MinNumRowsCheck Expected: $minNumRows Actual: $count Relative Error: $pctError"
-    val data = ListMap("expected" -> minNumRows.toString, "actual" -> count.toString,
-                             "relative_error" -> pctError)
-    addEvent(ColumnBasedValidatorCheckEvent(failed, data.toMap, msg))
+    val data = ListMap("expected" -> minNumRows.toString, "actual" -> count.toString, "relative_error" -> pctError)
+    addEvent(ColumnBasedValidatorCheckEvent(failed, data, msg))
     failed
   }
 
@@ -89,18 +88,17 @@ case class ColumnMaxCheck(column: String, value: Json)
     val rMax = row(idx)
     logger.info(s"rMax: $rMax colType: $dataType value: $value valueClass: ${value.getClass.getCanonicalName}")
 
-    var errorMsg = ""
-    val data = ListMap.empty[String, String]
-
-    def resultForString(): Unit = {
+    def resultForString: (ListMap[String, String], String) = {
       val (expected, actual) = (value.asString.getOrElse(""), row.getString(idx))
 
       failed = expected != actual
-      data += ("expected" -> expected, "actual" -> actual)
-      errorMsg = s"ColumnMaxCheck $column[StringType]: Expected: $expected, Actual: $actual"
+      val data = ListMap("expected" -> expected, "actual" -> actual)
+      val errorMsg = s"ColumnMaxCheck $column[StringType]: Expected: $expected Actual: $actual"
+
+      (data, errorMsg)
     }
 
-    def resultForNumeric(): Unit = {
+    def resultForNumeric: (ListMap[String, String], String) = {
       val num = value.asNumber.get
       var cmp_params = (0.0, 0.0) // (expected, actual)
 
@@ -115,28 +113,32 @@ case class ColumnMaxCheck(column: String, value: Json)
 
       failed = cmp_params._1 != cmp_params._2
       val pctError = if (failed) calculatePctError(cmp_params._1, cmp_params._2) else "0.00%"
-      data += ("expected" -> num.toString, "actual" -> rMax.toString, "relative_error" -> pctError)
-      errorMsg = s"ColumnMaxCheck $column[$dataType]: Expected: $num, Actual: $rMax. Relative Error: ${pctError}"
+      val data = ListMap("expected" -> num.toString, "actual" -> rMax.toString, "relative_error" -> pctError)
+      val errorMsg = s"ColumnMaxCheck $column[$dataType]: Expected: $num Actual: $rMax Relative Error: $pctError"
+
+      (data, errorMsg)
     }
 
-    def resultForOther(): Unit = {
+    def resultForOther: (ListMap[String, String], String) = {
       logger.error(
         s"""ColumnMaxCheck for type: $dataType, Row: $row not implemented!
            |Please open a bug report on the data-validator issue tracker.""".stripMargin
       )
       failed = true
-      errorMsg = s"ColumnMaxCheck is not supported for data type $dataType"
+      val errorMsg = s"ColumnMaxCheck is not supported for data type $dataType"
+
+      (ListMap.empty[String, String], errorMsg)
     }
 
-    dataType match {
-      case StringType => resultForString()
-      case _: NumericType => resultForNumeric()
-      case _ => resultForOther()
+    val (data, errorMsg) = dataType match {
+      case StringType => resultForString
+      case _: NumericType => resultForNumeric
+      case _ => resultForOther
     }
 
     logger.debug(s"MaxValue compared Row: $row with value: $value failed: $failed")
     if (failed) {
-      addEvent(ColumnBasedValidatorCheckEvent(failed, data.toMap, errorMsg))
+      addEvent(ColumnBasedValidatorCheckEvent(failed, data, errorMsg))
     }
     failed
   }
