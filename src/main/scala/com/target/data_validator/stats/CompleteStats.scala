@@ -19,8 +19,8 @@ object CompleteStats {
   implicit val histogramEncoder: Encoder[Histogram] = deriveEncoder
   implicit val encoder: Encoder[CompleteStats] = deriveEncoder
 
-  implicit val binDencoder: Decoder[Bin] = deriveDecoder
-  implicit val histogramDencoder: Decoder[Histogram] = deriveDecoder
+  implicit val binDecoder: Decoder[Bin] = deriveDecoder
+  implicit val histogramDecoder: Decoder[Histogram] = deriveDecoder
   implicit val decoder: Decoder[CompleteStats] = deriveDecoder
 
   def apply(
