@@ -19,6 +19,7 @@ object JsonEncoders extends LazyLogging {
       Json.fromString(a.toString)
   }
 
+  // scalastyle:off cyclomatic.complexity
   implicit val eventEncoder: Encoder[ValidatorEvent] = new Encoder[ValidatorEvent] {
     override def apply(a: ValidatorEvent): Json = a match {
       case vc: ValidatorCounter => Json.obj(
@@ -69,8 +70,10 @@ object JsonEncoders extends LazyLogging {
         ("src", Json.fromString(vs.src)),
         ("dest", vs.dest)
       )
+      case vj: JsonEvent => vj.json
     }
   }
+  // scalastyle:on cyclomatic.complexity
 
   implicit val baseEncoder: Encoder[ValidatorBase] = new Encoder[ValidatorBase] {
     final def apply(a: ValidatorBase): Json = a.toJson
@@ -98,6 +101,13 @@ object JsonEncoders extends LazyLogging {
         ("keyColumns", vp.keyColumns.asJson),
         ("checks", vp.checks.asJson),
         ("events", vp.getEvents.asJson))
+      case vdf: ValidatorDataFrame => Json.obj(
+        ("dfLabel", vdf.label.asJson),
+        ("failed", vdf.failed.asJson),
+        ("keyColumns", vdf.keyColumns.asJson),
+        ("checks", vdf.checks.asJson),
+        ("events", vdf.getEvents.asJson)
+      )
     }
   }
 
