@@ -1,12 +1,15 @@
 package com.target.data_validator.validator
 
-import com.target.data_validator.{ValidatorCheckEvent, ValidatorError, VarSubstitution}
+import com.target.data_validator.{ColumnBasedValidatorCheckEvent, JsonEncoders, ValidatorError, VarSubstitution}
 import io.circe._
 import io.circe.generic.semiauto._
+import io.circe.syntax._
 import org.apache.spark.sql.{DataFrame, Row}
 import org.apache.spark.sql.catalyst.analysis.UnresolvedAttribute
 import org.apache.spark.sql.catalyst.expressions.aggregate.Sum
 import org.apache.spark.sql.types._
+
+import scala.collection.immutable.ListMap
 
 case class ColumnSumCheck(
   column: String,
@@ -52,29 +55,64 @@ case class ColumnSumCheck(
 
   override def quickCheck(r: Row, count: Long, idx: Int): Boolean = {
 
+    val dataType = r.schema(idx).dataType
+    val isInclusive = inclusiveBounds.right.get
+    val lowerBoundValue = lowerBound.right.get
+    val upperBoundValue = upperBound.right.get
+
     def evaluate(sum: Double): Boolean = {
-      if (inclusiveBounds.right.get) { sum > upperBound.right.get || sum < lowerBound.right.get}
-      else { sum >= upperBound.right.get || sum <= lowerBound.right.get}
+      if (isInclusive) { sum > upperBoundValue || sum < lowerBoundValue}
+      else { sum >= upperBoundValue || sum <= lowerBoundValue}
     }
 
-    failed = r.schema(idx).dataType match {
-      case ShortType => evaluate(r.getShort(idx))
-      case IntegerType => evaluate(r.getInt(idx))
-      case LongType => evaluate(r.getLong(idx))
-      case FloatType => evaluate(r.getFloat(idx))
-      case DoubleType => evaluate(r.getDouble(idx))
-      case ByteType => evaluate(r.getByte(idx))
+    def getPctError(sum: Double): String = {
+      if (sum < lowerBoundValue) {
+        calculatePctError(lowerBoundValue, sum)
+      }
+      else if (sum > upperBoundValue) {
+        calculatePctError(upperBoundValue, sum)
+      }
+      else if (!isInclusive && (sum == upperBoundValue || sum == lowerBoundValue)) {
+        "undefined"
+      }
+      else {
+        "0.00%"
+      }
+    }
+
+    def getData(pctError: String): ListMap[String, String] = {
+      ((minValue, maxValue) match {
+        case (Some(x), Some(y)) =>
+          ListMap("lower_bound" -> x.asNumber.get.toString, "upper_bound" -> y.asNumber.get.toString)
+        case (None, Some(y)) => ListMap("upper_bound" -> y.asNumber.get.toString)
+        case (Some(x), None) => ListMap("lower_bound" -> x.asNumber.get.toString)
+        case (None, None) => throw new RuntimeException("Must define at least one of minValue or maxValue.")
+      }) + ("inclusive" -> isInclusive.toString, "actual" -> r(idx).toString, "relative_error" -> pctError)
+    }
+
+    val actualSum: Double = dataType match {
+      case ByteType => r.getByte(idx)
+      case ShortType => r.getShort(idx)
+      case IntegerType => r.getInt(idx)
+      case LongType => r.getLong(idx)
+      case FloatType => r.getFloat(idx)
+      case DoubleType => r.getDouble(idx)
       case ut => throw new Exception(s"Unsupported type for $name found in schema: $ut")
     }
 
-    val bounds = minValue.getOrElse("") :: maxValue.getOrElse("") :: Nil
-    val prettyBounds = if (inclusiveBounds.right.get) {
-      r.get(idx) + " in " + bounds.mkString("[", " , ", "]")
+    failed = evaluate(actualSum)
+    val pctError = getPctError(actualSum)
+    val data = getData(pctError)
+
+    val bounds = minValue.getOrElse(" ") :: maxValue.getOrElse("") :: Nil
+    val prettyBounds = if (isInclusive) {
+      bounds.mkString("[", ", ", "]")
     } else {
-      r.get(idx) + " in " + bounds.mkString("(", " , ", ")")
+      bounds.mkString("(", ", ", ")")
     }
-    val errorValue = if (failed) 1 else 0
-    addEvent(ValidatorCheckEvent(failed, s"$name on '$column': $prettyBounds", count, errorValue))
+
+    val msg = s"$name on $column[$dataType]: Expected Range: $prettyBounds Actual: ${r(idx)} Relative Error: $pctError"
+    addEvent(ColumnBasedValidatorCheckEvent(failed, data, msg))
     failed
   }
 
@@ -119,9 +157,11 @@ case class ColumnSumCheck(
   }
 
   override def toJson: Json = {
+    import JsonEncoders.eventEncoder
     val additionalFieldsForReport = Json.fromFields(Set(
       "type" -> Json.fromString("columnSumCheck"),
-      "failed" -> Json.fromBoolean(failed)
+      "failed" -> Json.fromBoolean(failed),
+      "events" -> getEvents.asJson
     ))
 
     val base = ColumnSumCheck.encoder(this)
