@@ -1,4 +1,4 @@
-# data-validator
+# data-validator [![Build Status](https://travis-ci.org/target/data-validator.svg?branch=master)](https://travis-ci.org/target/data-validator) [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 A tool to validate data in HIVE tables.
 
@@ -312,6 +312,38 @@ This is a costly check and requires an additional pass through the table.
 | Arg | Type | Description |
 |-----|------|-------------|
 | `columns` | Array[String] | Each set of values in these columns must be unique.
+
+#### `columnSumCheck`
+
+This check sums a column in all rows. If the sum applied to the `column` doesn't fall within the range specified by (`minValue`, `maxValue`) the check will fail.
+
+| Arg         | Type        | Description                                                            |
+|-------------|-------------|------------------------------------------------------------------------|
+| `column`    | String      | The column to be checked.                                              |
+| `minValue`  | NumericType | The lower bound of the sum.  Type depends on the type of the `column`. |
+| `maxValue`  | NumericType | The upper bound of the sum. Type depends on the type of the `column`.  |
+| `inclusive` | Boolean     | Include `minValue` and `maxValue` as part of the range.                |
+
+**Note:** If bounds are non-inclusive, and the actual sum is equal to one of the bounds, the relative error percentage will be undefined.
+
+#### `colstats`
+
+This check generates column statistics about the specified column.
+
+| Arg         | Type        | Description                                |
+|-------------|-------------|--------------------------------------------|
+| `column`    | String      | The column on which to collect statistics. |
+
+These values will appear in the check's JSON summary when using the JSON report output mode:
+
+| Arg         | Type        | Description                                                                                                             |
+|-------------|-------------|-------------------------------------------------------------------------------------------------------------------------|
+| `count`     | Integer     | Count of non-null entries in the `column`.                                                                              |
+| `mean`      | Double      | Mean/Average of the values in the `column`.                                                                             |
+| `min`       | Double      | Smallest value in the `column`.                                                                                         |
+| `max`       | Double      | Largest value in the `column`.                                                                                          |
+| `stdDev`    | Double      | Standard deviation of the values in the `column`.                                                                       |
+| `histogram` | Complex     | Summary of an equi-width histogram, counts of values appearing in 10 equally sized buckets over the range `[min, max]`. |
 
 ## Example Config
 

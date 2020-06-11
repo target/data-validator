@@ -36,6 +36,18 @@ case class ValidatorCheckEvent(failure: Boolean, label: String, count: Long, err
   }
 }
 
+case class ColumnBasedValidatorCheckEvent(
+  failure: Boolean,
+  data: Map[String, String],
+  msg: String
+) extends ValidatorEvent {
+  override def failed: Boolean = failure
+
+  override def toHTML: Text.all.Tag = {
+    div(cls:="checkEvent")(failedHTML, s" - $msg")
+  }
+}
+
 class ValidatorTimer(val label: String) extends ValidatorEvent {
   var duration = 0L
 
@@ -86,4 +98,10 @@ case class VarSubJsonEvent(src: String, dest: Json) extends ValidatorEvent {
   override def failed: Boolean = false
   override def toString: String = s"VarSub src: $src dest: ${dest.noSpaces}"
   override def toHTML: Text.all.Tag = div(cls:="subEvent")(toString)
+}
+
+case class JsonEvent(json: Json) extends ValidatorEvent {
+  override def failed: Boolean = false
+  override def toString: String = s"JsonEvent: json:${json.noSpaces}"
+  override def toHTML: Text.all.Tag = div(cls := "jsonEvent")(toString)
 }
