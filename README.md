@@ -326,6 +326,27 @@ This check sums a column in all rows. If the sum applied to the `column` doesn't
 | `maxValue`  | NumericType | The upper bound of the sum. Type depends on the type of the `column`.  |
 | `inclusive` | Boolean     | Include `minValue` and `maxValue` as part of the range.                |
 
+**Note:** If bounds are non-inclusive, and the actual sum is equal to one of the bounds, the relative error percentage will be undefined.
+
+#### `colstats`
+
+This check generates column statistics about the specified column.
+
+| Arg         | Type        | Description                                |
+|-------------|-------------|--------------------------------------------|
+| `column`    | String      | The column on which to collect statistics. |
+
+These values will appear in the check's JSON summary when using the JSON report output mode:
+
+| Arg         | Type        | Description                                                                                                             |
+|-------------|-------------|-------------------------------------------------------------------------------------------------------------------------|
+| `count`     | Integer     | Count of non-null entries in the `column`.                                                                              |
+| `mean`      | Double      | Mean/Average of the values in the `column`.                                                                             |
+| `min`       | Double      | Smallest value in the `column`.                                                                                         |
+| `max`       | Double      | Largest value in the `column`.                                                                                          |
+| `stdDev`    | Double      | Standard deviation of the values in the `column`.                                                                       |
+| `histogram` | Complex     | Summary of an equi-width histogram, counts of values appearing in 10 equally sized buckets over the range `[min, max]`. |
+
 ## Example Config
 
 ```yaml

@@ -10,6 +10,7 @@ import org.apache.spark.sql.catalyst.expressions.Literal
 import org.apache.spark.sql.types._
 import org.scalatest._
 
+import scala.collection.immutable.ListMap
 import scala.util.Random
 
 class ValidatorBaseSpec extends FunSpec with Matchers with TestingSparkSession {
@@ -182,20 +183,32 @@ class ValidatorBaseSpec extends FunSpec with Matchers with TestingSparkSession {
     it("quickCheck() should fail when rowCount < minNumRows") {
       val dict = new VarSubstitution
       val df = spark.createDataFrame(sc.parallelize(List(Row("Doug", 50), Row("Collin", 32))), schema) //scalastyle:ignore
-      val config = mkConfig(df, List(MinNumRows(10))) //scalastyle:ignore
+      val minNumRowsCheck = MinNumRows(10) // scalastyle:ignore magic.number
+      val config = mkConfig(df, List(minNumRowsCheck))
       assert(config.quickChecks(spark, dict))
       assert(config.failed)
       assert(config.tables.head.failed)
+      assert(minNumRowsCheck.getEvents contains ColumnBasedValidatorCheckEvent(
+        failure = true,
+        ListMap("expected" -> "10", "actual" -> "2", "relative_error" -> "80.00%"),
+        "MinNumRowsCheck Expected: 10 Actual: 2 Relative Error: 80.00%"
+      ))
     }
 
     it("quickCheck() should succeed when rowCount > minNumRows") {
       val dict = new VarSubstitution
       val df = spark.createDataFrame(sc.parallelize(List(Row("Doug", 50), Row("Collin", 32))), schema) //scalastyle:ignore
-      val config = mkConfig(df, List(MinNumRows(1))) //scalastyle:ignore
+      val minNumRowsCheck = MinNumRows(1)
+      val config = mkConfig(df, List(minNumRowsCheck))
       assert(!config.configCheck(spark, dict))
       assert(!config.quickChecks(spark, dict))
       assert(!config.failed)
       assert(!config.tables.exists(_.failed))
+      assert(minNumRowsCheck.getEvents contains ColumnBasedValidatorCheckEvent(
+        failure = false,
+        ListMap("expected" -> "1", "actual" -> "2", "relative_error" -> "0.00%"),
+        "MinNumRowsCheck Expected: 1 Actual: 2 Relative Error: 0.00%"
+      ))
     }
 
   }
