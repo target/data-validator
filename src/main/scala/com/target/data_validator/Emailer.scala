@@ -117,7 +117,7 @@ object Emailer extends LazyLogging {
     }
     catch {
       case sfe: SendFailedException =>
-        logger.warn(s"Failure to send email #$id: $sfe")
+        logger.warn(s"Failure to send email #$id: ${sfe.getMessage}")
         if (sfe.getValidSentAddresses.nonEmpty) {
           logger.warn(s"Email #$id was sent to [${sfe.getValidSentAddresses.mkString(", ")}]")
         }
