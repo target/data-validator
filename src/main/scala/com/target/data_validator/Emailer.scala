@@ -112,7 +112,7 @@ object Emailer extends LazyLogging {
     try {
       logger.info(s"Sending email #$id [${message.getSubject}] to [${message.getAllRecipients.mkString(", ")}]")
       Transport.send(message)
-      logger.info(s"Email #$id sent totally successfully.")
+      logger.info(s"Email #$id sent successfully to all recipients.")
       false
     }
     catch {
