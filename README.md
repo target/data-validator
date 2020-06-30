@@ -334,9 +334,9 @@ This check generates column statistics about the specified column.
 |-------------|-------------|--------------------------------------------|
 | `column`    | String      | The column on which to collect statistics. |
 
-These values will appear in the check's JSON summary when using the JSON report output mode:
+These keys and their corresponding values will appear in the check's JSON summary when using the JSON report output mode:
 
-| Arg         | Type        | Description                                                                                                             |
+| Key         | Type        | Description                                                                                                             |
 |-------------|-------------|-------------------------------------------------------------------------------------------------------------------------|
 | `count`     | Integer     | Count of non-null entries in the `column`.                                                                              |
 | `mean`      | Double      | Mean/Average of the values in the `column`.                                                                             |
