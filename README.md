@@ -336,9 +336,9 @@ This check generates column statistics about the specified column.
 |-------------|-------------|--------------------------------------------|
 | `column`    | String      | The column on which to collect statistics. |
 
-These values will appear in the check's JSON summary when using the JSON report output mode:
+These keys and their corresponding values will appear in the check's JSON summary when using the JSON report output mode:
 
-| Arg         | Type        | Description                                                                                                             |
+| Key         | Type        | Description                                                                                                             |
 |-------------|-------------|-------------------------------------------------------------------------------------------------------------------------|
 | `count`     | Integer     | Count of non-null entries in the `column`.                                                                              |
 | `mean`      | Double      | Mean/Average of the values in the `column`.                                                                             |
@@ -407,6 +407,10 @@ tables:
 
       # negativeCheck - checks if any values are less than 0
       - type: negativeCheck
+        column: age
+      
+      # colstats - adds basic statistics of the column to the output
+      - type: colstats
         column: age
         
       # nullCheck - checks if the column is null, counts number of rows with null for this column.
