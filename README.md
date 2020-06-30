@@ -406,6 +406,10 @@ tables:
       # negativeCheck - checks if any values are less than 0
       - type: negativeCheck
         column: age
+      
+      # colstats - adds basic statistics of the column to the output
+      - type: colstats
+        column: age
         
       # nullCheck - checks if the column is null, counts number of rows with null for this column.
       - type: nullCheck
