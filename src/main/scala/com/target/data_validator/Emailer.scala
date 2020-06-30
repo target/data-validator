@@ -117,21 +117,27 @@ object Emailer extends LazyLogging {
     }
     catch {
       case sfe: SendFailedException =>
-        logger.warn(s"Failure to send email #$id: ${sfe.getMessage}")
-        if (sfe.getValidSentAddresses.nonEmpty) {
-          logger.warn(s"Email #$id was sent to [${sfe.getValidSentAddresses.mkString(", ")}]")
-        }
-        if (sfe.getValidUnsentAddresses.nonEmpty) {
-          logger.error(s"Email #$id was not sent to [${sfe.getValidUnsentAddresses.mkString(", ")}]")
-        }
-        if (sfe.getInvalidAddresses.nonEmpty) {
-          logger.error(s"Email #$id has invalid addresses: [${sfe.getInvalidAddresses.mkString(", ")}]")
-        }
-
+        handleSendFailedException(id, sfe)
         true
       case me: MessagingException =>
         logger.error(s"Failure to send email #$id: $me")
         true
+    }
+  }
+
+  private def handleSendFailedException(id: String, sfe: SendFailedException): Unit = {
+    logger.warn(s"Failure to send email #$id: ${sfe.getMessage}")
+    Option(sfe.getValidSentAddresses) match {
+      case Some(addresses) => logger.warn(s"Email #$id was sent to [${addresses.mkString(", ")}]")
+      case None => logger.info("No emails were sent successfully.")
+    }
+    Option(sfe.getValidUnsentAddresses) match {
+      case Some(addresses) => logger.error(s"Email #$id was not sent to [${addresses.mkString(", ")}]")
+      case None =>
+    }
+    Option(sfe.getInvalidAddresses) match {
+      case Some(addresses) => logger.error(s"Email #$id has invalid addresses: [${addresses.mkString(", ")}]")
+      case None =>
     }
   }
 
