@@ -20,7 +20,8 @@ object JsonDecoders extends LazyLogging {
       "uniqueCheck" -> UniqueCheck.fromJson,
       "stringLengthCheck" -> StringLengthCheck.fromJson,
       "stringRegexCheck" -> StringRegexCheck.fromJson,
-      "columnSumCheck" -> ColumnSumCheck.fromJson
+      "columnSumCheck" -> ColumnSumCheck.fromJson,
+      "colstats" -> implicitly[Decoder[ColStats]].apply // serdes defined implicitly on companion
     )
 
     final def apply(c: HCursor): Decoder.Result[ValidatorBase] = c.downField("type").as[String].flatMap(getDecoder(c))
