@@ -82,6 +82,8 @@ throughout the program.
 | `cc` | Array[String] | No | Optional list of email addresses to send message to via `cc` field in message.
 | `bcc` | Array[String] | No | Optional list of email addresses to send message to via `bcc` field in message.
 
+Note that Data Validator only sends email on _failure_ by default. To send email even on successful runs,
+pass `--emailOnPass true` to the command line.
 
 #### Defining Variables
 
