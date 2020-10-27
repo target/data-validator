@@ -73,7 +73,7 @@ class ValidatorTableSpec extends FunSpec with Matchers with TestingSparkSession 
       describe("should work for all part of HiveTable") {
 
         it("variable substitution should work for database") {
-          val vt = ValidatorHiveTable("$db", "table", None, None, List.empty)
+          val vt = ValidatorHiveTable("$db", "table", None, None, None, List.empty)
           val dict = mkDict(("db", "myDatabase"))
           val sut = vt.substituteVariables(dict)
           assert(sut == vt.copy(db = "myDatabase"))
@@ -81,7 +81,7 @@ class ValidatorTableSpec extends FunSpec with Matchers with TestingSparkSession 
         }
 
         it("variable substitution should work for table") {
-          val vt = ValidatorHiveTable("database", "$table", None, None, List.empty)
+          val vt = ValidatorHiveTable("database", "$table", None, None, None, List.empty)
           val dict = mkDict(("table", "myTable"))
           val sut = vt.substituteVariables(dict)
           assert(sut == vt.copy(table = "myTable"))
@@ -89,7 +89,7 @@ class ValidatorTableSpec extends FunSpec with Matchers with TestingSparkSession 
         }
 
         it ("keyColumn") {
-          val vt = ValidatorHiveTable("database", "table", Some(List("$key1", "$key2")), None, List.empty)
+          val vt = ValidatorHiveTable("database", "table", None, Some(List("$key1", "$key2")), None, List.empty)
           val dict = mkDict(("key1", "col1"), ("key2", "col2"))
           val sut = vt.substituteVariables(dict)
           assert(sut == vt.copy(keyColumns = Some(List("col1", "col2"))))
@@ -98,7 +98,7 @@ class ValidatorTableSpec extends FunSpec with Matchers with TestingSparkSession 
         }
 
         it("condition") {
-          val vt = ValidatorHiveTable("database", "table", None, Some("end_d < '$end_date'"), List.empty)
+          val vt = ValidatorHiveTable("database", "table", None, None, Some("end_d < '$end_date'"), List.empty)
           val dict = mkDict(("end_date", "2018-11-26"))
           val sut = vt.substituteVariables(dict)
           assert(sut == vt.copy(condition = Some("end_d < '2018-11-26'")))
@@ -106,7 +106,7 @@ class ValidatorTableSpec extends FunSpec with Matchers with TestingSparkSession 
         }
 
         it("checks") {
-          val vt = ValidatorHiveTable("database", "table", None, None, List(NullCheck("${nullCol1}", None)))
+          val vt = ValidatorHiveTable("database", "table", None, None, None, List(NullCheck("${nullCol1}", None)))
           val dict = mkDict(("nullCol1", "nc1"), ("nullCol2", "nc2"))
           val sut = vt.substituteVariables(dict).asInstanceOf[ValidatorHiveTable]
           assert(sut == vt.copy(checks = List(NullCheck("nc1", None))))

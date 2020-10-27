@@ -26,6 +26,7 @@ class ConfigParserSpec extends FunSpec with BeforeAndAfterAll {
       ValidatorHiveTable(
         "foo",
         "bar",
+        None,
         Some(List("one", "two")),
         None,
         List(MinNumRows(10294), NullCheck("mdse_item_i", None)) // scalastyle:ignore magic.number

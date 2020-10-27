@@ -177,6 +177,7 @@ abstract class ValidatorTable(
 case class ValidatorHiveTable(
   db: String,
   table: String,
+  useHWC: Option[Boolean],
   keyColumns: Option[List[String]],
   condition: Option[String],
   checks: List[ValidatorBase]
@@ -189,7 +190,18 @@ case class ValidatorHiveTable(
 
   override def getDF(session: SparkSession): Try[DataFrame] = {
     logger.info(s"Opening table: $db.$table")
-    Try(session.table(s"$db.$table"))
+    useHWC match {
+      case Some(x) if x =>
+        val hive = com.hortonworks.hwc.HiveWarehouseSession.session(session).build()
+        val query = condition match {
+          case Some(c) => s"SELECT * FROM $db.$table WHERE $c"
+          case None => s"SELECT * FROM $db.$table"
+        }
+        Try(hive.executeQuery(query))
+      case _ =>
+        Try(session.table(s"$db.$table"))
+    }
+
   }
 
   override def substituteVariables(dict: VarSubstitution): ValidatorTable = {
@@ -199,7 +211,7 @@ case class ValidatorHiveTable(
     val newCondition = condition.map(x => getVarSub(x, "condition", dict))
     val newChecks = checks.map(_.substituteVariables(dict))
 
-    val ret = ValidatorHiveTable(newDb, newTable, newKeyColumns, newCondition, newChecks)
+    val ret = ValidatorHiveTable(newDb, newTable, useHWC, newKeyColumns, newCondition, newChecks)
     this.getEvents.foreach(ret.addEvent)
     ret
   }
