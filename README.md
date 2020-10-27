@@ -82,6 +82,8 @@ throughout the program.
 | `cc` | Array[String] | No | Optional list of email addresses to send message to via `cc` field in message.
 | `bcc` | Array[String] | No | Optional list of email addresses to send message to via `bcc` field in message.
 
+Note that Data Validator only sends email on _failure_ by default. To send email even on successful runs,
+pass `--emailOnPass true` to the command line.
 
 #### Defining Variables
 
@@ -326,6 +328,25 @@ This check sums a column in all rows. If the sum applied to the `column` doesn't
 
 **Note:** If bounds are non-inclusive, and the actual sum is equal to one of the bounds, the relative error percentage will be undefined.
 
+#### `colstats`
+
+This check generates column statistics about the specified column.
+
+| Arg         | Type        | Description                                |
+|-------------|-------------|--------------------------------------------|
+| `column`    | String      | The column on which to collect statistics. |
+
+These keys and their corresponding values will appear in the check's JSON summary when using the JSON report output mode:
+
+| Key         | Type        | Description                                                                                                             |
+|-------------|-------------|-------------------------------------------------------------------------------------------------------------------------|
+| `count`     | Integer     | Count of non-null entries in the `column`.                                                                              |
+| `mean`      | Double      | Mean/Average of the values in the `column`.                                                                             |
+| `min`       | Double      | Smallest value in the `column`.                                                                                         |
+| `max`       | Double      | Largest value in the `column`.                                                                                          |
+| `stdDev`    | Double      | Standard deviation of the values in the `column`.                                                                       |
+| `histogram` | Complex     | Summary of an equi-width histogram, counts of values appearing in 10 equally sized buckets over the range `[min, max]`. |
+
 ## Example Config
 
 ```yaml
@@ -386,6 +407,10 @@ tables:
 
       # negativeCheck - checks if any values are less than 0
       - type: negativeCheck
+        column: age
+      
+      # colstats - adds basic statistics of the column to the output
+      - type: colstats
         column: age
         
       # nullCheck - checks if the column is null, counts number of rows with null for this column.

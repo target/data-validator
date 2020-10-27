@@ -1,12 +1,12 @@
 package com.target.data_validator
 
-import com.target.data_validator.validator.{CheapCheck, ColumnBased, CostlyCheck, RowBased, ValidatorBase}
-import org.apache.spark.sql.{Column, DataFrame, Row, SparkSession}
+import com.target.data_validator.validator._
+import org.apache.spark.sql._
 import org.apache.spark.sql.catalyst.expressions.{Alias, Expression}
 import org.apache.spark.sql.catalyst.expressions.aggregate.{Count, Sum}
 
 import scala.collection.mutable.ListBuffer
-import scala.util.{Failure, Success, Try}
+import scala.util._
 import scalatags.Text.all._
 
 abstract class ValidatorTable(
@@ -73,16 +73,37 @@ abstract class ValidatorTable(
     ret
   }
 
+  private def performFirstPass(df: DataFrame, checks: List[TwoPassCheapCheck]): Unit = {
+    if (checks.nonEmpty) {
+      val firstPassTimer = new ValidatorTimer(s"$label: pre-processing stage")
+
+      addEvent(firstPassTimer)
+
+      firstPassTimer.time {
+        val cols = checks.map { _.firstPassSelect() }
+        val row = df.select(cols: _*).head
+
+        checks foreach { _ sinkFirstPassRow row }
+      }
+    }
+  }
+
+  private def cheapExpression(dataFrame: DataFrame, dict: VarSubstitution): PartialFunction[CheapCheck, Expression] = {
+    case tp: TwoPassCheapCheck => tp.select(dataFrame.schema, dict)
+    case colChk: ColumnBased => colChk.select(dataFrame.schema, dict)
+    case chk: RowBased => Sum(chk.select(dataFrame.schema, dict)).toAggregateExpression()
+  }
+
   def quickChecks(session: SparkSession, dict: VarSubstitution)(implicit vc: ValidatorConfig): Boolean = {
     val dataFrame = open(session).get
+
+    performFirstPass(dataFrame, checks.collect { case tp: TwoPassCheapCheck => tp })
+
     val qc: List[CheapCheck] = checks.flatMap {
       case cc: CheapCheck => Some(cc)
       case _ => None
     }
-    val checkSelects: Seq[Expression] = qc.map {
-      case colChk: ColumnBased => colChk.select(dataFrame.schema, dict)
-      case chk: RowBased => Sum(chk.select(dataFrame.schema, dict)).toAggregateExpression()
-    }
+    val checkSelects = qc.map(cheapExpression(dataFrame, dict))
 
     val cols: Seq[Column] = createCountSelect() ++ checkSelects.zipWithIndex.map {
       case (chkSelect: Expression, idx: Int) => new Column(Alias(chkSelect, s"qc$idx")())
@@ -290,6 +311,9 @@ case class ValidatorDataFrame(
   checks,
   "DataFrame" + condition.map(x => s" with condition($x)").getOrElse("")
 ) {
+
+  final def label: String = "DataFrame" + condition.map(x => s" with condition($x)").getOrElse("")
+
   override def getDF(session: SparkSession): Try[DataFrame] = Success(df)
 
   override def substituteVariables(dict: VarSubstitution): ValidatorTable = {

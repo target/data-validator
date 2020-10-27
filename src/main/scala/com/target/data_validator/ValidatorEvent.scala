@@ -99,3 +99,9 @@ case class VarSubJsonEvent(src: String, dest: Json) extends ValidatorEvent {
   override def toString: String = s"VarSub src: $src dest: ${dest.noSpaces}"
   override def toHTML: Text.all.Tag = div(cls:="subEvent")(toString)
 }
+
+case class JsonEvent(json: Json) extends ValidatorEvent {
+  override def failed: Boolean = false
+  override def toString: String = s"JsonEvent: json:${json.noSpaces}"
+  override def toHTML: Text.all.Tag = div(cls := "jsonEvent")(toString)
+}

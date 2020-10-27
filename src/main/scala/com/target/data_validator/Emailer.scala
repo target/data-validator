@@ -108,17 +108,36 @@ object Emailer extends LazyLogging {
 
   def sendMessage(message: Message, body: String, mime: String): Boolean = {
     message.setContent(body, mime)
+    val id = message.hashCode().toHexString
     try {
+      logger.info(s"Sending email #$id [${message.getSubject}] to [${message.getAllRecipients.mkString(", ")}]")
       Transport.send(message)
+      logger.info(s"Email #$id sent successfully to all recipients.")
       false
     }
     catch {
       case sfe: SendFailedException =>
-        logger.error(s"Failed to send message, $sfe")
+        handleSendFailedException(id, sfe)
         true
       case me: MessagingException =>
-        logger.error(s"MessingException while trying to send email, $me")
+        logger.error(s"Failure to send email #$id: $me")
         true
+    }
+  }
+
+  private def handleSendFailedException(id: String, sfe: SendFailedException): Unit = {
+    logger.warn(s"Failure to send email #$id: ${sfe.getMessage}")
+    Option(sfe.getValidSentAddresses) match {
+      case Some(addresses) => logger.warn(s"Email #$id was sent to [${addresses.mkString(", ")}]")
+      case None => logger.info("No emails were sent successfully.")
+    }
+    Option(sfe.getValidUnsentAddresses) match {
+      case Some(addresses) => logger.error(s"Email #$id was not sent to [${addresses.mkString(", ")}]")
+      case None =>
+    }
+    Option(sfe.getInvalidAddresses) match {
+      case Some(addresses) => logger.error(s"Email #$id has invalid addresses: [${addresses.mkString(", ")}]")
+      case None =>
     }
   }
 
