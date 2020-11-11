@@ -70,12 +70,19 @@ case class NameShell(name: String, shell: String) extends ConfigVar {
   }
 }
 
-case class NameSql(name: String, sql: String) extends ConfigVar {
+case class NameSql(name: String, useHWC: Option[Boolean], sql: String) extends ConfigVar {
   override def addEntry(spark: SparkSession, varSub: VarSubstitution): Boolean = {
     val timer = new ValidatorTimer(s"NameSql($name, $sql)")
     addEvent(timer)
     timer.time {
-      Try(spark.sql(getVarSub(sql, name, varSub)).head(1)) match {
+      val res = useHWC match {
+        case Some(x) if x =>
+          val hive = com.hortonworks.hwc.HiveWarehouseSession.session(spark).build()
+          Try(hive.executeQuery(getVarSub(sql, name, varSub)).head(1))
+        case _ =>
+          Try(spark.sql(getVarSub(sql, name, varSub)).head(1))
+      }
+      res match {
         case Failure(exception) =>
           validatorError(s"NameSql($name, $sql) Failed with exception $exception")
           true

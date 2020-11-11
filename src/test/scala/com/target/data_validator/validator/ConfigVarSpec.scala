@@ -154,23 +154,23 @@ class ConfigVarSpec extends FunSpec with Matchers with TestingSparkSession {
       it("from Json snippet") {
         val json: Json = parse("""{ "name":"foo", "sql":"select 1"}""").getOrElse(Json.Null)
         val sut = json.as[ConfigVar]
-        assert(sut == Right(NameSql("foo", "select 1")))
+        assert(sut == Right(NameSql("foo", None, "select 1")))
       }
 
       it("addEntry works as expected") {
-        val sut = NameSql("one", "select 1")
+        val sut = NameSql("one", None, "select 1")
         val varSub = new VarSubstitution
         assert(!sut.addEntry(spark, varSub))
         assert(varSub.dict("one") == Json.fromInt(1))
       }
 
       it("asJson works") {
-        val sut = NameSql("one", "select 1")
-        assert(sut.asJson.noSpaces == """{"name":"one","sql":"select 1"}""")
+        val sut = NameSql("one", None, "select 1")
+        assert(sut.asJson.noSpaces == """{"name":"one","useHWC":null,"sql":"select 1"}""")
       }
 
       it("bad sql works as expected") {
-        val sut = NameSql("one", "bad sql")
+        val sut = NameSql("one", None, "bad sql")
         val varSub = new VarSubstitution
         assert(sut.addEntry(spark, varSub))
       }
@@ -179,7 +179,7 @@ class ConfigVarSpec extends FunSpec with Matchers with TestingSparkSession {
         val schema = StructType(List(StructField("data", IntegerType)))
         val df = spark.createDataFrame(sc.parallelize(List(Row(10))), schema) // scalastyle:ignore
         df.createTempView("MyTable")
-        val sut = NameSql("one", "select data from MyTable where data < 10")
+        val sut = NameSql("one", None, "select data from MyTable where data < 10")
         val varSub = new VarSubstitution
         assert(sut.addEntry(spark, varSub))
       }
