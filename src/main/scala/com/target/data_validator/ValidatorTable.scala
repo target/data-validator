@@ -209,6 +209,13 @@ case class ValidatorHiveTable(
   s"HiveTable:`$db.$table`" + condition.map(c => s" with condition($c)").getOrElse("")
 ) {
 
+  override def open(session: SparkSession): Try[DataFrame] = {
+    useHWC match {
+      case Some(x) if x => getDF(session)
+      case _ => super.open(session)
+    }
+  }
+
   override def getDF(session: SparkSession): Try[DataFrame] = {
     logger.info(s"Opening table: $db.$table")
     useHWC match {
