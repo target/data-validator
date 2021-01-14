@@ -46,6 +46,7 @@ object JsonUtils extends LazyLogging {
       case IntegerType => Json.fromInt(row.getInt(col))
       case NullType => Json.Null
       case BooleanType => Json.fromBoolean(row.getBoolean(col))
+      case DoubleType => Json.fromDoubleOrNull(row.getDouble(col))
       case _: StructType => row2Json(row.getStruct(col))
       case _ =>
         logger.error(s"Unimplemented dataType '${dataType.typeName}' in column: ${row.schema(col).name} " +

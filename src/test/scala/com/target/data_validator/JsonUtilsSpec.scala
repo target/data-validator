@@ -73,6 +73,7 @@ class JsonUtilsSpec extends FunSpec with Matchers with TestingSparkSession {
       val TEST_LONG = Random.nextLong
       val TEST_INT = Random.nextInt
       val TEST_BOOLEAN = Random.nextBoolean
+      val TEST_DOUBLE = Random.nextDouble
 
       val schema = StructType(
         List(
@@ -80,11 +81,12 @@ class JsonUtilsSpec extends FunSpec with Matchers with TestingSparkSession {
           StructField("long", LongType),
           StructField("int", IntegerType),
           StructField("null", NullType),
-          StructField("bool", BooleanType)
+          StructField("bool", BooleanType),
+          StructField("double", DoubleType)
         )
       )
 
-      val sampleData = List(Row(TEST_STRING, TEST_LONG, TEST_INT, null, TEST_BOOLEAN)) // scalastyle:ignore
+      val sampleData = List(Row(TEST_STRING, TEST_LONG, TEST_INT, null, TEST_BOOLEAN, TEST_DOUBLE)) // scalastyle:ignore
 
       def mkRow: Row = spark.createDataFrame(sc.parallelize(sampleData), schema).head()
 
@@ -113,6 +115,11 @@ class JsonUtilsSpec extends FunSpec with Matchers with TestingSparkSession {
         assert(row2Json(sut, 4) == Json.fromBoolean(TEST_BOOLEAN)) // scalastyle:ignore
       }
 
+      it("Row with double") {
+        val sut = mkRow
+        assert(row2Json(sut, 5) == Json.fromDoubleOrNull(TEST_DOUBLE)) // scalastyle:ignore
+      }
+
       it("Full Row") {
         val sut = mkRow
         assert(row2Json(sut) == Json.obj(
@@ -120,7 +127,8 @@ class JsonUtilsSpec extends FunSpec with Matchers with TestingSparkSession {
           ("long", Json.fromLong(TEST_LONG)),
           ("int", Json.fromInt(TEST_INT)),
           ("null", Json.Null),
-          ("bool", Json.fromBoolean(TEST_BOOLEAN))
+          ("bool", Json.fromBoolean(TEST_BOOLEAN)),
+          ("double", Json.fromDoubleOrNull(TEST_DOUBLE))
         ))
       }
 
