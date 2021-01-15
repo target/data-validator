@@ -23,7 +23,7 @@ abstract class ValidatorTable(
 
   def createKeySelect(df: DataFrame)(implicit vc: ValidatorConfig): Seq[String] = {
     val ret: Seq[String] = keyColumns.getOrElse(df.columns.take(vc.numKeyCols))
-    logger.error(s"createKeySelect: ${ret.mkString(", ")} keyColumns: $keyColumns")
+    logger.info(s"keyColumns: ${ret.mkString(", ")}")
     ret
   }
 
