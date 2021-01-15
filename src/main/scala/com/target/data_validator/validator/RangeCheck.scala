@@ -136,7 +136,7 @@ object RangeCheck extends LazyLogging {
     logger.debug(s"inclusive: $inclusiveJ type: ${inclusiveJ.getClass.getCanonicalName}")
     logger.debug(s"threshold: $threshold")
 
-    c.focus.foreach {f => logger.info(s"RangeCheckJson: ${f.spaces2}")}
+    c.focus.foreach {f => logger.debug(s"RangeCheckJson: ${f.spaces2}")}
     scala.util.Right(RangeCheck(column, minValueJ, maxValueJ, inclusiveJ, threshold))
   }
 }
