@@ -32,7 +32,7 @@ object Main extends LazyLogging with EventLog {
     varSub.addMap(mainConfig.vars)
 
     config.vars match {
-      case None => config.substituteVariables(varSub)
+      case None => Some(config)
       case Some(vars) => if (vars.map(_.addEntry(spark, varSub)).exists(x => x)) {
         validatorError("Failed to resolve config variables")
         None
