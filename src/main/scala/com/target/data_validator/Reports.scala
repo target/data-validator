@@ -1,6 +1,5 @@
 package com.target.data_validator
 
-import com.target.data_validator.Main.CmdLineOptions
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.spark.sql.SparkSession
 
