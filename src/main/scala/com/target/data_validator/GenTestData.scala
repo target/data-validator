@@ -32,15 +32,19 @@ object GenTestData {
   }
 
   def main(args: Array[String]): Unit = {
-    val spark = SparkSession.builder.appName("genTestData").getOrCreate()
+    val spark = SparkSession.builder
+      .appName("genTestData")
+      .master(args.headOption.getOrElse("local"))
+      .getOrCreate()
 
     spark.sparkContext.setLogLevel("WARN") // Spark is very noisy.
 
-    val df = genData(spark).coalesce(1)
-
-    df.write.orc("testData.orc")
-
-    spark.stop()
+    try {
+      val df = genData(spark).coalesce(1)
+      df.write.orc("testData.orc")
+    } finally {
+      spark.stop()
+    }
   }
 
 }

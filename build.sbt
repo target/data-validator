@@ -61,3 +61,10 @@ scalastyleFailOnWarning := true
 scalastyleFailOnError := true
 compileScalastyle := scalastyle.in(Compile).toTask("").value
 (compile in Compile) := ((compile in Compile) dependsOn compileScalastyle).value
+
+run in Compile := Defaults.runTask(fullClasspath in Compile, mainClass in (Compile, run), runner in (Compile, run)).evaluated
+runMain in Compile := Defaults.runMainTask(fullClasspath in Compile, runner in(Compile, run)).evaluated
+TaskKey[Unit]("generateTestData") := {
+  libraryDependencies += "org.apache.spark" %% "spark-sql" % sparkVersion
+  (runMain in Compile).toTask(" com.target.data_validator.GenTestData").value
+}
