@@ -62,9 +62,9 @@ class ConfigVarSubSpec extends FunSpec with Matchers with TestingSparkSession {
 
         describe("MinNumRows") {
 
-          it("MinNumRows doesn't support substitutions so it should be equal, no changes.") {
-            val sut = MinNumRows(100) // scalastyle:ignore
-            assert(sut.substituteVariables(dict) == sut)
+          it("should substitute variables properly") {
+            val sut = MinNumRows(Json.fromString("$one"))
+            assert(sut.substituteVariables(dict) == MinNumRows(Json.fromInt(1)))
           }
 
         }

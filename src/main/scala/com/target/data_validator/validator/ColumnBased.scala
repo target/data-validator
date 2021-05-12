@@ -35,26 +35,40 @@ abstract class ColumnBased(column: String, condTest: Expression) extends CheapCh
   }
 }
 
-case class MinNumRows(minNumRows: Long) extends ColumnBased("", ValidatorBase.L0) {
+case class MinNumRows(minNumRows: Json) extends ColumnBased("", ValidatorBase.L0) {
   override def name: String = "MinNumRows"
 
-  override def substituteVariables(dict: VarSubstitution): ValidatorBase = this
+  override def substituteVariables(dict: VarSubstitution): ValidatorBase = {
+    val ret = MinNumRows(getVarSubJson(minNumRows, "minNumRows", dict))
+    getEvents.foreach(ret.addEvent)
+    ret
+  }
 
   override def configCheck(df: DataFrame): Boolean = {
-    if (minNumRows <= 0) {
-      val msg = s"MinNumRows: $minNumRows <= 0"
+
+    def notNaturalNumber(): Unit = {
+      val msg = "minNumRows must be a natural number"
       logger.error(msg)
       addEvent(ValidatorError(msg))
-      failed = true
-      true
-    } else {
-      false
     }
+
+    minNumRows.asNumber match {
+      case Some(jsonNumber) => jsonNumber.toLong match {
+        case Some(x) if x > 0 =>
+        case _ => notNaturalNumber()
+      }
+      case _ => notNaturalNumber()
+    }
+    failed
   }
 
   override def quickCheck(row: Row, count: Long, idx: Int): Boolean = {
-    failed = count < minNumRows
-    val pctError = if (failed) calculatePctError(minNumRows, count) else "0.00%"
+    // Convert to `JsonNumber` then to `Long`
+    // safe because already handled in `configCheck`
+    val minNumRowsLong = minNumRows.asNumber.get.toLong.get
+
+    failed = count < minNumRowsLong
+    val pctError = if (failed) calculatePctError(minNumRowsLong, count) else "0.00%"
     addEvent(ValidatorCounter("rowCount", count))
     val msg = s"MinNumRowsCheck Expected: $minNumRows Actual: $count Relative Error: $pctError"
     val data = ListMap("expected" -> minNumRows.toString, "actual" -> count.toString, "relative_error" -> pctError)
@@ -64,7 +78,7 @@ case class MinNumRows(minNumRows: Long) extends ColumnBased("", ValidatorBase.L0
 
   override def toJson: Json = Json.obj(
     ("type", Json.fromString("rowCount")),
-    ("minNumRows", Json.fromLong(minNumRows)),
+    ("minNumRows", minNumRows),
     ("failed", Json.fromBoolean(failed)),
     ("events", this.getEvents.asJson)
   )
