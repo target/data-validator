@@ -171,10 +171,19 @@ class ValidatorBaseSpec extends FunSpec with Matchers with TestingSparkSession {
 
   describe("ValidatorMinNumRows") {
 
+    val df = spark.createDataFrame(sc.parallelize(List(Row("Doug", 50), Row("Collin", 32))), schema) //scalastyle:ignore
+
+    it("configCheck() should fail for minNumRows as non-numeric") {
+      val dict = new VarSubstitution
+      val config = mkConfig(df, List(MinNumRows(Json.fromString("badinput"))))
+      assert(config.configCheck(spark, dict))
+      assert(config.failed)
+      assert(config.tables.head.failed)
+    }
+
     it("configCheck() should fail for negative minNumRows") {
       val dict = new VarSubstitution
-      val df = spark.createDataFrame(sc.parallelize(List(Row("Doug", 50), Row("Collin", 32))), schema) //scalastyle:ignore
-      val config = mkConfig(df, List(MinNumRows(-10))) //scalastyle:ignore
+      val config = mkConfig(df, List(MinNumRows(Json.fromLong(-10)))) // scalastyle:ignore magic.number
       assert(config.configCheck(spark, dict))
       assert(config.failed)
       assert(config.tables.head.failed)
@@ -182,8 +191,7 @@ class ValidatorBaseSpec extends FunSpec with Matchers with TestingSparkSession {
 
     it("quickCheck() should fail when rowCount < minNumRows") {
       val dict = new VarSubstitution
-      val df = spark.createDataFrame(sc.parallelize(List(Row("Doug", 50), Row("Collin", 32))), schema) //scalastyle:ignore
-      val minNumRowsCheck = MinNumRows(10) // scalastyle:ignore magic.number
+      val minNumRowsCheck = MinNumRows(Json.fromLong(10)) // scalastyle:ignore magic.number
       val config = mkConfig(df, List(minNumRowsCheck))
       assert(config.quickChecks(spark, dict))
       assert(config.failed)
@@ -197,8 +205,7 @@ class ValidatorBaseSpec extends FunSpec with Matchers with TestingSparkSession {
 
     it("quickCheck() should succeed when rowCount > minNumRows") {
       val dict = new VarSubstitution
-      val df = spark.createDataFrame(sc.parallelize(List(Row("Doug", 50), Row("Collin", 32))), schema) //scalastyle:ignore
-      val minNumRowsCheck = MinNumRows(1)
+      val minNumRowsCheck = MinNumRows(Json.fromInt(1))
       val config = mkConfig(df, List(minNumRowsCheck))
       assert(!config.configCheck(spark, dict))
       assert(!config.quickChecks(spark, dict))

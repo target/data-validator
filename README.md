@@ -7,9 +7,9 @@ A tool to validate data in HIVE tables.
 Assemble fat jar: `sbt clean assembly`
 
 ```
-spark-submit --master local data-validator-assembly-0.10.0.jar --help
+spark-submit --master local data-validator-assembly-0.13.0.jar --help
 
-data-validator v0.10.0
+data-validator v0.13.0
 Usage: data-validator [options]
 
   --version
@@ -31,7 +31,7 @@ Usage: data-validator [options]
 spark-submit \
   --num-executors 10 \
   --executor-cores 2 \
-  data-validator-assembly-0.10.0.jar \
+  data-validator-assembly-0.13.0.jar \
   --config config.yaml \
   --jsonReport report.json
 ```
@@ -302,7 +302,7 @@ The minimum number of rows a table must have to pass the validator.
 
 | Arg | Type | Description |
 |-----|------|-------------|
-| `minNumRows` | Long | The minimum number of rows a table must have to pass. **Note:** Currently this cannot be a variable.
+| `minNumRows` | Long | The minimum number of rows a table must have to pass.
 
 See Example Config file below to see how the checks are configured.
 
@@ -463,7 +463,7 @@ Example oozie wf snippet:
       <argument>${principal}</argument>
       <argument>--files</argument>
       <argument>config.yaml</argument>
-      <argument>data-validator-assembly-0.10.0.jar</argument>
+      <argument>data-validator-assembly-0.13.0.jar</argument>
       <argument>--config</argument>
       <argument>config.yaml</argument>
       <argument>--exitErrorOnFail</argument>
@@ -511,7 +511,7 @@ Example oozie wf snippet:
     <argument>${keytab}</argument>
     <argument>--principal</argument>
     <argument>${principal}</argument>
-    <argument>data-validator-assembly-0.10.0.jar</argument>
+    <argument>data-validator-assembly-0.13.0.jar</argument>
     <argument>--config</argument>
     <argument>config.yaml</argument>
     <argument>--exitErrorOnFail</argument>
@@ -554,7 +554,7 @@ A tool is provided to generate a sample `.orc` file for use in local development
 ```sh
 spark-submit \
   --master "local[*]"  \
-  data-validator-assembly-0.10.0.jar \
+  data-validator-assembly-0.13.0.jar \
   --config local_validators.yaml \
   --jsonReport report.json  \
   --htmlReport report.html
