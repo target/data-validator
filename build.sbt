@@ -7,6 +7,7 @@ val sparkVersion = "2.3.1"
 
 val circeVersion = "0.10.0"
 
+//addDependencyTreePlugin
 enablePlugins(GitVersioning)
 git.useGitDescribe := true
 
@@ -49,15 +50,15 @@ libraryDependencies ++= Seq(
   "com.novocode" % "junit-interface" % "0.11" % Test exclude("junit", "junit-dep")
 )
 
-fork in Test := true
+Test / fork := true
 javaOptions ++= Seq("-Xms512M", "-Xmx2048M", "-XX:+CMSClassUnloadingEnabled")
-parallelExecution in Test := false
+Test / parallelExecution := false
 
-mainClass in assembly := Some("com.target.data_validator.Main")
+assembly / mainClass := Some("com.target.data_validator.Main")
 
 // Enforces scalastyle checks
 val compileScalastyle = TaskKey[Unit]("compileScalastyle")
 scalastyleFailOnWarning := true
 scalastyleFailOnError := true
-compileScalastyle := scalastyle.in(Compile).toTask("").value
-(compile in Compile) := ((compile in Compile) dependsOn compileScalastyle).value
+compileScalastyle := (Compile / scalastyle).toTask("").value
+(Compile / compile) := ((Compile / compile) dependsOn compileScalastyle).value
