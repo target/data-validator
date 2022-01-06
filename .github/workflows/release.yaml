@@ -2,15 +2,17 @@ name: Release
 
 on:
   push:
-    tags:
+    tags: "*"
 
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
-  release:
+  build:
+    uses: target/data-validator/.github/workflows/ci.yaml@main
+  deploy:
+    name: Release
+    runs-on: ubuntu-latest
     steps:
-      - uses: ./.github/actions/ci@v1
       # uses sbt-github-packages, see build.sbt
       - run: bin/sbt publish
-
