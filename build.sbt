@@ -62,3 +62,14 @@ scalastyleFailOnWarning := true
 scalastyleFailOnError := true
 compileScalastyle := (Compile / scalastyle).toTask("").value
 (Compile / compile) := ((Compile / compile) dependsOn compileScalastyle).value
+
+// Publishing
+githubOwner := "target"
+githubRepository := "data-validator"
+// this unfortunately must be set strangely because GitHub requires a token for pulling packages
+// and sbt-github-packages does not allow the user to configure the resolver not to be used.
+// https://github.com/djspiewak/sbt-github-packages/issues/28
+githubTokenSource := ( TokenSource.Environment("GITHUB_TOKEN") ||
+                       TokenSource.GitConfig("github.token") ||
+                       TokenSource.Environment("SHELL") ) // it's safe to assume this exists and is not unique
+
