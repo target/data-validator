@@ -1,0 +1,19 @@
+name: Release
+
+on:
+  push:
+    tags:
+
+jobs:
+  build:
+    steps:
+      - uses: ./.github/actions/ci@v1
+  release:
+    name: Deploy Release
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      # uses sbt-github-packages, see build.sbt
+      - bin/sbt publish
+
