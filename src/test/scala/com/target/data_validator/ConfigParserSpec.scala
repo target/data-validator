@@ -28,7 +28,7 @@ class ConfigParserSpec extends FunSpec with BeforeAndAfterAll {
         "bar",
         Some(List("one", "two")),
         None,
-        List(MinNumRows(10294), NullCheck("mdse_item_i", None)) // scalastyle:ignore magic.number
+        List(MinNumRows(Json.fromInt(10294)), NullCheck("mdse_item_i", None)) // scalastyle:ignore magic.number
       ),
       ValidatorOrcFile("LocalFile.orc", None, Some("foo < 10"), List(NullCheck("start_d", None))),
       ValidatorParquetFile("LocFile.parquet", None, Some("bar < 10"), List(NullCheck("end_d", None)))
