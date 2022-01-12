@@ -51,6 +51,10 @@ libraryDependencies ++= Seq(
 Test / fork := true
 javaOptions ++= Seq("-Xms512M", "-Xmx2048M", "-XX:+CMSClassUnloadingEnabled")
 Test / parallelExecution := false
+// required for unit tests, but not set in some environments
+Test / envVars ++= Map("JAVA_HOME" ->
+  Option(System.getenv("JAVA_HOME"))
+    .getOrElse(System.getProperty("java.home")))
 
 assembly / mainClass := Some("com.target.data_validator.Main")
 
