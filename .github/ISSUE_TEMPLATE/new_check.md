@@ -2,7 +2,7 @@
 name: New check
 about: Suggest a new check
 title: 'New check:'
-labels: 'enhancement'
+labels: enhancement
 assignees: ''
 
 ---
