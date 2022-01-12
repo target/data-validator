@@ -2,7 +2,7 @@ package com.target.data_validator
 
 import scopt.OptionParser
 
-case class CmdLineOptions(
+case class CliOptions(
   configFilename: String = "",
   verbose: Boolean = false,
   jsonReport: Option[String] = None,
@@ -14,7 +14,7 @@ case class CmdLineOptions(
 
 object CliOptionParser {
 
-  def parser: OptionParser[CmdLineOptions] = new OptionParser[CmdLineOptions]("data-validator") {
+  def parser: OptionParser[CliOptions] = new OptionParser[CliOptions]("data-validator") {
     head(BuildInfo.name, "v" + BuildInfo.version)
 
     version("version")

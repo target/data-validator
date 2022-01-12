@@ -8,7 +8,7 @@ class CliOptionParserSpec extends FunSpec with Matchers {
     describe("parsing") {
       it("does not handle var option values with commas") {
         val args = Array("--vars", "keyA=value1,value2,keyB=value3")
-        CliOptionParser.parser.parse(args, CmdLineOptions()) should be(None)
+        CliOptionParser.parser.parse(args, CliOptions()) should be(None)
       }
     }
   }
