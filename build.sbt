@@ -10,24 +10,22 @@ val circeVersion = "0.10.0"
 //addDependencyTreePlugin
 enablePlugins(GitVersioning)
 git.useGitDescribe := true
+ThisBuild / versionScheme := Some("early-semver")
 
-val artifactoryUrl: Option[java.net.URL] = sys.env.get("ARTIFACTORY_URL").map(new java.net.URL(_))
+/////////////
+// Publishing
+/////////////
+githubOwner := "target"
+githubRepository := "data-validator"
+// this unfortunately must be set strangely because GitHub requires a token for pulling packages
+// and sbt-github-packages does not allow the user to configure the resolver not to be used.
+// https://github.com/djspiewak/sbt-github-packages/issues/28
+githubTokenSource := (
+  TokenSource.Environment("GITHUB_TOKEN") ||
+    TokenSource.GitConfig("github.token") ||
+    TokenSource.Environment("SHELL") ) // it's safe to assume this exists and is not unique
 
-// Publish info
-publishTo := artifactoryUrl.map(url =>"Artifactory Realm" at url.toString)
-
-credentials ++= (
-  for {
-    artifactoryUsername <- sys.env.get("ARTIFACTORY_USERNAME")
-    artifactoryPassword <- sys.env.get("ARTIFACTORY_PASSWORD")
-    url <- artifactoryUrl
-  } yield Credentials(
-    "Artifactory Realm",
-    url.getHost,
-    artifactoryUsername,
-    artifactoryPassword
-  )
-).toSeq
+publishTo := githubPublishTo.value
 
 enablePlugins(BuildInfoPlugin)
 buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion)
