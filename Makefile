@@ -3,3 +3,18 @@ help: ## Prints help for targets with comments
 
 refresh-sbt: ## Retrieve the latest version of sbt launcher
 	curl https://raw.githubusercontent.com/paulp/sbt-extras/master/sbt > bin/sbt
+
+UNAME := $(shell uname -s)
+ifeq ($(UNAME), Linux)
+OS_INFO_CMD=lsb_release -a 2>/dev/null
+endif
+ifeq ($(UNAME), Darwin)
+OS_INFO_CMD=sw_vers
+endif
+
+doctor: ## Show important details about compilation environment
+	java -version
+	$(OS_INFO_CMD)
+	bin/sbt version
+	git log -1 HEAD --oneline
+
