@@ -1,4 +1,4 @@
-# data-validator
+# Data Validator
 
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/target/data-validator?style=plastic)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=plastic)](https://opensource.org/licenses/Apache-2.0)
