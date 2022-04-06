@@ -1,15 +1,31 @@
-# data-validator [![Build Status](https://travis-ci.org/target/data-validator.svg?branch=master)](https://travis-ci.org/target/data-validator) [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+# Data Validator
 
-A tool to validate data in HIVE tables.
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/target/data-validator?style=plastic)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=plastic)](https://opensource.org/licenses/Apache-2.0)
+![Master Build Status](https://github.com/target/data-validator/actions/workflows/ci.yaml/badge.svg?branch=master)
+![Release Build Status](https://github.com/target/data-validator/actions/workflows/release.yaml/badge.svg)
+
+A tool to validate data in Spark
 
 ## Usage
+
+### Retrieving official releases via direct download or Maven-compatible dependency retrieval, e.g. `spark-submit`
+
+Get the latest version from [GitHub Packages](https://github.com/orgs/target/packages?repo_name=data-validator)
+for the project.
+You can pull in the dependency using Spark's `--repositories`, `--packages`, and `--mainClass`
+options.
+Instructions for those will be added to this document in the future, as it requires some Ivy settings
+configuration that is non-trivial at the moment due to GitHub Packages requiring authentication.
+
+### Building locally
 
 Assemble fat jar: `sbt clean assembly`
 
 ```
-spark-submit --master local data-validator-assembly-0.13.0.jar --help
+spark-submit --master local data-validator-assembly-0.13.2.jar --help
 
-data-validator v0.13.0
+data-validator v0.13.2
 Usage: data-validator [options]
 
   --version
@@ -25,13 +41,13 @@ Usage: data-validator [options]
   --help                   Show this help message and exit.
 ```
 
-### Example Run
+## Example Run
 
-```sh
+```bash
 spark-submit \
   --num-executors 10 \
   --executor-cores 2 \
-  data-validator-assembly-0.13.0.jar \
+  data-validator-assembly-0.13.2.jar \
   --config config.yaml \
   --jsonReport report.json
 ```
@@ -578,3 +594,7 @@ tables:
       - type: nullCheck
         column: nullCol
 ```
+
+## History
+
+This tool is based on methods described in _Methodology for Data Validation 1.0_ by Di Zio et al., published by Esset Validat Foundation in 2016. You can [download the paper here](https://ec.europa.eu/eurostat/cros/system/files/methodology_for_data_validation_v1.0_rev-2016-06_final.pdf).
