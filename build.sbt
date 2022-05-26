@@ -62,5 +62,18 @@ assembly / mainClass := Some("com.target.data_validator.Main")
 val compileScalastyle = TaskKey[Unit]("compileScalastyle")
 scalastyleFailOnWarning := true
 scalastyleFailOnError := true
+
 compileScalastyle := (Compile / scalastyle).toTask("").value
 (Compile / compile) := ((Compile / compile) dependsOn compileScalastyle).value
+
+(Compile / run) := Defaults.runTask(
+  (Compile / fullClasspath),
+  (Compile / run / mainClass),
+  (Compile / run / runner)
+).evaluated
+
+(Compile / runMain) := Defaults.runMainTask((Compile / fullClasspath), (Compile / run / runner)).evaluated
+TaskKey[Unit]("generateTestData") := {
+  libraryDependencies += "org.apache.spark" %% "spark-sql" % sparkVersion
+  (Compile / runMain).toTask(" com.target.data_validator.GenTestData").value
+}

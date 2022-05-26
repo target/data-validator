@@ -565,9 +565,13 @@ Example oozie wf snippet:
 
 ## Development Tools
 
-### GenTestData
+### Generate testing data with GenTestData or `sbt generateTestData` 
 
-A tool is provided to generate a sample `.orc` file for use in local development. If you run this program, it will generate a file `testData.orc` in the current directory. You can then use the following config file to test the `data-validator`. It will generate a `report.json` and `report.html`.
+Data Validator includes a tool to generate a sample `.orc` file for use in local development.
+This repo's SBT configuration wraps the tool in a convenient SBT task: `sbt generateTestData`  
+If you run this program or task, it will generate a file `testData.orc` in the current directory. 
+You can then use the following config file to test the `data-validator`. 
+It will generate a `report.json` and `report.html`.
 
 ```sh
 spark-submit \
