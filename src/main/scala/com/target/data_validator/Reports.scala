@@ -1,15 +1,14 @@
 package com.target.data_validator
 
-import com.target.data_validator.Main.CmdLineOptions
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.spark.sql.SparkSession
 
 object Reports extends LazyLogging with EventLog {
 
   def emailReport(
-    mainConfig: CmdLineOptions,
-    config: ValidatorConfig,
-    varSub: VarSubstitution
+                   mainConfig: CliOptions,
+                   config: ValidatorConfig,
+                   varSub: VarSubstitution
   )(implicit spark: SparkSession): Unit = {
     if (mainConfig.htmlReport.isDefined || config.email.isDefined) {
       val htmlReport = config.generateHTMLReport()
@@ -27,9 +26,9 @@ object Reports extends LazyLogging with EventLog {
   }
 
   def jsonReport(
-    mainConfig: CmdLineOptions,
-    config: ValidatorConfig,
-    varSub: VarSubstitution
+                  mainConfig: CliOptions,
+                  config: ValidatorConfig,
+                  varSub: VarSubstitution
   )(implicit spark: SparkSession): Unit = {
     if (config.outputs.isDefined || mainConfig.jsonReport.isDefined) {
       val jsonReport = config.genJsonReport(varSub)
