@@ -1,5 +1,9 @@
+# generated artifacts
 project/target
 project/project/target
 target
 !src/main/scala/com/target
 !src/test/scala/com/target
+
+# build server stuff
+.bsp
