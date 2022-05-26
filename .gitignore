@@ -3,3 +3,4 @@ project/project/target
 target
 !src/main/scala/com/target
 !src/test/scala/com/target
+testData.orc
