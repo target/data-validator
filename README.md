@@ -79,26 +79,26 @@ quoting the variables in the config.
 The first section is the global settings that are used
 throughout the program.
 
-| Variable | Type | Required | Description
-|:---|:---|:---|:---:
-| `numKeyCols` | Int | Yes | The number of columns from the table schema to use to uniquely identify a row in the table.
-| `numErrorsToReport` | Int | Yes | The number of detailed errors to include in Validator Report.
-| `detailedErrors` | Boolean | Yes | If a check fails, run a second pass and gather `numErrorToReport` examples of failure.
-| `email` |EmailConfig|No| See [Email Config](#email-config).
-| `vars` | Map | No | A map of (key, value) pairs used for variable substitution in `tables` config. See next section.
-| `outputs`| Array | No | Describes where to send `.json` report. See [Validator Output](#validator-output).
-| `tables` | List | Yes | List of table sources used to load tables to validate.
+| Variable            | Type        | Required |                                           Description                                            |
+|:--------------------|:------------|:---------|:------------------------------------------------------------------------------------------------:|
+| `numKeyCols`        | Int         | Yes      |   The number of columns from the table schema to use to uniquely identify a row in the table.    |
+| `numErrorsToReport` | Int         | Yes      |                  The number of detailed errors to include in Validator Report.                   |
+| `detailedErrors`    | Boolean     | Yes      |      If a check fails, run a second pass and gather `numErrorToReport` examples of failure.      |
+| `email`             | EmailConfig | No       |                                See [Email Config](#email-config).                                |
+| `vars`              | Map         | No       | A map of (key, value) pairs used for variable substitution in `tables` config. See next section. |
+| `outputs`           | Array       | No       |        Describes where to send `.json` report. See [Validator Output](#validator-output).        |
+| `tables`            | List        | Yes      |                      List of table sources used to load tables to validate.                      |
 
 #### Email Config
 
-| Variable | Type | Required | Description |
-|:---|:---|:---|:---:
-| `smtpHost` | String | Yes | The smtp host to send email message through.
-| `subject` | String | Yes | Subject for email message.
-| `from` | String | Yes | Email address to appear in from part of message.
-| `to` | Array[String] | Yes | Must specify at least one email address to send the email report to.
-| `cc` | Array[String] | No | Optional list of email addresses to send message to via `cc` field in message.
-| `bcc` | Array[String] | No | Optional list of email addresses to send message to via `bcc` field in message.
+| Variable   | Type          | Required |                                   Description                                   |
+|:-----------|:--------------|:---------|:-------------------------------------------------------------------------------:|
+| `smtpHost` | String        | Yes      |                  The smtp host to send email message through.                   |
+| `subject`  | String        | Yes      |                           Subject for email message.                            |
+| `from`     | String        | Yes      |                Email address to appear in from part of message.                 |
+| `to`       | Array[String] | Yes      |      Must specify at least one email address to send the email report to.       |
+| `cc`       | Array[String] | No       | Optional list of email addresses to send message to via `cc` field in message.  |
+| `bcc`      | Array[String] | No       | Optional list of email addresses to send message to via `bcc` field in message. |
 
 Note that Data Validator only sends email on _failure_ by default. To send email even on successful runs,
 pass `--emailOnPass true` to the command line.
@@ -254,40 +254,40 @@ Currently supported validators are listed below:
 
 Takes 2 parameters, the column name and a `value`. The check will fail if `max(column)` is **not equal** to the value.
 
-| Arg | Type | Description |
-|-----|------|-------------|
-| `column` | String | Column within table to find the max from.
-| `value`  | \*     | The column max should equal this value or the check will fail.  **Note:** The type of the value should match the type of the column. If the column is a `NumericType`, the value cannot be a `String`.
+| Arg      | Type   | Description                                                                                                                                                                                            |
+|----------|--------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `column` | String | Column within table to find the max from.                                                                                                                                                              |
+| `value`  | \*     | The column max should equal this value or the check will fail.  **Note:** The type of the value should match the type of the column. If the column is a `NumericType`, the value cannot be a `String`. |
 
 #### `negativeCheck`
 
 Takes a single parameter, the column name to check. The validator will fail if any rows with that column are negative.
 
-| Arg | Type | Description |
-|-----|------|-------------|
-| `column` | String | Table column to be checked for negative values.  If it contains a `null` validator will fail.  **Note:** Column must be of a `NumericType` or the check will fail during the config check.
-| `threshold` | String | See above description of threshold.
+| Arg         | Type   | Description                                                                                                                                                                                |
+|-------------|--------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `column`    | String | Table column to be checked for negative values.  If it contains a `null` validator will fail.  **Note:** Column must be of a `NumericType` or the check will fail during the config check. |
+| `threshold` | String | See above description of threshold.                                                                                                                                                        |
 
 #### `nullCheck`
 
 Takes a single parameter, the column name to check. The validator will fail if any rows with that column are `null`.
 
-| Arg | Type | Description |
-|-----|------|-------------|
-| `column` | String | Table column to be checked for `null`.  If it contains a `null` validator will fail.
-| `threshold` | String | See above description of threshold.
+| Arg         | Type   | Description                                                                          |
+|-------------|--------|--------------------------------------------------------------------------------------|
+| `column`    | String | Table column to be checked for `null`.  If it contains a `null` validator will fail. |
+| `threshold` | String | See above description of threshold.                                                  |
 
 #### `rangeCheck`
 
 Takes 2 - 4 parameters, described below. If the value in the column doesn't fall within the range specified by (`minValue`, `maxValue`) the check will fail.
 
-| Arg | Type | Description |
-|-----|------|-------------|
-| `column` | String | Table column to be checked.
-| `minValue` | \* | lower bound of the range, or other column in table. Type depends on the type of the `column`.
-| `maxValue` | \* | upper bound of the range, or other column in table. Type depends on the type of the `column`.
-| `inclusive` | Boolean | Include `minValue` and `maxValue` as part of the range.
-| `threshold` | String | See above description of threshold.
+| Arg         | Type    | Description                                                                                   |
+|-------------|---------|-----------------------------------------------------------------------------------------------|
+| `column`    | String  | Table column to be checked.                                                                   |
+| `minValue`  | \*      | lower bound of the range, or other column in table. Type depends on the type of the `column`. |
+| `maxValue`  | \*      | upper bound of the range, or other column in table. Type depends on the type of the `column`. |
+| `inclusive` | Boolean | Include `minValue` and `maxValue` as part of the range.                                       |
+| `threshold` | String  | See above description of threshold.                                                           |
 
 **Note:** To specify another column in the table, you must prefix the column name with a **`** (backtick).
 
@@ -296,12 +296,12 @@ Takes 2 - 4 parameters, described below. If the value in the column doesn't fall
 Takes 2 to 4 parameters, described in the table below. If the length of the string in the column doesn't fall within the range specified by (`minLength`, `maxLength`), both inclusive, the check will fail.
 At least one of `minLength` or `maxLength` must be specified. The data type of `column` must be String.
 
-| Arg | Type | Description |
-|-----|------|-------------|
-| `column` | String | Table column to be checked. The DataType of the column must be a String
-| `minLength` | Integer | Lower bound of the length of the string, inclusive.
-| `maxLength` | Integer | Upper bound of the length of the string, inclusive.
-| `threshold` | String | See above description of threshold.
+| Arg         | Type    | Description                                                             |
+|-------------|---------|-------------------------------------------------------------------------|
+| `column`    | String  | Table column to be checked. The DataType of the column must be a String |
+| `minLength` | Integer | Lower bound of the length of the string, inclusive.                     |
+| `maxLength` | Integer | Upper bound of the length of the string, inclusive.                     |
+| `threshold` | String  | See above description of threshold.                                     |
 
 #### `stringRegexCheck`
 
@@ -318,9 +318,9 @@ A value for `regex` must be specified. The data type of `column` must be String.
 
 The minimum number of rows a table must have to pass the validator.
 
-| Arg | Type | Description |
-|-----|------|-------------|
-| `minNumRows` | Long | The minimum number of rows a table must have to pass.
+| Arg          | Type | Description                                           |
+|--------------|------|-------------------------------------------------------|
+| `minNumRows` | Long | The minimum number of rows a table must have to pass. |
 
 See Example Config file below to see how the checks are configured.
 
@@ -329,9 +329,9 @@ See Example Config file below to see how the checks are configured.
 This check is used to make sure all rows in the table are unique, only the columns specified are used to determine uniqueness.
 This is a costly check and requires an additional pass through the table.
 
-| Arg | Type | Description |
-|-----|------|-------------|
-| `columns` | Array[String] | Each set of values in these columns must be unique.
+| Arg       | Type          | Description                                         |
+|-----------|---------------|-----------------------------------------------------|
+| `columns` | Array[String] | Each set of values in these columns must be unique. |
 
 #### `columnSumCheck`
 
