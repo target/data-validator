@@ -20,7 +20,9 @@ configuration that is non-trivial at the moment due to GitHub Packages requiring
 
 ### Building locally
 
-Assemble fat jar: `sbt clean assembly`
+See [CONTRIBUTING](CONTRIBUTING.md) for development environment setup.
+
+Assemble fat jar: `make build` or `sbt clean assembly`
 
 ```
 spark-submit --master local data-validator-assembly-0.13.2.jar --help

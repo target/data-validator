@@ -30,3 +30,17 @@ Follow the new checks procedure, but instead of providing a configuration exampl
 2. How you intend to remedy the situation with the minimum amount of code changed
 
 **Do not mix refactoring with the addition of a new check in the same pull request.** We will reject and ask that they be done in separate PRs to keep things manageable.
+
+## Development Environment Setup
+
+Developers on **macOS** should be able to clone, run `make deps build`, and be ready for a development cycle.
+This assumes that [Homebrew](https://brew.sh/) is already installed, as is common for macOS developers.
+
+Developers on **Linux or Windows** will need to install a Java 8 JDK, preferably 
+the [Temurin JDK from the Adoptium Working Group](https://adoptium.net/) of the [Eclipse Foundation](https://www.eclipse.org)
+or another JDK in the OpenJDK family.
+
+Run `make help` to see common tasks. Make tasks are provided for those unfamiliar with
+running `sbt` in console mode.
+Those preferring `sbt` are assumed to know what they're doing but can get a quick refresher
+by looking at the tasks in the `Makefile`.
