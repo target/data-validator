@@ -190,11 +190,34 @@ abstract class ValidatorTable(
     hr())
 
   def substituteVariables(dict: VarSubstitution): ValidatorTable
+
+  /**
+   * Most extenders of `ValidatorTable` will substitute these but it's left optional by the API.
+   *
+   * @param dict the substitution dictionary
+   * @return a simple data class with the new key columns, condition, and checks
+   */
+  protected def substituteKeyColsCondsChecks(dict: VarSubstitution): SubstitutedKeyColsCondChecks = {
+    val newKeyColumns = keyColumns.map(v => v.map(x => getVarSub(x, "keyCol", dict)))
+    val newCondition = condition.map(x => getVarSub(x, "condition", dict))
+    val newChecks = checks.map(_.substituteVariables(dict))
+
+    new SubstitutedKeyColsCondChecks(newKeyColumns, newCondition, newChecks)
+  }
+
+  class SubstitutedKeyColsCondChecks(
+    val keyColumns: Option[Seq[String]],
+    val condition: Option[String],
+    val checks: List[ValidatorBase]
+  )
 }
 
-//
-// Used with Hive
-//
+/**
+ * Load a database table from Hive using the default Hive warehouse adapter
+ *
+ * @param db the database
+ * @param table the table to load
+ */
 case class ValidatorHiveTable(
   db: String,
   table: String,
@@ -216,13 +239,77 @@ case class ValidatorHiveTable(
   override def substituteVariables(dict: VarSubstitution): ValidatorTable = {
     val newDb = getVarSub(db, "db", dict)
     val newTable = getVarSub(table, "table", dict)
-    val newKeyColumns = keyColumns.map(v => v.map(x => getVarSub(x, "keyCol", dict)))
-    val newCondition = condition.map(x => getVarSub(x, "condition", dict))
-    val newChecks = checks.map(_.substituteVariables(dict))
+    val newBases = substituteKeyColsCondsChecks(dict)
 
-    val ret = ValidatorHiveTable(newDb, newTable, newKeyColumns, newCondition, newChecks)
+    val ret = ValidatorHiveTable(
+      newDb, newTable,
+      newBases.keyColumns.map(_.toList),
+      newBases.condition,
+      newBases.checks
+    )
     this.getEvents.foreach(ret.addEvent)
     ret
+  }
+}
+
+/**
+ * Enables usage of the `spark.read.format(String).options(Map[String,String]).load()` API
+ * for creating a [[DataFrame]] using a dynamic loader.
+ *
+ * For reading well-known formats such as Parquet or ORC,
+ * use [[ValidatorParquetFile]] or [[ValidatorOrcFile]], respectively.
+ *
+ * @param format the format that the [[DataFrameReader]] should use
+ * @param options options that the [[DataFrameReader]] should use
+ * @param loadData If present, this will passed to [[DataFrameReader.load(String)]],
+ *                 otherwise the DFR will use the parameterless version
+ */
+case class ValidatorCustomFormat(
+  format: String,
+  keyColumns: Option[List[String]],
+  condition: Option[String],
+  checks: List[ValidatorBase],
+  options: Map[String, String] = Map.empty,
+  loadData: Option[String] = None
+) extends ValidatorTable(
+  keyColumns,
+  condition,
+  checks,
+  label = s"""CustomFormat:$format${condition.map(c => s" with Condition($c)").getOrElse("")}"""
+) {
+  override def getDF(session: SparkSession): Try[DataFrame] = {
+    logger.info(s"Reading using custom format ${format} with options ${options}")
+    if (loadData.isDefined) {
+      logger.debug(s"${format} loading with ${loadData}")
+    }
+
+    Try {
+      val optionedReader = session.read.format(format).options(options)
+      // TODO: support the varargs version of load()
+      loadData.fold(ifEmpty = optionedReader.load())(optionedReader.load)
+    }
+  }
+
+  override def substituteVariables(dict: VarSubstitution): ValidatorTable = {
+    val newFormat = getVarSub(format, "format", dict)
+    val newLoadData = loadData.map(getVarSub(_, "loadData", dict))
+    val newOptions = options.map {
+      case (optKey, optVal) => optKey -> getVarSub(optVal, optKey, dict)
+    }
+
+    val newBases = substituteKeyColsCondsChecks(dict)
+
+    val ret = ValidatorCustomFormat(
+      newFormat,
+      newBases.keyColumns.map(_.toList),
+      newBases.condition,
+      newBases.checks,
+      newOptions,
+      newLoadData
+    )
+    this.getEvents.foreach(ret.addEvent)
+    ret
+
   }
 }
 
@@ -247,11 +334,14 @@ case class ValidatorOrcFile(
 
   override def substituteVariables(dict: VarSubstitution): ValidatorTable = {
     val newOrcFile = getVarSub(orcFile, "orcFile", dict)
-    val newKeyColumns = keyColumns.map(v => v.map(x => getVarSub(x, "keyCol", dict)))
-    val newCondition = condition.map(x => getVarSub(x, "condition", dict))
-    val newChecks = checks.map(_.substituteVariables(dict))
+    val newBases = substituteKeyColsCondsChecks(dict)
 
-    val ret = ValidatorOrcFile(newOrcFile, newKeyColumns, newCondition, newChecks)
+    val ret = ValidatorOrcFile(
+      newOrcFile,
+      newBases.keyColumns.map(_.toList),
+      newBases.condition,
+      newBases.checks
+    )
     this.getEvents.foreach(ret.addEvent)
     ret
   }
@@ -275,11 +365,15 @@ case class ValidatorParquetFile(
 
   override def substituteVariables(dict: VarSubstitution): ValidatorTable = {
     val newParquetFile = getVarSub(parquetFile, "parquetFile", dict)
-    val newKeyColumns = keyColumns.map(v => v.map(x => getVarSub(x, "keyCol", dict)))
-    val newCondition = condition.map(x => getVarSub(x, "condition", dict))
-    val newChecks = checks.map(_.substituteVariables(dict))
 
-    val ret = ValidatorParquetFile(newParquetFile, newKeyColumns, newCondition, newChecks)
+    val newBases = substituteKeyColsCondsChecks(dict)
+
+    val ret = ValidatorParquetFile(
+      newParquetFile,
+      newBases.keyColumns.map(_.toList),
+      newBases.condition,
+      newBases.checks
+    )
     this.getEvents.foreach(ret.addEvent)
     ret
   }
@@ -305,11 +399,14 @@ case class ValidatorDataFrame(
   override def getDF(session: SparkSession): Try[DataFrame] = Success(df)
 
   override def substituteVariables(dict: VarSubstitution): ValidatorTable = {
-    val newKeyColumns = keyColumns.map(v => v.map(x => getVarSub(x, "keyCol", dict)))
-    val newCondition = condition.map(x => getVarSub(x, "condition", dict))
-    val newChecks = checks.map(_.substituteVariables(dict))
+    val newBases = substituteKeyColsCondsChecks(dict)
 
-    val ret = ValidatorDataFrame(df, newKeyColumns, newCondition, newChecks)
+    val ret = ValidatorDataFrame(
+      df,
+      newBases.keyColumns.map(_.toList),
+      newBases.condition,
+      newBases.checks
+    )
     this.getEvents.foreach(ret.addEvent)
     ret
   }

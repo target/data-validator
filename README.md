@@ -231,9 +231,32 @@ To validate an `.parquet` file, specify `parquetFile` and the path to the file, 
   checks:
 ```
 
+#### Custom reader format
+
+To validate data loadable by a custom dynamic format reader, use something like this:
+
+```yaml
+  # Some systems require a special format
+  format: llama
+  # You can also pass any valid options
+  options:
+    key: value
+    user: 
+  # This is a string passed to DataFrameReader.load(String)
+  # If omitted, then DV will call DataFrameReader.load() without parameters.
+  # The DataSource that Spark loads is expected to know how to handle this.
+  # This only handles a single string value, not a list.
+  load: /path/to/something/camelid.llama
+  keyColumns:
+    - col1
+    - col2
+  condition: "col1 < 100"
+  checks:
+```
+
 ### Validators
 
-  The third section are the validators. To specify a validator, you
+The third section are the validators. To specify a validator, you
 first specify the type as one of the validators, then specify the
 arguments for that validator. Some of the validators support an error
 threshold. This options allows the user to specify the number of errors
