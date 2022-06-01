@@ -231,9 +231,9 @@ To validate an `.parquet` file, specify `parquetFile` and the path to the file, 
   checks:
 ```
 
-#### Custom reader format
+#### Core `spark.read` fluent API
 
-To validate data loadable by a custom dynamic format reader, use something like this:
+To validate data loadable by the Spark DataFrameReader Fluent API, use something like this:
 
 ```yaml
   # Some systems require a special format
