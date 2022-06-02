@@ -270,7 +270,7 @@ case class ValidatorSpecifiedFormatLoader(
   keyColumns: Option[List[String]],
   condition: Option[String],
   checks: List[ValidatorBase],
-  options: Map[String, String] = Map.empty,
+  options: Option[Map[String, String]] = None,
   loadData: Option[String] = None
 ) extends ValidatorTable(
   keyColumns,
@@ -285,7 +285,7 @@ case class ValidatorSpecifiedFormatLoader(
     }
 
     Try {
-      val optionedReader = session.read.format(format).options(options)
+      val optionedReader = session.read.format(format).options(options.getOrElse(Map.empty))
       // TODO: support the varargs version of load()
       loadData.fold(ifEmpty = optionedReader.load())(optionedReader.load)
     }
@@ -294,9 +294,9 @@ case class ValidatorSpecifiedFormatLoader(
   override def substituteVariables(dict: VarSubstitution): ValidatorTable = {
     val newFormat = getVarSub(format, "format", dict)
     val newLoadData = loadData.map(getVarSub(_, "loadData", dict))
-    val newOptions = options.map {
+    val newOptions = options.map { _.map {
       case (optKey, optVal) => optKey -> getVarSub(optVal, optKey, dict)
-    }
+    } }
 
     val newBases = substituteKeyColsCondsChecks(dict)
 

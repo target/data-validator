@@ -207,16 +207,16 @@ class ValidatorTableSpec extends FunSpec with Matchers with TestingSparkSession 
         }
         it ("options") {
           val vt = ValidatorSpecifiedFormatLoader("foobar", None, None, List.empty,
-            options = Map(
+            options = Some(Map(
               "something" -> "${optionRep1}",
               "somethingElse" -> "${optionRep2}"
-            ))
+            )))
           val sut = vt.substituteVariables(dict).asInstanceOf[ValidatorSpecifiedFormatLoader]
 
-          assert(sut == vt.copy(options = Map(
+          assert(sut == vt.copy(options = Some(Map(
             "something" -> "who",
             "somethingElse" -> "what"
-          )))
+          ))))
           assert(sut.getEvents contains VarSubEvent("${optionRep1}", "who")) // scalastyle:ignore
           assert(sut.getEvents contains VarSubEvent("${optionRep2}", "what")) // scalastyle:ignore
         }
