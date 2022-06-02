@@ -231,7 +231,7 @@ To validate an `.parquet` file, specify `parquetFile` and the path to the file, 
   checks:
 ```
 
-#### Core `spark.read` fluent API
+#### Core `spark.read` fluent API specified format loader
 
 To validate data loadable by the Spark DataFrameReader Fluent API, use something like this:
 
@@ -240,8 +240,7 @@ To validate data loadable by the Spark DataFrameReader Fluent API, use something
   format: llama
   # You can also pass any valid options
   options:
-    key: value
-    user: 
+    maxMemory: 8G
   # This is a string passed to DataFrameReader.load(String)
   # If omitted, then DV will call DataFrameReader.load() without parameters.
   # The DataSource that Spark loads is expected to know how to handle this.
@@ -252,6 +251,15 @@ To validate data loadable by the Spark DataFrameReader Fluent API, use something
     - col2
   condition: "col1 < 100"
   checks:
+```
+
+Under the hood the above would be like loaded a DataFrame with:
+
+```scala
+spark.read
+  .format("llama")
+  .option("maxMemory", "8G")
+  .load("/path/to/something/camelid.llama")
 ```
 
 ### Validators

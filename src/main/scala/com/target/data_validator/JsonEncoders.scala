@@ -108,7 +108,7 @@ object JsonEncoders extends LazyLogging {
         ("checks", vdf.checks.asJson),
         ("events", vdf.getEvents.asJson)
       )
-      case vcf: ValidatorCustomFormat => Json.obj(
+      case vcf: ValidatorSpecifiedFormatLoader => Json.obj(
         ("format", Json.fromString(vcf.format)),
         ("options", vcf.options.asJson),
         ("loadData", vcf.loadData.asJson),

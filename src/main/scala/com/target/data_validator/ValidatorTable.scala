@@ -253,18 +253,19 @@ case class ValidatorHiveTable(
 }
 
 /**
- * Enables usage of the `spark.read.format(String).options(Map[String,String]).load()` API
+ * Enables usage of the normal `spark.read.format(String).options(Map[String,String]).load()` fluent API
  * for creating a [[DataFrame]] using a dynamic loader.
  *
  * For reading well-known formats such as Parquet or ORC,
  * use [[ValidatorParquetFile]] or [[ValidatorOrcFile]], respectively.
+ * Under the hood, these just call `spark.read.format("orc")` but let's let Spark handle that.
  *
  * @param format the format that the [[DataFrameReader]] should use
  * @param options options that the [[DataFrameReader]] should use
  * @param loadData If present, this will passed to [[DataFrameReader.load(String)]],
  *                 otherwise the DFR will use the parameterless version
  */
-case class ValidatorCustomFormat(
+case class ValidatorSpecifiedFormatLoader(
   format: String,
   keyColumns: Option[List[String]],
   condition: Option[String],
@@ -299,7 +300,7 @@ case class ValidatorCustomFormat(
 
     val newBases = substituteKeyColsCondsChecks(dict)
 
-    val ret = ValidatorCustomFormat(
+    val ret = ValidatorSpecifiedFormatLoader(
       newFormat,
       newBases.keyColumns.map(_.toList),
       newBases.condition,
