@@ -271,7 +271,7 @@ case class ValidatorSpecifiedFormatLoader(
   condition: Option[String],
   checks: List[ValidatorBase],
   options: Option[Map[String, String]] = None,
-  loadData: Option[String] = None
+  loadData: Option[List[String]] = None
 ) extends ValidatorTable(
   keyColumns,
   condition,
@@ -287,13 +287,13 @@ case class ValidatorSpecifiedFormatLoader(
     Try {
       val optionedReader = session.read.format(format).options(options.getOrElse(Map.empty))
       // TODO: support the varargs version of load()
-      loadData.fold(ifEmpty = optionedReader.load())(optionedReader.load)
+      loadData.fold[DataFrame](ifEmpty = optionedReader.load())(data => optionedReader.load(data: _*))
     }
   }
 
   override def substituteVariables(dict: VarSubstitution): ValidatorTable = {
     val newFormat = getVarSub(format, "format", dict)
-    val newLoadData = loadData.map(getVarSub(_, "loadData", dict))
+    val newLoadData = loadData.map(_.map(getVarSub(_, "loadData", dict)))
     val newOptions = options.map { _.map {
       case (optKey, optVal) => optKey -> getVarSub(optVal, optKey, dict)
     } }

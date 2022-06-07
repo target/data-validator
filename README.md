@@ -241,11 +241,11 @@ To validate data loadable by the Spark DataFrameReader Fluent API, use something
   # You can also pass any valid options
   options:
     maxMemory: 8G
-  # This is a string passed to DataFrameReader.load(String)
+  # This is a string passed to the varargs version of DataFrameReader.load(String*)
   # If omitted, then DV will call DataFrameReader.load() without parameters.
   # The DataSource that Spark loads is expected to know how to handle this.
-  # This only handles a single string value, not a list.
-  loadData: /path/to/something/camelid.llama
+  loadData:
+    - /path/to/something/camelid.llama
   keyColumns:
     - col1
     - col2
