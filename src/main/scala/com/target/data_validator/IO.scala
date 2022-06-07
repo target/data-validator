@@ -23,18 +23,21 @@ object IO extends LazyLogging {
   val FILE_SCHEMA_PREFIX = "file://"
   val HDFS_SCHEMA_PREFIX = "hdfs://"
 
-  /**
-    * Helper for calling right function for local or hdfs files.
-    * @param localFunc - If filename is local call this function.
-    * @param hdfsFunc - If filename is HDFS call this function
-    * @param default - default to return when exception is thrown.
-    * @return depends on semantics of localFunc/hdfsFunc.
+  /** Helper for calling right function for local or hdfs files.
+    * @param localFunc
+    *   \- If filename is local call this function.
+    * @param hdfsFunc
+    *   \- If filename is HDFS call this function
+    * @param default
+    *   \- default to return when exception is thrown.
+    * @return
+    *   depends on semantics of localFunc/hdfsFunc.
     */
   private def localOrHdfs(
-    filename: String,
-    localFunc: String => Boolean,
-    hdfsFunc: String => Boolean,
-    default: Boolean = false
+      filename: String,
+      localFunc: String => Boolean,
+      hdfsFunc: String => Boolean,
+      default: Boolean = false
   )(implicit spark: SparkSession): Boolean = {
     if (filename.startsWith(HDFS_SCHEMA_PREFIX)) {
       hdfsFunc(filename)
@@ -43,8 +46,7 @@ object IO extends LazyLogging {
     } else {
       try {
         localFunc(filename)
-      }
-      catch {
+      } catch {
         case re: RemoteException => logger.warn(s"Caught Exception, $re"); default
       }
     }
@@ -70,11 +72,12 @@ object IO extends LazyLogging {
   }
 
   private def parentIsWritable(fs: FileSystem, path: Path): Boolean = Option(path.getParent) match {
-    case Some(parent) => if (fs.exists(parent)) {
-      pathCanWrite(fs, parent)
-    } else {
-      parentIsWritable(fs, parent)
-    }
+    case Some(parent) =>
+      if (fs.exists(parent)) {
+        pathCanWrite(fs, parent)
+      } else {
+        parentIsWritable(fs, parent)
+      }
     case None => logger.warn("getParent returned NULL"); false
   }
 
@@ -119,12 +122,14 @@ object IO extends LazyLogging {
     f.canExecute
   }
 
-  /**
-    * Checks a file to see if it can be appended to or created if it doesn't exist.
+  /** Checks a file to see if it can be appended to or created if it doesn't exist.
     *
-    * @param append - true if we can append to file.
-    * @param spark - SparkSession.
-    * @return  true - should be able to create or append.
+    * @param append
+    *   \- true if we can append to file.
+    * @param spark
+    *   \- SparkSession.
+    * @return
+    *   true - should be able to create or append.
     */
   def canAppendOrCreate(filename: String, append: Boolean)(implicit spark: SparkSession): Boolean =
     localOrHdfs(
@@ -133,10 +138,10 @@ object IO extends LazyLogging {
       (f: String) => canAppendOrCreateHDFS(f, append)
     )
 
-  /**
-    *  Checks a filename to see if its Executable.
+  /** Checks a filename to see if its Executable.
     *
-    * @return true if executable.
+    * @return
+    *   true if executable.
     */
   def canExecute(filename: String)(implicit spark: SparkSession): Boolean = {
     localOrHdfs(filename, canExecuteLocal, (_: String) => false)
@@ -146,9 +151,9 @@ object IO extends LazyLogging {
     try {
       val file = new File(filename)
       file.exists()
-    }
-    catch {
-      case ioe: IOException => logger.warn(s"Exception caught '$filename' ioe: $ioe")
+    } catch {
+      case ioe: IOException =>
+        logger.warn(s"Exception caught '$filename' ioe: $ioe")
         false
     }
   }
@@ -159,21 +164,27 @@ object IO extends LazyLogging {
   }
 
   /** Checks for existence of file
-    * @param filename - file to check for existence.
-    * @param spark - SparkSession
-    * @return true if file exists
+    * @param filename
+    *   \- file to check for existence.
+    * @param spark
+    *   \- SparkSession
+    * @return
+    *   true if file exists
     */
   def exists(filename: String)(implicit spark: SparkSession): Boolean = {
     localOrHdfs(filename, existsLocal, existsHDFS)
   }
 
-  /**
-    * Writes a string to local or HDFS
+  /** Writes a string to local or HDFS
     *
-    * @param filename - Where to write str.
-    * @param str      - String to write to filename
-    * @param append   - True = append
-    * @return true on error
+    * @param filename
+    *   \- Where to write str.
+    * @param str
+    *   \- String to write to filename
+    * @param append
+    *   \- True = append
+    * @return
+    *   true on error
     */
   def writeString(filename: String, str: String, append: Boolean = false)(implicit spark: SparkSession): Boolean = {
     localOrHdfs(
@@ -183,13 +194,16 @@ object IO extends LazyLogging {
     )
   }
 
-  /**
-    * Writes a string to a local filesystem.
+  /** Writes a string to a local filesystem.
     *
-    * @param filename - Where to write str, if string doesn't end in new line, one will be appended.
-    * @param str      - String to write to filename
-    * @param append   - True = append
-    * @return true on error
+    * @param filename
+    *   \- Where to write str, if string doesn't end in new line, one will be appended.
+    * @param str
+    *   \- String to write to filename
+    * @param append
+    *   \- True = append
+    * @return
+    *   true on error
     */
   def writeStringLocal(filename: String, str: String, append: Boolean): Boolean = {
     try {
@@ -206,40 +220,49 @@ object IO extends LazyLogging {
     }
   }
 
-  /**
-    * Writes HTML to filename
+  /** Writes HTML to filename
     *
-    * @param filename - where to write HTML
-    * @param html     - HTML to write to filename
-    * @return true on error
+    * @param filename
+    *   \- where to write HTML
+    * @param html
+    *   \- HTML to write to filename
+    * @return
+    *   true on error
     */
   def writeHTML(filename: String, html: Tag)(implicit spark: SparkSession): Boolean =
     writeString(filename, html.render)
 
-  /**
-    * Writes JSON to filename
+  /** Writes JSON to filename
     *
-    * @param filename - Where to write JSON
-    * @param json     - A JSON struct that will be written with noSpaces
-    * @param append   - True = append
-    * @return true on error
+    * @param filename
+    *   \- Where to write JSON
+    * @param json
+    *   \- A JSON struct that will be written with noSpaces
+    * @param append
+    *   \- True = append
+    * @return
+    *   true on error
     */
   def writeJSON(filename: String, json: Json, append: Boolean = false)(implicit spark: SparkSession): Boolean =
     writeString(filename, json.noSpaces, append)
 
-  /**
-    * Writes a String to HDFS path. If file exists, it will be overwritten. Returns true on error
+  /** Writes a String to HDFS path. If file exists, it will be overwritten. Returns true on error
     *
-    * @param filename - HDFS Path
-    * @param str      - String to write to filename
-    * @param append   - True = append
-    * @param spark    - Spark session to get hdfs conf
-    * @return true on failure
+    * @param filename
+    *   \- HDFS Path
+    * @param str
+    *   \- String to write to filename
+    * @param append
+    *   \- True = append
+    * @param spark
+    *   \- Spark session to get hdfs conf
+    * @return
+    *   true on failure
     */
   def writeStringToHdfs(
-    filename: String,
-    str: String,
-    append: Boolean = false
+      filename: String,
+      str: String,
+      append: Boolean = false
   )(implicit spark: SparkSession): Boolean = {
     try {
       val fs = FileSystem.get(URI.create(filename), spark.sparkContext.hadoopConfiguration)
@@ -263,11 +286,12 @@ object IO extends LazyLogging {
     }
   }
 
-  /**
-    *
-    * @param program - program to pipe str to.
-    * @param str - str to send to program.
-    * @return (fail: Boolean, stdout: String, stderr: String)
+  /** @param program
+    *   \- program to pipe str to.
+    * @param str
+    *   \- str to send to program.
+    * @return
+    *   (fail: Boolean, stdout: String, stderr: String)
     */
   def writeStringToPipe(program: String, str: String): (Boolean, Seq[String], Seq[String]) = {
 
@@ -277,7 +301,7 @@ object IO extends LazyLogging {
       val pLog = ProcessLogger(out.append(_), err.append(_))
 
       logger.info(s"Sending ${str.length} of input to `$program`")
-      val exitValue = Seq("sh", "-c", program) #< bis ! (pLog)
+      val exitValue = Seq("sh", "-c", program) #< bis ! pLog
       logger.debug(s"exitValue: $exitValue")
       if (logger.underlying.isDebugEnabled()) {
         out.foreach(o => logger.debug(s"stdout: $o"))

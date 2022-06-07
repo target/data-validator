@@ -11,11 +11,12 @@ object FirstPassStats {
     .schemaFor[FirstPassStats]
     .dataType
 
-  /**
-    * Convert from Spark SQL row format to case class [[FirstPassStats]] format.
+  /** Convert from Spark SQL row format to case class [[FirstPassStats]] format.
     *
-    * @param row a complex column of [[org.apache.spark.sql.types.StructType]] output of [[FirstPassStatsAggregator]]
-    * @return struct format converted to [[FirstPassStats]]
+    * @param row
+    *   a complex column of [[org.apache.spark.sql.types.StructType]] output of [[FirstPassStatsAggregator]]
+    * @return
+    *   struct format converted to [[FirstPassStats]]
     */
   def fromRowRepr(row: Row): FirstPassStats = {
     FirstPassStats(

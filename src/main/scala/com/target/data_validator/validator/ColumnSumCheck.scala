@@ -12,17 +12,17 @@ import org.apache.spark.sql.types._
 import scala.collection.immutable.ListMap
 
 case class ColumnSumCheck(
-  column: String,
-  minValue: Option[Json] = None,
-  maxValue: Option[Json] = None,
-  inclusive: Option[Json] = None
+    column: String,
+    minValue: Option[Json] = None,
+    maxValue: Option[Json] = None,
+    inclusive: Option[Json] = None
 ) extends ColumnBased(column, Sum(UnresolvedAttribute(column)).toAggregateExpression()) {
 
   private val minOrMax: Either[String, Unit] = if (minValue.isEmpty && maxValue.isEmpty) {
-      Left("'minValue' or 'maxValue' or both must be defined")
-    } else {
-      Right()
-    }
+    Left("'minValue' or 'maxValue' or both must be defined")
+  } else {
+    Right()
+  }
 
   private val lowerBound: Either[String, Double] = minValue match {
     case Some(json) =>
@@ -61,21 +61,18 @@ case class ColumnSumCheck(
     val upperBoundValue = upperBound.right.get
 
     def evaluate(sum: Double): Boolean = {
-      if (isInclusive) { sum > upperBoundValue || sum < lowerBoundValue}
-      else { sum >= upperBoundValue || sum <= lowerBoundValue}
+      if (isInclusive) { sum > upperBoundValue || sum < lowerBoundValue }
+      else { sum >= upperBoundValue || sum <= lowerBoundValue }
     }
 
     def getPctError(sum: Double): String = {
       if (sum < lowerBoundValue) {
         calculatePctError(lowerBoundValue, sum)
-      }
-      else if (sum > upperBoundValue) {
+      } else if (sum > upperBoundValue) {
         calculatePctError(upperBoundValue, sum)
-      }
-      else if (!isInclusive && (sum == upperBoundValue || sum == lowerBoundValue)) {
+      } else if (!isInclusive && (sum == upperBoundValue || sum == lowerBoundValue)) {
         "undefined"
-      }
-      else {
+      } else {
         "0.00%"
       }
     }
@@ -111,7 +108,8 @@ case class ColumnSumCheck(
       bounds.mkString("(", ", ", ")")
     }
 
-    val msg = s"$name on $column[$dataType]: Expected Range: $prettyBounds Actual: ${r(idx)} Relative Error: $pctError"
+    val msg =
+      s"$name on $column[$dataType]: Expected Range: $prettyBounds Actual: ${r(idx)} Relative Error: $pctError"
     addEvent(ColumnBasedValidatorCheckEvent(failed, data, msg))
     failed
   }
@@ -158,11 +156,13 @@ case class ColumnSumCheck(
 
   override def toJson: Json = {
     import JsonEncoders.eventEncoder
-    val additionalFieldsForReport = Json.fromFields(Set(
-      "type" -> Json.fromString("columnSumCheck"),
-      "failed" -> Json.fromBoolean(failed),
-      "events" -> getEvents.asJson
-    ))
+    val additionalFieldsForReport = Json.fromFields(
+      Set(
+        "type" -> Json.fromString("columnSumCheck"),
+        "failed" -> Json.fromBoolean(failed),
+        "events" -> getEvents.asJson
+      )
+    )
 
     val base = ColumnSumCheck.encoder(this)
     base.deepMerge(additionalFieldsForReport)
