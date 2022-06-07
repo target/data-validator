@@ -22,7 +22,6 @@ object Main extends LazyLogging with EventLog {
     varSub.addMap(mainConfig.vars)
 
     config.vars match {
-      case None if mainConfig.vars.isEmpty => Some(config)
       case None => config.substituteVariables(varSub)
       case Some(vars) => if (vars.map(_.addEntry(spark, varSub)).exists(x => x)) {
         validatorError("Failed to resolve config variables")
@@ -90,7 +89,7 @@ object Main extends LazyLogging with EventLog {
     // Resolve config
     val (fatal, validator_fail) = resolveVariables(spark, mainConfig, origConfig, varSub).map {
       config =>
-        val fatal = checkConfig(spark, mainConfig, config, varSub)
+        val fatal = config.failed && checkConfig(spark, mainConfig, config, varSub)
         if (fatal) {
           (fatal, false)
         } else {
