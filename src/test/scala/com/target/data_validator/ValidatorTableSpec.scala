@@ -183,8 +183,44 @@ class ValidatorTableSpec extends FunSpec with Matchers with TestingSparkSession 
 
       }
 
+      describe("should work for the unique parts of ValidatorCustomFormat") {
+        val dict = mkDict(
+          ("format", "foobar"),
+          ("loadData", "barfoo"),
+          ("optionRep1", "who"),
+          ("optionRep2", "what")
+        )
+
+        it ("format") {
+          val vt = ValidatorSpecifiedFormatLoader("${format}", None, None, List.empty) // scalastyle:ignore
+          val sut = vt.substituteVariables(dict).asInstanceOf[ValidatorSpecifiedFormatLoader]
+
+          assert(sut == vt.copy(format = "foobar"))
+          assert(sut.getEvents contains VarSubEvent("${format}", "foobar")) // scalastyle:ignore
+        }
+        it ("loadData") {
+          val vt = ValidatorSpecifiedFormatLoader("foobar", None, None, List.empty, loadData = Some(List("${loadData}"))) // scalastyle:ignore
+          val sut = vt.substituteVariables(dict).asInstanceOf[ValidatorSpecifiedFormatLoader]
+
+          assert(sut == vt.copy(loadData = Option(List("barfoo"))))
+          assert(sut.getEvents contains VarSubEvent("${loadData}", "barfoo")) // scalastyle:ignore
+        }
+        it ("options") {
+          val vt = ValidatorSpecifiedFormatLoader("foobar", None, None, List.empty,
+            options = Some(Map(
+              "something" -> "${optionRep1}",
+              "somethingElse" -> "${optionRep2}"
+            )))
+          val sut = vt.substituteVariables(dict).asInstanceOf[ValidatorSpecifiedFormatLoader]
+
+          assert(sut == vt.copy(options = Some(Map(
+            "something" -> "who",
+            "somethingElse" -> "what"
+          ))))
+          assert(sut.getEvents contains VarSubEvent("${optionRep1}", "who")) // scalastyle:ignore
+          assert(sut.getEvents contains VarSubEvent("${optionRep2}", "what")) // scalastyle:ignore
+        }
+      }
     }
-
   }
-
 }

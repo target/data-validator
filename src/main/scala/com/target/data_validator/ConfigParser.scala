@@ -20,7 +20,8 @@ object ConfigParser extends LazyLogging {
     List[Decoder[ValidatorTable]](
       Decoder[ValidatorHiveTable].widen,
       Decoder[ValidatorOrcFile].widen,
-      Decoder[ValidatorParquetFile].widen
+      Decoder[ValidatorParquetFile].widen,
+      Decoder[ValidatorSpecifiedFormatLoader].widen
     ).reduceLeft(_ or _)
 
   def configFromJson(json: Json): Either[DecodingFailure, ValidatorConfig] = {
