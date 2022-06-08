@@ -594,6 +594,23 @@ Example oozie wf snippet:
 </action>
 ```
 
+## Other tools included
+
+### Configuration parser check
+
+`com.target.data_validator.ConfigParser` has an entrypoint that will check that the configuration file
+is parseable. It _does not_ validate variable substitutions since those have runtime implications.
+
+```shell
+spark-submit \
+  --class com.target.data_validator.ConfigParser \
+  --files config.yml \
+  data-validator-assembly.jar \
+    config.yml
+```
+
+If there is an error, DV will print a message and exit non-zero.
+
 ## Development Tools
 
 ### Generate testing data with GenTestData or `sbt generateTestData` 
