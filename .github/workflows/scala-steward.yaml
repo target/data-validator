@@ -1,0 +1,26 @@
+# This workflow will launch at 00:00 every Sunday
+on:
+  workflow_dispatch:
+  schedule:
+    # At 09:00 on day-of-month 1 and 15 
+    # https://crontab.guru/#0_9_1,15_*_*
+    - cron: '0 9 1,15 * *'
+
+name: Launch Scala Steward
+
+jobs:
+  scala-steward:
+    runs-on: ubuntu-latest
+    name: Launch Scala Steward
+    steps:
+      - uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '8'
+      - name: Launch Scala Steward
+        uses: scala-steward-org/scala-steward-action@v2
+        with:
+          repo-config: .scala-steward.conf
+          github-token: ${{ secrets.REPO_GITHUB_TOKEN }}
+          author-email: 12345+octocat@users.noreply.github.com
+          author-name: "Scala Steward on GitHub Actions"
