@@ -14,13 +14,13 @@ import scala.util.Try
 import scalatags.Text.all._
 
 case class ValidatorConfig(
-  numKeyCols: Int,
-  numErrorsToReport: Int,
-  email: Option[EmailConfig],
-  detailedErrors: Boolean = true,
-  vars: Option[List[ConfigVar]],
-  outputs: Option[List[ValidatorOutput]],
-  tables: List[ValidatorTable]
+    numKeyCols: Int,
+    numErrorsToReport: Int,
+    email: Option[EmailConfig],
+    detailedErrors: Boolean = true,
+    vars: Option[List[ConfigVar]],
+    outputs: Option[List[ValidatorOutput]],
+    tables: List[ValidatorTable]
 ) extends LazyLogging {
 
   def failed: Boolean = tables.exists(_.failed)
@@ -61,9 +61,13 @@ case class ValidatorConfig(
 
   def substituteVariables(varSub: VarSubstitution): Option[ValidatorConfig] = {
     logger.info("substituteVariables()")
-    Some(this.copy(email = this.email.map(_.substituteVariables(varSub)),
-      tables = this.tables.map(_.substituteVariables(varSub)),
-      outputs = this.outputs.map(_.map(_.substituteVariables(varSub)))))
+    Some(
+      this.copy(
+        email = this.email.map(_.substituteVariables(varSub)),
+        tables = this.tables.map(_.substituteVariables(varSub)),
+        outputs = this.outputs.map(_.map(_.substituteVariables(varSub)))
+      )
+    )
   }
 
   def genJsonReport(varSub: VarSubstitution)(implicit spark: SparkSession): Json = {

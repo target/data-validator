@@ -25,7 +25,8 @@ case class UniqueCheck(columns: Seq[String]) extends CostlyCheck {
       ("type", Json.fromString("uniqueCheck")),
       ("columns", Json.fromValues(columns.map(Json.fromString))),
       ("failed", Json.fromBoolean(failed)),
-        ("events", this.getEvents.asJson))
+      ("events", this.getEvents.asJson)
+    )
 
     Json.fromFields(fields)
   }

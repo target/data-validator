@@ -12,8 +12,7 @@ import org.apache.spark.sql.types.StructType
 case class NullCheck(column: String, threshold: Option[String]) extends RowBased {
 
   override def substituteVariables(dict: VarSubstitution): ValidatorBase = {
-    val ret = NullCheck(getVarSub(column, "column", dict),
-      threshold.map(getVarSub(_, "threshold", dict)))
+    val ret = NullCheck(getVarSub(column, "column", dict), threshold.map(getVarSub(_, "threshold", dict)))
     getEvents.foreach(ret.addEvent)
     ret
   }

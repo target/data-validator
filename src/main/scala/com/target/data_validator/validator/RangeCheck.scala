@@ -12,11 +12,12 @@ import org.apache.spark.sql.catalyst.expressions._
 import org.apache.spark.sql.types.{DataType, StructType}
 
 case class RangeCheck(
-  column: String,
-  minValue: Option[Json],
-  maxValue: Option[Json],
-  inclusive: Option[Json],
-  threshold: Option[String]) extends RowBased {
+    column: String,
+    minValue: Option[Json],
+    maxValue: Option[Json],
+    inclusive: Option[Json],
+    threshold: Option[String]
+) extends RowBased {
 
   override def substituteVariables(dict: VarSubstitution): ValidatorBase = {
     val ret = RangeCheck(
@@ -24,16 +25,17 @@ case class RangeCheck(
       minValue.map(getVarSubJson(_, "minValue", dict)),
       maxValue.map(getVarSubJson(_, "maxValue", dict)),
       inclusive.map(getVarSubJson(_, "inclusive", dict)),
-      threshold.map(getVarSub(_, "threshold", dict)))
+      threshold.map(getVarSub(_, "threshold", dict))
+    )
     getEvents.foreach(ret.addEvent)
     ret
   }
 
   private def cmpExpr(
-    colExpr: Expression,
-    value: Option[Json],
-    colType: DataType,
-    cmp: (Expression, Expression) => Expression
+      colExpr: Expression,
+      value: Option[Json],
+      colType: DataType,
+      cmp: (Expression, Expression) => Expression
   ): Option[Expression] = {
     value.map { v => cmp(colExpr, createLiteralOrUnresolvedAttribute(colType, v)) }
   }
@@ -82,7 +84,7 @@ case class RangeCheck(
 
   override def configCheck(df: DataFrame): Boolean = {
 
-    val values = (minValue::maxValue::Nil).flatten
+    val values = (minValue :: maxValue :: Nil).flatten
     if (values.isEmpty) {
       addEvent(ValidatorError("Must defined minValue or maxValue or both."))
     }
@@ -136,7 +138,7 @@ object RangeCheck extends LazyLogging {
     logger.debug(s"inclusive: $inclusiveJ type: ${inclusiveJ.getClass.getCanonicalName}")
     logger.debug(s"threshold: $threshold")
 
-    c.focus.foreach {f => logger.debug(s"RangeCheckJson: ${f.spaces2}")}
+    c.focus.foreach { f => logger.debug(s"RangeCheckJson: ${f.spaces2}") }
     scala.util.Right(RangeCheck(column, minValueJ, maxValueJ, inclusiveJ, threshold))
   }
 }

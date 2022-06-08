@@ -15,61 +15,71 @@ object JsonEncoders extends LazyLogging {
     case d: Double => d.asJson
     case s: String => Json.fromString(s)
     case b: Boolean => b.asJson
-    case a: Any => logger.warn(s"Unknown type `${a.getClass.getCanonicalName}` defaulting to string.")
+    case a: Any =>
+      logger.warn(s"Unknown type `${a.getClass.getCanonicalName}` defaulting to string.")
       Json.fromString(a.toString)
   }
 
   // scalastyle:off cyclomatic.complexity
   implicit val eventEncoder: Encoder[ValidatorEvent] = new Encoder[ValidatorEvent] {
     override def apply(a: ValidatorEvent): Json = a match {
-      case vc: ValidatorCounter => Json.obj(
-        ("type", Json.fromString("counter")),
-        ("name", Json.fromString(vc.name)),
-        ("value", Json.fromLong(vc.value))
-      )
-      case vg: ValidatorGood => Json.obj(
-        ("type", Json.fromString("good")),
-        ("msg", Json.fromString(vg.msg))
-      )
-      case ve: ValidatorError => Json.obj(
-        ("type", Json.fromString("error")),
-        ("failed", Json.fromBoolean(ve.failed)),
-        ("msg", Json.fromString(ve.msg))
-      )
-      case vt: ValidatorTimer => Json.obj(
-        ("type", Json.fromString("timer")),
-        ("label", Json.fromString(vt.label)),
-        ("ns", Json.fromLong(vt.duration))
-      )
-      case vce: ValidatorCheckEvent => Json.obj(
-        ("type", Json.fromString("checkEvent")),
-        ("failed", Json.fromBoolean(vce.failed)),
-        ("label", Json.fromString(vce.label)),
-        ("count", Json.fromLong(vce.count)),
-        ("errorCount", Json.fromLong(vce.errorCount))
-      )
-      case cbvce: ColumnBasedValidatorCheckEvent => Json.obj(
-        ("type", Json.fromString("columnBasedCheckEvent")),
-        ("failed", Json.fromBoolean(cbvce.failed)),
-        ("message", Json.fromString(cbvce.msg)),
-        ("data", Json.fromFields(cbvce.data.map(x => (x._1, Json.fromString(x._2)))))
-      )
-      case qce: ValidatorQuickCheckError => Json.obj(
-        ("type", Json.fromString("quickCheckError")),
-        ("failed", Json.fromBoolean(qce.failed)),
-        ("message", Json.fromString(qce.message)),
-        ("key", Json.fromFields(qce.key.map(x => (x._1, any2json(x._2)))))
-      )
-      case vs: VarSubEvent => Json.obj(
-        ("type", Json.fromString("variableSubstitution")),
-        ("src", Json.fromString(vs.src)),
-        ("dest", Json.fromString(vs.dest))
-      )
-      case vs: VarSubJsonEvent => Json.obj(
-        ("type", Json.fromString("variableSubstitution")),
-        ("src", Json.fromString(vs.src)),
-        ("dest", vs.dest)
-      )
+      case vc: ValidatorCounter =>
+        Json.obj(
+          ("type", Json.fromString("counter")),
+          ("name", Json.fromString(vc.name)),
+          ("value", Json.fromLong(vc.value))
+        )
+      case vg: ValidatorGood =>
+        Json.obj(
+          ("type", Json.fromString("good")),
+          ("msg", Json.fromString(vg.msg))
+        )
+      case ve: ValidatorError =>
+        Json.obj(
+          ("type", Json.fromString("error")),
+          ("failed", Json.fromBoolean(ve.failed)),
+          ("msg", Json.fromString(ve.msg))
+        )
+      case vt: ValidatorTimer =>
+        Json.obj(
+          ("type", Json.fromString("timer")),
+          ("label", Json.fromString(vt.label)),
+          ("ns", Json.fromLong(vt.duration))
+        )
+      case vce: ValidatorCheckEvent =>
+        Json.obj(
+          ("type", Json.fromString("checkEvent")),
+          ("failed", Json.fromBoolean(vce.failed)),
+          ("label", Json.fromString(vce.label)),
+          ("count", Json.fromLong(vce.count)),
+          ("errorCount", Json.fromLong(vce.errorCount))
+        )
+      case cbvce: ColumnBasedValidatorCheckEvent =>
+        Json.obj(
+          ("type", Json.fromString("columnBasedCheckEvent")),
+          ("failed", Json.fromBoolean(cbvce.failed)),
+          ("message", Json.fromString(cbvce.msg)),
+          ("data", Json.fromFields(cbvce.data.map(x => (x._1, Json.fromString(x._2)))))
+        )
+      case qce: ValidatorQuickCheckError =>
+        Json.obj(
+          ("type", Json.fromString("quickCheckError")),
+          ("failed", Json.fromBoolean(qce.failed)),
+          ("message", Json.fromString(qce.message)),
+          ("key", Json.fromFields(qce.key.map(x => (x._1, any2json(x._2)))))
+        )
+      case vs: VarSubEvent =>
+        Json.obj(
+          ("type", Json.fromString("variableSubstitution")),
+          ("src", Json.fromString(vs.src)),
+          ("dest", Json.fromString(vs.dest))
+        )
+      case vs: VarSubJsonEvent =>
+        Json.obj(
+          ("type", Json.fromString("variableSubstitution")),
+          ("src", Json.fromString(vs.src)),
+          ("dest", vs.dest)
+        )
       case vj: JsonEvent => vj.json
     }
   }
@@ -80,64 +90,75 @@ object JsonEncoders extends LazyLogging {
   }
 
   implicit val tableEncoder: Encoder[ValidatorTable] = new Encoder[ValidatorTable] {
-    override final def apply(a: ValidatorTable): Json = a match {
-      case vh: ValidatorHiveTable => Json.obj(
-        ("db", Json.fromString(vh.db)),
-        ("table", Json.fromString(vh.table)),
-        ("failed", vh.failed.asJson),
-        ("keyColumns", vh.keyColumns.asJson),
-        ("checks", vh.checks.asJson),
-        ("events", vh.getEvents.asJson)
-      )
-      case vo: ValidatorOrcFile => Json.obj(
-        ("orcFile", Json.fromString(vo.orcFile)),
-        ("failed", vo.failed.asJson),
-        ("keyColumns", vo.keyColumns.asJson),
-        ("checks", vo.checks.asJson),
-        ("events", vo.getEvents.asJson))
-      case vp: ValidatorParquetFile => Json.obj(
-        ("parquetFile", Json.fromString(vp.parquetFile)),
-        ("failed", vp.failed.asJson),
-        ("keyColumns", vp.keyColumns.asJson),
-        ("checks", vp.checks.asJson),
-        ("events", vp.getEvents.asJson))
-      case vdf: ValidatorDataFrame => Json.obj(
-        ("dfLabel", vdf.label.asJson),
-        ("failed", vdf.failed.asJson),
-        ("keyColumns", vdf.keyColumns.asJson),
-        ("checks", vdf.checks.asJson),
-        ("events", vdf.getEvents.asJson)
-      )
-      case vcf: ValidatorSpecifiedFormatLoader => Json.obj(
-        ("format", Json.fromString(vcf.format)),
-        ("options", vcf.options.asJson),
-        ("loadData", vcf.loadData.asJson),
-        ("failed", vcf.failed.asJson),
-        ("keyColumns", vcf.keyColumns.asJson),
-        ("checks", vcf.checks.asJson),
-        ("events", vcf.getEvents.asJson)
-      )
+    final override def apply(a: ValidatorTable): Json = a match {
+      case vh: ValidatorHiveTable =>
+        Json.obj(
+          ("db", Json.fromString(vh.db)),
+          ("table", Json.fromString(vh.table)),
+          ("failed", vh.failed.asJson),
+          ("keyColumns", vh.keyColumns.asJson),
+          ("checks", vh.checks.asJson),
+          ("events", vh.getEvents.asJson)
+        )
+      case vo: ValidatorOrcFile =>
+        Json.obj(
+          ("orcFile", Json.fromString(vo.orcFile)),
+          ("failed", vo.failed.asJson),
+          ("keyColumns", vo.keyColumns.asJson),
+          ("checks", vo.checks.asJson),
+          ("events", vo.getEvents.asJson)
+        )
+      case vp: ValidatorParquetFile =>
+        Json.obj(
+          ("parquetFile", Json.fromString(vp.parquetFile)),
+          ("failed", vp.failed.asJson),
+          ("keyColumns", vp.keyColumns.asJson),
+          ("checks", vp.checks.asJson),
+          ("events", vp.getEvents.asJson)
+        )
+      case vdf: ValidatorDataFrame =>
+        Json.obj(
+          ("dfLabel", vdf.label.asJson),
+          ("failed", vdf.failed.asJson),
+          ("keyColumns", vdf.keyColumns.asJson),
+          ("checks", vdf.checks.asJson),
+          ("events", vdf.getEvents.asJson)
+        )
+      case vcf: ValidatorSpecifiedFormatLoader =>
+        Json.obj(
+          ("format", Json.fromString(vcf.format)),
+          ("options", vcf.options.asJson),
+          ("loadData", vcf.loadData.asJson),
+          ("failed", vcf.failed.asJson),
+          ("keyColumns", vcf.keyColumns.asJson),
+          ("checks", vcf.checks.asJson),
+          ("events", vcf.getEvents.asJson)
+        )
     }
   }
 
   implicit val configVarEncoder: Encoder[ConfigVar] = new Encoder[ConfigVar] {
     override def apply(a: ConfigVar): Json = a match {
-      case nv: NameValue => Json.obj(
-        ("name", Json.fromString(nv.name)),
-        ("value", nv.value)
-      )
-      case ne: NameEnv => Json.obj(
-        ("name", Json.fromString(ne.name)),
-        ("env", Json.fromString(ne.env))
-      )
-      case nshell: NameShell => Json.obj(
-        ("name", Json.fromString(nshell.name)),
-        ("shell", Json.fromString(nshell.shell))
-      )
-      case nsql: NameSql => Json.obj(
-        ("name", Json.fromString(nsql.name)),
-        ("shell", Json.fromString(nsql.sql))
-      )
+      case nv: NameValue =>
+        Json.obj(
+          ("name", Json.fromString(nv.name)),
+          ("value", nv.value)
+        )
+      case ne: NameEnv =>
+        Json.obj(
+          ("name", Json.fromString(ne.name)),
+          ("env", Json.fromString(ne.env))
+        )
+      case nshell: NameShell =>
+        Json.obj(
+          ("name", Json.fromString(nshell.name)),
+          ("shell", Json.fromString(nshell.shell))
+        )
+      case nsql: NameSql =>
+        Json.obj(
+          ("name", Json.fromString(nsql.name)),
+          ("shell", Json.fromString(nsql.sql))
+        )
       case x =>
         logger.error(s"Unknown configVar type: $x")
         throw new RuntimeException(s"Unknown configVar type: $x")
@@ -147,14 +168,16 @@ object JsonEncoders extends LazyLogging {
   implicit val configOutputEncoder: Encoder[ValidatorOutput] = new Encoder[ValidatorOutput] {
     override def apply(a: ValidatorOutput): Json = a match {
 
-      case file: FileOutput => Json.obj(
-        ("filename", Json.fromString(file.filename)),
-        ("append", Json.fromBoolean(file.append.getOrElse(false)))
-      )
-      case pipe: PipeOutput => Json.obj(
-        ("pipe", Json.fromString(pipe.pipe)),
-        ("ignoreError", Json.fromBoolean(pipe.ignoreError.getOrElse(false)))
-      )
+      case file: FileOutput =>
+        Json.obj(
+          ("filename", Json.fromString(file.filename)),
+          ("append", Json.fromBoolean(file.append.getOrElse(false)))
+        )
+      case pipe: PipeOutput =>
+        Json.obj(
+          ("pipe", Json.fromString(pipe.pipe)),
+          ("ignoreError", Json.fromBoolean(pipe.ignoreError.getOrElse(false)))
+        )
       case x =>
         logger.error(s"Unknown output type: $x")
         throw new RuntimeException(s"Unknown output type: $x")

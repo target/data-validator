@@ -12,10 +12,10 @@ import org.apache.spark.sql.catalyst.expressions._
 import org.apache.spark.sql.types.{IntegerType, StringType, StructType}
 
 case class StringLengthCheck(
-  column: String,
-  minLength: Option[Json],
-  maxLength: Option[Json],
-  threshold: Option[String]
+    column: String,
+    minLength: Option[Json],
+    maxLength: Option[Json],
+    threshold: Option[String]
 ) extends RowBased {
 
   override def substituteVariables(dict: VarSubstitution): ValidatorBase = {
@@ -30,9 +30,10 @@ case class StringLengthCheck(
     ret
   }
 
-  private def cmpExpr(colExpr: Expression,
-    value: Option[Json],
-    cmp: (Expression, Expression) => Expression
+  private def cmpExpr(
+      colExpr: Expression,
+      value: Option[Json],
+      cmp: (Expression, Expression) => Expression
   ): Option[Expression] = {
     value.map { v => cmp(colExpr, createLiteralOrUnresolvedAttribute(IntegerType, v)) }
   }
@@ -77,7 +78,7 @@ case class StringLengthCheck(
   override def configCheck(df: DataFrame): Boolean = {
 
     // Verify if at least one of min or max is specified.
-    val values = (minLength::maxLength::Nil).flatten
+    val values = (minLength :: maxLength :: Nil).flatten
     if (values.isEmpty) {
       addEvent(ValidatorError("Must define minLength or maxLength or both."))
     }

@@ -4,18 +4,15 @@ import org.apache.spark.sql.Row
 import org.apache.spark.sql.expressions.{MutableAggregationBuffer, UserDefinedAggregateFunction}
 import org.apache.spark.sql.types._
 
-/**
-  * Calculate the count, mean, min and maximum values of a numeric column.
+/** Calculate the count, mean, min and maximum values of a numeric column.
   */
 class FirstPassStatsAggregator extends UserDefinedAggregateFunction {
 
-  /**
-    * input is a single column of `DoubleType`
+  /** input is a single column of `DoubleType`
     */
   override def inputSchema: StructType = new StructType().add("value", DoubleType)
 
-  /**
-    * buffer keeps state for the count, sum, min and max
+  /** buffer keeps state for the count, sum, min and max
     */
   override def bufferSchema: StructType = new StructType()
     .add(StructField("count", LongType))
@@ -28,18 +25,15 @@ class FirstPassStatsAggregator extends UserDefinedAggregateFunction {
   private val min = bufferSchema.fieldIndex("min")
   private val max = bufferSchema.fieldIndex("max")
 
-  /**
-    * specifies the return type when using the UDAF
+  /** specifies the return type when using the UDAF
     */
   override def dataType: DataType = FirstPassStats.dataType
 
-  /**
-    * These calculations are deterministic
+  /** These calculations are deterministic
     */
   override def deterministic: Boolean = true
 
-  /**
-    * set the initial values for count, sum, min and max
+  /** set the initial values for count, sum, min and max
     */
   override def initialize(buffer: MutableAggregationBuffer): Unit = {
     buffer(count) = 0L
@@ -48,8 +42,7 @@ class FirstPassStatsAggregator extends UserDefinedAggregateFunction {
     buffer(max) = Double.MinValue
   }
 
-  /**
-    * update the count, sum, min and max buffer values
+  /** update the count, sum, min and max buffer values
     */
   override def update(buffer: MutableAggregationBuffer, input: Row): Unit = {
     buffer(count) = buffer.getLong(count) + 1
@@ -58,8 +51,7 @@ class FirstPassStatsAggregator extends UserDefinedAggregateFunction {
     buffer(max) = math.max(input.getDouble(0), buffer.getDouble(max))
   }
 
-  /**
-    * reduce the count, sum, min and max values of two buffers
+  /** reduce the count, sum, min and max values of two buffers
     */
   override def merge(buffer1: MutableAggregationBuffer, buffer2: Row): Unit = {
     buffer1(count) = buffer1.getLong(count) + buffer2.getLong(count)
@@ -68,8 +60,7 @@ class FirstPassStatsAggregator extends UserDefinedAggregateFunction {
     buffer1(max) = math.max(buffer1.getDouble(max), buffer2.getDouble(max))
   }
 
-  /**
-    * evaluate the count, mean, min and max values of a column
+  /** evaluate the count, mean, min and max values of a column
     */
   override def evaluate(buffer: Row): Any = {
     FirstPassStats(

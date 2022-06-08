@@ -15,11 +15,11 @@ import org.apache.spark.sql.types.{NumericType, StructType}
 import scala.concurrent.Promise
 import scala.util._
 
-/**
-  * This validator implements a set of column metrics on a specified column by performing two I/O
-  *  passes over the input table.
+/** This validator implements a set of column metrics on a specified column by performing two I/O passes over the
+  * input table.
   *
-  * @param column the column to collect stats on
+  * @param column
+  *   the column to collect stats on
   */
 final case class ColStats(column: String) extends TwoPassCheapCheck {
   import ValidatorBase._

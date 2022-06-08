@@ -20,10 +20,9 @@ githubRepository := "data-validator"
 // this unfortunately must be set strangely because GitHub requires a token for pulling packages
 // and sbt-github-packages does not allow the user to configure the resolver not to be used.
 // https://github.com/djspiewak/sbt-github-packages/issues/28
-githubTokenSource := (
-  TokenSource.Environment("GITHUB_TOKEN") ||
-    TokenSource.GitConfig("github.token") ||
-    TokenSource.Environment("SHELL") ) // it's safe to assume this exists and is not unique
+githubTokenSource := (TokenSource.Environment("GITHUB_TOKEN") ||
+  TokenSource.GitConfig("github.token") ||
+  TokenSource.Environment("SHELL")) // it's safe to assume this exists and is not unique
 
 publishTo := githubPublishTo.value
 
@@ -44,16 +43,18 @@ libraryDependencies ++= Seq(
 
   "org.scalatest" %% "scalatest" % "3.0.5" % Test,
   "junit" % "junit" % "4.12" % Test,
-  "com.novocode" % "junit-interface" % "0.11" % Test exclude("junit", "junit-dep")
+  "com.novocode" % "junit-interface" % "0.11" % Test exclude ("junit", "junit-dep")
 )
 
 Test / fork := true
 javaOptions ++= Seq("-Xms512M", "-Xmx2048M", "-XX:+CMSClassUnloadingEnabled")
 Test / parallelExecution := false
 // required for unit tests, but not set in some environments
-Test / envVars ++= Map("JAVA_HOME" ->
-  Option(System.getenv("JAVA_HOME"))
-    .getOrElse(System.getProperty("java.home")))
+Test / envVars ++= Map(
+  "JAVA_HOME" ->
+    Option(System.getenv("JAVA_HOME"))
+      .getOrElse(System.getProperty("java.home"))
+)
 
 assembly / mainClass := Some("com.target.data_validator.Main")
 
@@ -65,13 +66,15 @@ scalastyleFailOnError := true
 compileScalastyle := (Compile / scalastyle).toTask("").value
 (Compile / compile) := ((Compile / compile) dependsOn compileScalastyle).value
 
-(Compile / run) := Defaults.runTask(
-  (Compile / fullClasspath),
-  (Compile / run / mainClass),
-  (Compile / run / runner)
-).evaluated
+(Compile / run) := Defaults
+  .runTask(
+    Compile / fullClasspath,
+    Compile / run / mainClass,
+    Compile / run / runner
+  )
+  .evaluated
 
-(Compile / runMain) := Defaults.runMainTask((Compile / fullClasspath), (Compile / run / runner)).evaluated
+(Compile / runMain) := Defaults.runMainTask(Compile / fullClasspath, Compile / run / runner).evaluated
 TaskKey[Unit]("generateTestData") := {
   libraryDependencies += "org.apache.spark" %% "spark-sql" % sparkVersion
   (Compile / runMain).toTask(" com.target.data_validator.GenTestData").value

@@ -10,11 +10,11 @@ import scala.util._
 import scalatags.Text.all._
 
 abstract class ValidatorTable(
-  keyColumns: Option[Seq[String]],
-  condition: Option[String],
-  checks: List[ValidatorBase],
-  label: String,
-  events: ListBuffer[ValidatorEvent] = new ListBuffer[ValidatorEvent]
+    keyColumns: Option[Seq[String]],
+    condition: Option[String],
+    checks: List[ValidatorBase],
+    label: String,
+    events: ListBuffer[ValidatorEvent] = new ListBuffer[ValidatorEvent]
 ) extends Substitutable {
 
   def getDF(session: SparkSession): Try[DataFrame]
@@ -59,7 +59,7 @@ abstract class ValidatorTable(
             val msg = s"ConfigCheck failed for $label"
             logger.error(msg)
             addEvent(ValidatorError(msg))
-          }  else {
+          } else {
             addEvent(ValidatorGood(s"ConfigCheck for $label"))
           }
           error
@@ -88,7 +88,10 @@ abstract class ValidatorTable(
     }
   }
 
-  private def cheapExpression(dataFrame: DataFrame, dict: VarSubstitution): PartialFunction[CheapCheck, Expression] = {
+  private def cheapExpression(
+      dataFrame: DataFrame,
+      dict: VarSubstitution
+  ): PartialFunction[CheapCheck, Expression] = {
     case tp: TwoPassCheapCheck => tp.select(dataFrame.schema, dict)
     case colChk: ColumnBased => colChk.select(dataFrame.schema, dict)
     case chk: RowBased => Sum(chk.select(dataFrame.schema, dict)).toAggregateExpression()
@@ -123,9 +126,11 @@ abstract class ValidatorTable(
     logger.info(s"Total Rows Processed: $count")
     addEvent(ValidatorCounter(s"RowCount for $label", count))
 
-    val failed = qc.zipWithIndex.map {
-      case (check: CheapCheck, idx: Int) => check.quickCheck(results, count, idx + 1)
-    }.exists(x => x)
+    val failed = qc.zipWithIndex
+      .map { case (check: CheapCheck, idx: Int) =>
+        check.quickCheck(results, count, idx + 1)
+      }
+      .exists(x => x)
 
     if (failed) {
       val failedChecks = checks.filter(_.failed).map(_.toString).mkString(", ")
@@ -137,7 +142,7 @@ abstract class ValidatorTable(
     failed
   }
 
-  def costlyChecks(session: SparkSession, dict: VarSubstitution)(implicit  vc: ValidatorConfig): Boolean = {
+  def costlyChecks(session: SparkSession, dict: VarSubstitution)(implicit vc: ValidatorConfig): Boolean = {
     val df = open(session).get
     val cc = checks.flatMap {
       case cc: CostlyCheck => Some(cc)
@@ -153,11 +158,11 @@ abstract class ValidatorTable(
       .map(_.asInstanceOf[RowBased])
       .zipWithIndex
     if (failedChecksWithIndex.nonEmpty) {
-      val detailedErrorSelect = failedChecksWithIndex.map {
-        case (chk, _) => chk.column
+      val detailedErrorSelect = failedChecksWithIndex.map { case (chk, _) =>
+        chk.column
       }
-      val failedChecksCondition = failedChecksWithIndex.map {
-        case (chk, _) => chk.colTest(dataFrame.schema, dict)
+      val failedChecksCondition = failedChecksWithIndex.map { case (chk, _) =>
+        chk.colTest(dataFrame.schema, dict)
       }
       val selects = keySelect ++ detailedErrorSelect
       val condition = new Column(ExpressionUtils.orFromList(failedChecksCondition))
@@ -172,7 +177,10 @@ abstract class ValidatorTable(
         dataFrame.selectExpr(selects: _*).filter(condition).take(vc.numErrorsToReport)
       }
 
-      for (r <- errorsDf; (failedCheck, idx) <- failedChecksWithIndex) {
+      for {
+        r <- errorsDf
+        (failedCheck, idx) <- failedChecksWithIndex
+      } {
         failedCheck.quickCheckDetail(r, ValidatorTable.buildKey(numKeyColumns(), r), idx + numKeyColumns(), dict)
       }
     }
@@ -183,20 +191,18 @@ abstract class ValidatorTable(
 
   def failed: Boolean = events.exists(_.failed || checks.exists(_.failed))
 
-  def generateHTMLReport: Tag = div(cls:="validatorTable")(
-    h2(label),
-    div(id := "validator_report",
-      checks.map(_.generateHTMLReport())),
-    hr())
+  def generateHTMLReport: Tag =
+    div(cls := "validatorTable")(h2(label), div(id := "validator_report", checks.map(_.generateHTMLReport())), hr())
 
   def substituteVariables(dict: VarSubstitution): ValidatorTable
 
-  /**
-   * Most extenders of `ValidatorTable` will substitute these but it's left optional by the API.
-   *
-   * @param dict the substitution dictionary
-   * @return a simple data class with the new key columns, condition, and checks
-   */
+  /** Most extenders of `ValidatorTable` will substitute these but it's left optional by the API.
+    *
+    * @param dict
+    *   the substitution dictionary
+    * @return
+    *   a simple data class with the new key columns, condition, and checks
+    */
   protected def substituteKeyColsCondsChecks(dict: VarSubstitution): SubstitutedKeyColsCondChecks = {
     val newKeyColumns = keyColumns.map(v => v.map(x => getVarSub(x, "keyCol", dict)))
     val newCondition = condition.map(x => getVarSub(x, "condition", dict))
@@ -206,30 +212,31 @@ abstract class ValidatorTable(
   }
 
   class SubstitutedKeyColsCondChecks(
-    val keyColumns: Option[Seq[String]],
-    val condition: Option[String],
-    val checks: List[ValidatorBase]
+      val keyColumns: Option[Seq[String]],
+      val condition: Option[String],
+      val checks: List[ValidatorBase]
   )
 }
 
-/**
- * Load a database table from Hive using the default Hive warehouse adapter
- *
- * @param db the database
- * @param table the table to load
- */
+/** Load a database table from Hive using the default Hive warehouse adapter
+  *
+  * @param db
+  *   the database
+  * @param table
+  *   the table to load
+  */
 case class ValidatorHiveTable(
-  db: String,
-  table: String,
-  keyColumns: Option[List[String]],
-  condition: Option[String],
-  checks: List[ValidatorBase]
+    db: String,
+    table: String,
+    keyColumns: Option[List[String]],
+    condition: Option[String],
+    checks: List[ValidatorBase]
 ) extends ValidatorTable(
-  keyColumns,
-  condition,
-  checks,
-  s"HiveTable:`$db.$table`" + condition.map(c => s" with condition($c)").getOrElse("")
-) {
+      keyColumns,
+      condition,
+      checks,
+      s"HiveTable:`$db.$table`" + condition.map(c => s" with condition($c)").getOrElse("")
+    ) {
 
   override def getDF(session: SparkSession): Try[DataFrame] = {
     logger.info(s"Opening table: $db.$table")
@@ -242,7 +249,8 @@ case class ValidatorHiveTable(
     val newBases = substituteKeyColsCondsChecks(dict)
 
     val ret = ValidatorHiveTable(
-      newDb, newTable,
+      newDb,
+      newTable,
       newBases.keyColumns.map(_.toList),
       newBases.condition,
       newBases.checks
@@ -252,32 +260,33 @@ case class ValidatorHiveTable(
   }
 }
 
-/**
- * Enables usage of the normal `spark.read.format(String).options(Map[String,String]).load()` fluent API
- * for creating a [[DataFrame]] using a dynamic loader.
- *
- * For reading well-known formats such as Parquet or ORC,
- * use [[ValidatorParquetFile]] or [[ValidatorOrcFile]], respectively.
- * Under the hood, these just call `spark.read.format("orc")` but let's let Spark handle that.
- *
- * @param format the format that the [[DataFrameReader]] should use
- * @param options options that the [[DataFrameReader]] should use
- * @param loadData If present, this will passed to [[DataFrameReader.load(String)]],
- *                 otherwise the DFR will use the parameterless version
- */
+/** Enables usage of the normal `spark.read.format(String).options(Map[String,String]).load()` fluent API for creating
+  * a [[DataFrame]] using a dynamic loader.
+  *
+  * For reading well-known formats such as Parquet or ORC, use [[ValidatorParquetFile]] or [[ValidatorOrcFile]],
+  * respectively. Under the hood, these just call `spark.read.format("orc")` but let's let Spark handle that.
+  *
+  * @param format
+  *   the format that the [[DataFrameReader]] should use
+  * @param options
+  *   options that the [[DataFrameReader]] should use
+  * @param loadData
+  *   If present, this will passed to [[DataFrameReader.load(String)]], otherwise the DFR will use the parameterless
+  *   version
+  */
 case class ValidatorSpecifiedFormatLoader(
-  format: String,
-  keyColumns: Option[List[String]],
-  condition: Option[String],
-  checks: List[ValidatorBase],
-  options: Option[Map[String, String]] = None,
-  loadData: Option[List[String]] = None
+    format: String,
+    keyColumns: Option[List[String]],
+    condition: Option[String],
+    checks: List[ValidatorBase],
+    options: Option[Map[String, String]] = None,
+    loadData: Option[List[String]] = None
 ) extends ValidatorTable(
-  keyColumns,
-  condition,
-  checks,
-  label = s"""CustomFormat:$format${condition.map(c => s" with Condition($c)").getOrElse("")}"""
-) {
+      keyColumns,
+      condition,
+      checks,
+      label = s"""CustomFormat:$format${condition.map(c => s" with Condition($c)").getOrElse("")}"""
+    ) {
   override def getDF(session: SparkSession): Try[DataFrame] = {
     logger.info(s"Reading using custom format ${format} with options ${options}")
     if (loadData.isDefined) {
@@ -294,9 +303,11 @@ case class ValidatorSpecifiedFormatLoader(
   override def substituteVariables(dict: VarSubstitution): ValidatorTable = {
     val newFormat = getVarSub(format, "format", dict)
     val newLoadData = loadData.map(_.map(getVarSub(_, "loadData", dict)))
-    val newOptions = options.map { _.map {
-      case (optKey, optVal) => optKey -> getVarSub(optVal, optKey, dict)
-    } }
+    val newOptions = options.map {
+      _.map { case (optKey, optVal) =>
+        optKey -> getVarSub(optVal, optKey, dict)
+      }
+    }
 
     val newBases = substituteKeyColsCondsChecks(dict)
 
@@ -318,16 +329,16 @@ case class ValidatorSpecifiedFormatLoader(
 // Used with Orc files
 //
 case class ValidatorOrcFile(
-  orcFile: String,
-  keyColumns: Option[List[String]],
-  condition: Option[String],
-  checks: List[ValidatorBase]
+    orcFile: String,
+    keyColumns: Option[List[String]],
+    condition: Option[String],
+    checks: List[ValidatorBase]
 ) extends ValidatorTable(
-  keyColumns,
-  condition,
-  checks,
-  "OrcFile:" + orcFile + condition.map(c => s" with Condition($c)").getOrElse("")
-) {
+      keyColumns,
+      condition,
+      checks,
+      "OrcFile:" + orcFile + condition.map(c => s" with Condition($c)").getOrElse("")
+    ) {
   override def getDF(session: SparkSession): Try[DataFrame] = {
     logger.info(s"Reading orc file: $orcFile")
     Try(session.read.orc(orcFile))
@@ -349,16 +360,16 @@ case class ValidatorOrcFile(
 }
 
 case class ValidatorParquetFile(
-  parquetFile: String,
-  keyColumns: Option[List[String]],
-  condition: Option[String],
-  checks: List[ValidatorBase]
+    parquetFile: String,
+    keyColumns: Option[List[String]],
+    condition: Option[String],
+    checks: List[ValidatorBase]
 ) extends ValidatorTable(
-  keyColumns,
-  condition,
-  checks,
-  "ParquetFile:" + parquetFile + condition.map(c => s" with Condition($c)").getOrElse("")
-) {
+      keyColumns,
+      condition,
+      checks,
+      "ParquetFile:" + parquetFile + condition.map(c => s" with Condition($c)").getOrElse("")
+    ) {
   override def getDF(session: SparkSession): Try[DataFrame] = {
     logger.info(s"Reading parquet file: $parquetFile")
     Try(session.read.parquet(parquetFile))
@@ -384,16 +395,16 @@ case class ValidatorParquetFile(
 // Used for testing.
 //
 case class ValidatorDataFrame(
-  df: DataFrame,
-  keyColumns: Option[Seq[String]],
-  condition: Option[String],
-  checks: List[ValidatorBase]
+    df: DataFrame,
+    keyColumns: Option[Seq[String]],
+    condition: Option[String],
+    checks: List[ValidatorBase]
 ) extends ValidatorTable(
-  keyColumns,
-  condition,
-  checks,
-  "DataFrame" + condition.map(x => s" with condition($x)").getOrElse("")
-) {
+      keyColumns,
+      condition,
+      checks,
+      "DataFrame" + condition.map(x => s" with condition($x)").getOrElse("")
+    ) {
 
   final def label: String = "DataFrame" + condition.map(x => s" with condition($x)").getOrElse("")
 

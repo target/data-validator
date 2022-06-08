@@ -12,12 +12,14 @@ class VarSubstitution() extends LazyLogging {
 
   val dict = new mutable.HashMap[String, Json]()
 
-  /**
-    * Adds (k,v) to dictionary.
+  /** Adds (k,v) to dictionary.
     *
-    * @param key - key of value in dictionary.
-    * @param value - value of key in dictionary.
-    * @return True on error.
+    * @param key
+    *   \- key of value in dictionary.
+    * @param value
+    *   \- value of key in dictionary.
+    * @return
+    *   True on error.
     */
   def add(key: String, value: Json): Boolean = {
     if (VAR_REGEX.findFirstIn(key).isEmpty) {
@@ -37,10 +39,11 @@ class VarSubstitution() extends LazyLogging {
     }
   }
 
-  /**
-    * Adds a String to dictionary.
-    * @param value - gets converted to Json
-    * @return True on error
+  /** Adds a String to dictionary.
+    * @param value
+    *   \- gets converted to Json
+    * @return
+    *   True on error
     */
   def addString(key: String, value: String): Boolean = {
     replaceVars(value) match {
@@ -49,11 +52,12 @@ class VarSubstitution() extends LazyLogging {
     }
   }
 
-  /**
-    * Removes key from dictionary.
+  /** Removes key from dictionary.
     *
-    * @param k - key to  be removed.
-    * @return True on error.
+    * @param k
+    *   \- key to be removed.
+    * @return
+    *   True on error.
     */
   def remove(k: String): Boolean = {
     if (dict.contains(k)) {
@@ -65,11 +69,12 @@ class VarSubstitution() extends LazyLogging {
     }
   }
 
-  /**
-    * replaces variables in String.
+  /** replaces variables in String.
     *
-    * @param s - string to replace variables in.
-    * @return Left(new string) on Success, Right(ValidatorEvent) on Error
+    * @param s
+    *   \- string to replace variables in.
+    * @return
+    *   Left(new string) on Success, Right(ValidatorEvent) on Error
     */
   def replaceVars(s: String): Either[String, ValidatorEvent] = {
     val variableJson = findVars(s).toSeq.map(x => (x, getVarName(x).flatMap(dict.get)))
@@ -87,8 +92,12 @@ class VarSubstitution() extends LazyLogging {
     val errs = missingVariableJson.map(x => x._1)
     errs.foreach(x => logger.debug(s"errs: $x"))
     if (errs.nonEmpty) {
-      Right(ValidatorError("VariableSubstitution: Can't find values for the following keys, " +
-        s"${errs.flatMap(getVarName).mkString(",")}"))
+      Right(
+        ValidatorError(
+          "VariableSubstitution: Can't find values for the following keys, " +
+            s"${errs.flatMap(getVarName).mkString(",")}"
+        )
+      )
     } else {
       if (s != newString) {
         logger.debug(s"Replaced '$s' with '$newString'")
@@ -119,14 +128,12 @@ class VarSubstitution() extends LazyLogging {
     if (dict.contains(k)) logger.warn(s"Replacing key: $k old: ${dict(k)} with new: $v")
   }
 
-  /**
-    * Adds the map m to dict
+  /** Adds the map m to dict
     */
   def addMap(m: Map[String, String]): Unit = {
-    val kj = m.map {
-      case (k, v) =>
-        logDupKeys(k, v)
-        (k, JsonUtils.string2Json(v))
+    val kj = m.map { case (k, v) =>
+      logDupKeys(k, v)
+      (k, JsonUtils.string2Json(v))
     }
     dict ++= kj
   }
@@ -146,20 +153,24 @@ object VarSubstitution extends LazyLogging {
     VAR_BODY_REGEX.findAllIn(s).toSet
   }
 
-  /**
-    * Checks if s is a variable.
-    * @param s - string to check
-    * @return true if s is a variable.
+  /** Checks if s is a variable.
+    * @param s
+    *   \- string to check
+    * @return
+    *   true if s is a variable.
     */
   def isVariable(s: String): Boolean = s.startsWith("$") && VAR_BODY_REGEX.findFirstMatchIn(s).isDefined
 
-  /**
-    * Replaces all the occurrences of oldVal in src with newVal.
+  /** Replaces all the occurrences of oldVal in src with newVal.
     *
-    * @param src - source string that contains values to be replaced.
-    * @param oldVal - old Value that will be replaced by newValue.
-    * @param newVal - new Value that will replace oldValue.
-    * @return new string with newVal were oldVal was.
+    * @param src
+    *   \- source string that contains values to be replaced.
+    * @param oldVal
+    *   \- old Value that will be replaced by newValue.
+    * @param newVal
+    *   \- new Value that will replace oldValue.
+    * @return
+    *   new string with newVal were oldVal was.
     */
   def replaceAll(src: String, oldVal: String, newVal: String): String = {
     val buf = new StringBuffer(src)
@@ -173,11 +184,12 @@ object VarSubstitution extends LazyLogging {
     ret
   }
 
-  /**
-    * gets the variable name from the variable. ie "$\{foo\}" returns "foo"
+  /** gets the variable name from the variable. ie "$\{foo\}" returns "foo"
     *
-    * @param rawVar - variable with control chars.
-    * @return variable without '$' or '{','}'
+    * @param rawVar
+    *   \- variable with control chars.
+    * @return
+    *   variable without '$' or '{','}'
     */
   def getVarName(rawVar: String): Option[String] = {
     val ret = if (rawVar.startsWith("${")) {

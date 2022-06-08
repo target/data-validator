@@ -10,7 +10,8 @@ object GenTestData {
       StructField("id", IntegerType),
       StructField("label", StringType),
       StructField("div7", StringType, nullable = true)
-    ))
+    )
+  )
 
   val label: Vector[String] = Vector("zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine")
 
@@ -26,7 +27,8 @@ object GenTestData {
   def genData(spark: SparkSession): DataFrame = {
     val rg = spark.sparkContext.parallelize(Range(0, 100)) // scalastyle:off magic.number
     spark.createDataFrame(
-      rg.map(x => Row(x, mkLabel(x).reverse.mkString(" "), if (x % 7 == 0) null else "NotNull")), // scalastyle:off null
+      rg.map(x => Row(x, mkLabel(x).reverse.mkString(" "), if (x % 7 == 0) null else "NotNull") // scalastyle:off null
+      ),
       schema
     )
   }

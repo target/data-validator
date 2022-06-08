@@ -23,20 +23,20 @@ object JsonUtils extends LazyLogging {
     case _ => s"Json UNKNOWN[${j.getClass.getSimpleName}]: ${j.noSpaces}"
   }
 
-  /**
-    * Turn Row into JSon
-    * @return Json Object
+  /** Turn Row into JSon
+    * @return
+    *   Json Object
     */
   def row2Json(row: Row): Json = {
-    val fields = row.schema.fieldNames.zipWithIndex.map {
-      case (fieldName, idx) => (fieldName, row2Json(row, idx))
+    val fields = row.schema.fieldNames.zipWithIndex.map { case (fieldName, idx) =>
+      (fieldName, row2Json(row, idx))
     }
     Json.obj(fields: _*)
   }
 
-  /**
-    * Take Row, and turn col into Json.
-    * @return Json
+  /** Take Row, and turn col into Json.
+    * @return
+    *   Json
     */
   def row2Json(row: Row, col: Int): Json = {
     val dataType = row.schema(col).dataType
@@ -49,8 +49,10 @@ object JsonUtils extends LazyLogging {
       case DoubleType => Json.fromDoubleOrNull(row.getDouble(col))
       case _: StructType => row2Json(row.getStruct(col))
       case _ =>
-        logger.error(s"Unimplemented dataType '${dataType.typeName}' in column: ${row.schema(col).name} " +
-          "Please report this as a bug.")
+        logger.error(
+          s"Unimplemented dataType '${dataType.typeName}' in column: ${row.schema(col).name} " +
+            "Please report this as a bug."
+        )
         Json.Null
     }
   }

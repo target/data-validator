@@ -29,8 +29,7 @@ object JsonDecoders extends LazyLogging {
     private def getDecoder(cursor: HCursor)(checkType: String) = {
       decoders
         .get(checkType)
-        .map(_(cursor))
-      match {
+        .map(_(cursor)) match {
         case Some(x) => x
         case None =>
           logger.error(s"Unknown Check `$checkType` in config! Choose one of: ${decoders.keys.mkString(", ")}.")
