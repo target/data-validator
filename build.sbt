@@ -41,7 +41,6 @@ libraryDependencies ++= Seq(
   "io.circe" %% "circe-generic" % circeVersion,
   "io.circe" %% "circe-parser" % circeVersion,
   "org.apache.spark" %% "spark-sql" % sparkVersion % Provided,
-  "org.apache.spark" %% "spark-hive" % sparkVersion % Provided,
 
   "org.scalatest" %% "scalatest" % "3.0.5" % Test,
   "junit" % "junit" % "4.12" % Test,
