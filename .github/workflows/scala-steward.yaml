@@ -20,7 +20,6 @@ jobs:
       - name: Launch Scala Steward
         uses: scala-steward-org/scala-steward-action@v2
         with:
-          repo-config: .scala-steward.conf
           github-token: ${{ secrets.REPO_GITHUB_TOKEN }}
           author-email: 12345+octocat@users.noreply.github.com
           author-name: "Scala Steward on GitHub Actions"
