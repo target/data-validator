@@ -77,7 +77,7 @@ case class ColumnSumCheck(
       }
     }
 
-    def getData(pctError: String): ListMap[String, String] = {
+    def getData(pctError: String): Map[String, String] = {
       ((minValue, maxValue) match {
         case (Some(x), Some(y)) =>
           ListMap("lower_bound" -> x.asNumber.get.toString, "upper_bound" -> y.asNumber.get.toString)
