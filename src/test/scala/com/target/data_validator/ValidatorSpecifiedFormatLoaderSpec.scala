@@ -19,7 +19,7 @@ class ValidatorSpecifiedFormatLoaderSpec extends WordSpec with Matchers with Tes
           MinNumRows(JsonUtils.string2Json("9"))
         ),
         options = None,
-        loadData = Some(List("src/test/resources/format_test.jsonl"))
+        loadData = Some(List(getClass.getResource("/format_test.jsonl").getPath))
       )
 
       val didFail = loader.quickChecks(spark, mkDict())(mkConfig(List(loader)))

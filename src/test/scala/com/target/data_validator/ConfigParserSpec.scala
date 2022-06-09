@@ -5,6 +5,8 @@ import com.target.data_validator.validator.{MinNumRows, NullCheck}
 import io.circe.Json
 import org.scalatest.{BeforeAndAfterAll, FunSpec}
 
+import scala.io.Source
+
 class ConfigParserSpec extends FunSpec with BeforeAndAfterAll {
 
   // Silence is golden!
@@ -106,7 +108,8 @@ class ConfigParserSpec extends FunSpec with BeforeAndAfterAll {
     describe("parseFile") {
 
       it("should support loading config files by path") {
-        val output = ConfigParser.parseFile("src/test/resources/test_config.yaml", Map.empty)
+        val path = getClass.getResource("/test_config.yaml").getPath
+        val output = ConfigParser.parseFile(path, Map.empty)
         assert(output == Right(expectedConfiguration))
       }
 
