@@ -1,9 +1,10 @@
 package com.target.data_validator.stats
 
 import com.target.TestingSparkSession
-import org.scalatest.{FunSpec, Matchers}
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
-class SecondPassStatsAggregatorSpec extends FunSpec with Matchers with TestingSparkSession {
+class SecondPassStatsAggregatorSpec extends AnyFunSpec with Matchers with TestingSparkSession {
 
   describe("SecondPassStatsAggregator") {
 
@@ -14,7 +15,8 @@ class SecondPassStatsAggregatorSpec extends FunSpec with Matchers with TestingSp
       val stats1 = NumericData.firstPassStats
       val agg2 = new SecondPassStatsAggregator(stats1)
 
-      val stats2 = data.select(agg2(data("value1")).as("stats"))
+      val stats2 = data
+        .select(agg2(data("value1")).as("stats"))
         .select(
           "stats.stdDev",
           "stats.histogram"

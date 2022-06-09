@@ -1,9 +1,10 @@
 package com.target.data_validator.stats
 
 import com.target.TestingSparkSession
-import org.scalatest.{FunSpec, Matchers}
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
-class FirstPassStatsAggregatorSpec extends FunSpec with Matchers with TestingSparkSession {
+class FirstPassStatsAggregatorSpec extends AnyFunSpec with Matchers with TestingSparkSession {
 
   describe("FirstPassStatsAggregator") {
 
@@ -13,7 +14,8 @@ class FirstPassStatsAggregatorSpec extends FunSpec with Matchers with TestingSpa
       val data = NumericData.data.toDS
 
       val agg1 = new FirstPassStatsAggregator
-      val stats = data.select(agg1(data("value1")).as("stats"))
+      val stats = data
+        .select(agg1(data("value1")).as("stats"))
         .select(
           "stats.count",
           "stats.mean",
@@ -26,9 +28,9 @@ class FirstPassStatsAggregatorSpec extends FunSpec with Matchers with TestingSpa
       stats.headOption match {
         case Some(s) =>
           assert(s.count === NumericData.firstPassStats.count)
-          assert(s.mean  === NumericData.firstPassStats.mean)
-          assert(s.min   === NumericData.firstPassStats.min)
-          assert(s.max   === NumericData.firstPassStats.max)
+          assert(s.mean === NumericData.firstPassStats.mean)
+          assert(s.min === NumericData.firstPassStats.min)
+          assert(s.max === NumericData.firstPassStats.max)
         case None => assert(false)
       }
 

@@ -8,11 +8,12 @@ import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 import org.apache.spark.sql.catalyst.analysis.UnresolvedAttribute
 import org.apache.spark.sql.catalyst.expressions._
 import org.apache.spark.sql.types._
-import org.scalatest.{FunSpec, Matchers}
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
 import scala.util.Random
 
-class RangeCheckSpec extends FunSpec with Matchers with TestingSparkSession {
+class RangeCheckSpec extends AnyFunSpec with Matchers with TestingSparkSession {
   val schema = StructType(
     List(
       StructField("item", StringType),
@@ -28,7 +29,8 @@ class RangeCheckSpec extends FunSpec with Matchers with TestingSparkSession {
     Row("Cereal", 1.00, 1.10, 1.01)
   )
 
-  def mkDataFrame(spark: SparkSession, data: List[Row]): DataFrame = spark.createDataFrame(sc.parallelize(data), schema)
+  def mkDataFrame(spark: SparkSession, data: List[Row]): DataFrame =
+    spark.createDataFrame(sc.parallelize(data), schema)
 
   describe("RangeCheck") {
 
@@ -86,7 +88,7 @@ class RangeCheckSpec extends FunSpec with Matchers with TestingSparkSession {
 
       it("minValue less than maxValue fails configCheck") {
         val dict = new VarSubstitution
-        val maxValue = Math.abs(Random.nextInt(1000)) //scalastyle:ignore
+        val maxValue = Math.abs(Random.nextInt(1000)) // scalastyle:ignore
         val minValue = maxValue + 10
         val sut = RangeCheck("avg", Some(Json.fromInt(minValue)), Some(Json.fromInt(maxValue)), None, None)
         val df = mkDataFrame(spark, defData)
@@ -125,10 +127,11 @@ class RangeCheckSpec extends FunSpec with Matchers with TestingSparkSession {
       it("inclusive variable") {
         val dict = new VarSubstitution
         dict.add("inclusive", Json.fromBoolean(true))
-        val sut = RangeCheck("min", Some(Json.fromInt(0)), None, Some(Json.fromString("$inclusive")),
-          None)
-        assert(sut.substituteVariables(dict) ==
-          RangeCheck("min", Some(Json.fromInt(0)), None, Some(Json.fromBoolean(true)), None))
+        val sut = RangeCheck("min", Some(Json.fromInt(0)), None, Some(Json.fromString("$inclusive")), None)
+        assert(
+          sut.substituteVariables(dict) ==
+            RangeCheck("min", Some(Json.fromInt(0)), None, Some(Json.fromBoolean(true)), None)
+        )
         assert(!sut.failed)
       }
 
@@ -143,10 +146,11 @@ class RangeCheckSpec extends FunSpec with Matchers with TestingSparkSession {
       it("threshold") {
         val dict = new VarSubstitution
         dict.add("threshold", Json.fromString("10%"))
-        val sut = RangeCheck("min", Some(Json.fromInt(0)), None, Some(Json.fromBoolean(false)),
-          Some("$threshold"))
-        assert(sut.substituteVariables(dict) ==
-          RangeCheck("min", Some(Json.fromInt(0)), None, Some(Json.fromBoolean(false)), Some("10%")))
+        val sut = RangeCheck("min", Some(Json.fromInt(0)), None, Some(Json.fromBoolean(false)), Some("$threshold"))
+        assert(
+          sut.substituteVariables(dict) ==
+            RangeCheck("min", Some(Json.fromInt(0)), None, Some(Json.fromBoolean(false)), Some("10%"))
+        )
         assert(!sut.failed)
       }
     }
@@ -171,8 +175,10 @@ class RangeCheckSpec extends FunSpec with Matchers with TestingSparkSession {
         val maxValue = Math.abs(Random.nextDouble)
         val sut = RangeCheck("max", None, Json.fromDouble(maxValue), None, None)
         // TODO: Find better way to compare expressions.
-        assert(sut.colTest(schema, dict).sql ==
-          GreaterThanOrEqual(UnresolvedAttribute("max"), Literal.create(maxValue, DoubleType)).sql)
+        assert(
+          sut.colTest(schema, dict).sql ==
+            GreaterThanOrEqual(UnresolvedAttribute("max"), Literal.create(maxValue, DoubleType)).sql
+        )
       }
 
       it("maxValue inclusive") {
@@ -180,8 +186,10 @@ class RangeCheckSpec extends FunSpec with Matchers with TestingSparkSession {
         val maxValue = Math.abs(Random.nextDouble)
         val sut = RangeCheck("avg", None, Json.fromDouble(maxValue), Some(Json.fromBoolean(true)), None)
         // TODO: Find better way to compare expressions.
-        assert(sut.colTest(schema, dict).sql ==
-          GreaterThan(UnresolvedAttribute("avg"), Literal.create(maxValue, DoubleType)).sql)
+        assert(
+          sut.colTest(schema, dict).sql ==
+            GreaterThan(UnresolvedAttribute("avg"), Literal.create(maxValue, DoubleType)).sql
+        )
       }
 
       it("min and max value") {
@@ -189,9 +197,13 @@ class RangeCheckSpec extends FunSpec with Matchers with TestingSparkSession {
         val maxValue = Math.abs(Random.nextDouble)
         val sut = RangeCheck("avg", Some(Json.fromInt(0)), Json.fromDouble(maxValue), None, None)
         // TODO: Find better way to compare expressions.
-        assert(sut.colTest(schema, dict).sql ==
-          Or(LessThanOrEqual(UnresolvedAttribute("avg"), D0),
-            GreaterThanOrEqual(UnresolvedAttribute("avg"), Literal.create(maxValue, DoubleType))).sql)
+        assert(
+          sut.colTest(schema, dict).sql ==
+            Or(
+              LessThanOrEqual(UnresolvedAttribute("avg"), D0),
+              GreaterThanOrEqual(UnresolvedAttribute("avg"), Literal.create(maxValue, DoubleType))
+            ).sql
+        )
       }
     }
 
@@ -211,13 +223,15 @@ class RangeCheckSpec extends FunSpec with Matchers with TestingSparkSession {
       val json = io.circe.yaml.parser.parse(yaml).right.getOrElse(Json.Null)
       val sut = json.as[Array[ValidatorBase]]
       assert(sut.isRight)
-      assert(sut.right.get contains RangeCheck(
-        "prices",
-        Some(Json.fromInt(0)),
-        Some(Json.fromInt(100)), // scalastyle:ignore
-        Some(Json.fromBoolean(false)),
-        Some("10%")
-      ))
+      assert(
+        sut.right.get contains RangeCheck(
+          "prices",
+          Some(Json.fromInt(0)),
+          Some(Json.fromInt(100)), // scalastyle:ignore
+          Some(Json.fromBoolean(false)),
+          Some("10%")
+        )
+      )
     }
 
     describe("Basic Range check") {
@@ -225,105 +239,165 @@ class RangeCheckSpec extends FunSpec with Matchers with TestingSparkSession {
       it("finds errors in data ") {
         val dict = new VarSubstitution
         val df = mkDataFrame(spark, defData)
-        val sut = RangeCheck("max",
-          Some(Json.fromInt(6)), Some(Json.fromInt(10)), None, None) // scalastyle:ignore
-        val config = ValidatorConfig(0, 0, None, detailedErrors = false, None,
-          None, List(ValidatorDataFrame(df, None, None, sut :: Nil)))
+        val sut = RangeCheck("max", Some(Json.fromInt(6)), Some(Json.fromInt(10)), None, None) // scalastyle:ignore
+        val config = ValidatorConfig(
+          0,
+          0,
+          None,
+          detailedErrors = false,
+          None,
+          None,
+          List(ValidatorDataFrame(df, None, None, sut :: Nil))
+        )
         assert(!config.configCheck(spark, dict))
         assert(config.quickChecks(spark, dict))
         assert(sut.failed)
-        assert(sut.getEvents contains
-          ValidatorCheckEvent(failure = true, "RangeCheck on column 'max'", defData.length, defData.length))
+        assert(
+          sut.getEvents contains
+            ValidatorCheckEvent(failure = true, "RangeCheck on column 'max'", defData.length, defData.length)
+        )
       }
 
-      it ("detailed errors works") {
+      it("detailed errors works") {
         val dict = new VarSubstitution
         val df = mkDataFrame(spark, defData)
-        val sut = RangeCheck("max",
-          Some(Json.fromInt(6)), Some(Json.fromInt(10)), None, None) // scalastyle:ignore
-        val config = ValidatorConfig(2, 1, None, detailedErrors = false, None,
-          None, List(ValidatorDataFrame(df, None, None, sut :: Nil)))
+        val sut = RangeCheck("max", Some(Json.fromInt(6)), Some(Json.fromInt(10)), None, None) // scalastyle:ignore
+        val config = ValidatorConfig(
+          2,
+          1,
+          None,
+          detailedErrors = false,
+          None,
+          None,
+          List(ValidatorDataFrame(df, None, None, sut :: Nil))
+        )
         assert(!config.configCheck(spark, dict))
         assert(config.quickChecks(spark, dict))
         assert(sut.failed)
-        assert(sut.getEvents contains
-          ValidatorCheckEvent(failure = true, "RangeCheck on column 'max'", defData.length, defData.length))
+        assert(
+          sut.getEvents contains
+            ValidatorCheckEvent(failure = true, "RangeCheck on column 'max'", defData.length, defData.length)
+        )
       }
 
-      it ("report.json works") {
+      it("report.json works") {
         val dict = new VarSubstitution
         val df = mkDataFrame(spark, defData)
-        val sut = RangeCheck("max",
-          Some(Json.fromInt(6)), Some(Json.fromInt(10)), None, None) // scalastyle:ignore
-        val config = ValidatorConfig(1, 1, None, detailedErrors = true, None,
-          None, List(ValidatorDataFrame(df, None, None, sut :: Nil)))
+        val sut = RangeCheck("max", Some(Json.fromInt(6)), Some(Json.fromInt(10)), None, None) // scalastyle:ignore
+        val config = ValidatorConfig(
+          1,
+          1,
+          None,
+          detailedErrors = true,
+          None,
+          None,
+          List(ValidatorDataFrame(df, None, None, sut :: Nil))
+        )
         assert(!config.configCheck(spark, dict))
         assert(config.quickChecks(spark, dict))
         assert(sut.failed)
-        assert(sut.getEvents contains
-          ValidatorCheckEvent(failure = true, "RangeCheck on column 'max'", defData.length, defData.length))
-        assert(sut.getEvents contains
-          ValidatorQuickCheckError(("item", "Eggs") :: Nil, 5.99,
-            "RangeCheck failed! max = 5.99 and (('max <= 6.0) || ('max >= 10.0))"))
+        assert(
+          sut.getEvents contains
+            ValidatorCheckEvent(failure = true, "RangeCheck on column 'max'", defData.length, defData.length)
+        )
+        assert(
+          sut.getEvents contains
+            ValidatorQuickCheckError(
+              ("item", "Eggs") :: Nil,
+              5.99,
+              "RangeCheck failed! max = 5.99 and (('max <= 6.0) || ('max >= 10.0))"
+            )
+        )
       }
 
       it("toJson works") {
         val minValue = Random.nextInt(1000) // scalastyle:ignore
         val minJson = Json.fromInt(minValue)
         val maxJson = Json.fromInt(minValue + Random.nextInt(1000) + 1) // scalastyle:ignore
-        val sut = RangeCheck("max",
-          Some(minJson), Some(maxJson), None, None) // scalastyle:ignore
-        assert(sut.toJson == Json.obj(("type", Json.fromString("rangeCheck")),
-          ("column", Json.fromString("max")),
-          ("minValue", minJson),
-          ("maxValue", maxJson),
-          ("inclusive", Json.fromBoolean(false)),
-          ("events", Json.arr())
-        ))
+        val sut = RangeCheck("max", Some(minJson), Some(maxJson), None, None) // scalastyle:ignore
+        assert(
+          sut.toJson == Json.obj(
+            ("type", Json.fromString("rangeCheck")),
+            ("column", Json.fromString("max")),
+            ("minValue", minJson),
+            ("maxValue", maxJson),
+            ("inclusive", Json.fromBoolean(false)),
+            ("events", Json.arr())
+          )
+        )
       }
     }
 
-    describe ("Support column names for min/max value") {
+    describe("Support column names for min/max value") {
 
-      it ("specifying column names for min/max value") {
-        val sut = RangeCheck("avg", Some(Json.fromString("`min")),
-          Some(Json.fromString("`max")), Some(Json.fromBoolean(true)), None)
+      it("specifying column names for min/max value") {
+        val sut = RangeCheck(
+          "avg",
+          Some(Json.fromString("`min")),
+          Some(Json.fromString("`max")),
+          Some(Json.fromBoolean(true)),
+          None
+        )
         val dict = new VarSubstitution
         val df = mkDataFrame(spark, defData)
         assert(!sut.configCheck(df))
         assert(sut.colTest(df.schema, dict).sql == "((`avg` < `min`) OR (`avg` > `max`))")
       }
 
-      it ("bad minValue column") {
-        val sut = RangeCheck("avg", Some(Json.fromString("`minColumn")),
-          Some(Json.fromString("max")), Some(Json.fromBoolean(true)), None)
+      it("bad minValue column") {
+        val sut = RangeCheck(
+          "avg",
+          Some(Json.fromString("`minColumn")),
+          Some(Json.fromString("max")),
+          Some(Json.fromBoolean(true)),
+          None
+        )
         val dict = new VarSubstitution
         val df = mkDataFrame(spark, defData)
         assert(sut.configCheck(df))
       }
 
-      it ("bad maxValue column") {
-        val sut = RangeCheck("avg", Some(Json.fromString("`min")),
-          Some(Json.fromString("`maxColumn")), Some(Json.fromBoolean(true)), None)
+      it("bad maxValue column") {
+        val sut = RangeCheck(
+          "avg",
+          Some(Json.fromString("`min")),
+          Some(Json.fromString("`maxColumn")),
+          Some(Json.fromBoolean(true)),
+          None
+        )
         val dict = new VarSubstitution
         val df = mkDataFrame(spark, defData)
         assert(sut.configCheck(df))
       }
 
-      it ("full example") {
+      it("full example") {
         val dict = new VarSubstitution
         val df = mkDataFrame(spark, defData)
         val sut = RangeCheck("avg", Some(Json.fromString("`min")), Some(Json.fromString("`max")), None, None)
-        val config = ValidatorConfig(1, 1, None, detailedErrors = true, None,
-          None, List(ValidatorDataFrame(df, None, None, sut :: Nil)))
+        val config = ValidatorConfig(
+          1,
+          1,
+          None,
+          detailedErrors = true,
+          None,
+          None,
+          List(ValidatorDataFrame(df, None, None, sut :: Nil))
+        )
         assert(!config.configCheck(spark, dict))
         assert(config.quickChecks(spark, dict))
         assert(sut.failed)
-        assert(sut.getEvents contains
-          ValidatorCheckEvent(failure = true, "RangeCheck on column 'avg'", defData.length, defData.length - 2))
-        assert(sut.getEvents contains
-          ValidatorQuickCheckError(("item", "Bread") :: Nil, 0.99,
-            "RangeCheck failed! avg = 0.99 and (('avg <= 'min) || ('avg >= 'max))"))
+        assert(
+          sut.getEvents contains
+            ValidatorCheckEvent(failure = true, "RangeCheck on column 'avg'", defData.length, defData.length - 2)
+        )
+        assert(
+          sut.getEvents contains
+            ValidatorQuickCheckError(
+              ("item", "Bread") :: Nil,
+              0.99,
+              "RangeCheck failed! avg = 0.99 and (('avg <= 'min) || ('avg >= 'max))"
+            )
+        )
       }
 
     }

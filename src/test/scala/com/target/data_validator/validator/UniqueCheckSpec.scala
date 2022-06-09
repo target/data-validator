@@ -5,17 +5,18 @@ import com.target.data_validator._
 import io.circe.Json
 import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 import org.apache.spark.sql.types._
-import org.scalatest.{FunSpec, Matchers}
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
-class UniqueCheckSpec extends FunSpec with Matchers with TestingSparkSession {
+class UniqueCheckSpec extends AnyFunSpec with Matchers with TestingSparkSession {
 
-  val schema = StructType(List(StructField("item", StringType),
-    StructField("location", IntegerType),
-    StructField("price", DoubleType)))
+  val schema = StructType(
+    List(StructField("item", StringType), StructField("location", IntegerType), StructField("price", DoubleType))
+  )
 
-  val defData = List(Row("Eggs", 1, 4.00), Row("Milk", 1, 10.27),
-    Row("Eggs", 1, 5.00), Row("Eggs", 2, 2.00))
-  def mkDataFrame(spark: SparkSession, data: List[Row]): DataFrame = spark.createDataFrame(sc.parallelize(data), schema)
+  val defData = List(Row("Eggs", 1, 4.00), Row("Milk", 1, 10.27), Row("Eggs", 1, 5.00), Row("Eggs", 2, 2.00))
+  def mkDataFrame(spark: SparkSession, data: List[Row]): DataFrame =
+    spark.createDataFrame(sc.parallelize(data), schema)
 
   describe("fromJson") {
     it("create fromJson") {
@@ -34,7 +35,7 @@ class UniqueCheckSpec extends FunSpec with Matchers with TestingSparkSession {
     }
   }
 
-  describe ("substituteVariables") {
+  describe("substituteVariables") {
     it("replaces variables") {
       val dict = new VarSubstitution
       dict.addString("col1", "foo")
@@ -46,7 +47,7 @@ class UniqueCheckSpec extends FunSpec with Matchers with TestingSparkSession {
 
   }
 
-  describe ("configCheck") {
+  describe("configCheck") {
     it("good columns") {
       val sut = UniqueCheck(List("item", "location"))
       val df = mkDataFrame(spark, defData)
@@ -94,11 +95,16 @@ class UniqueCheckSpec extends FunSpec with Matchers with TestingSparkSession {
 
     it("generates correct json") {
       val sut = UniqueCheck(Seq("item"))
-      assert(sut.toJson == Json.fromFields(Seq(
-        ("type", Json.fromString("uniqueCheck")),
-        ("columns", Json.fromValues(List(Json.fromString("item")))),
-        ("failed", Json.fromBoolean(false)),
-        ("events", Json.fromValues(Seq.empty)))))
+      assert(
+        sut.toJson == Json.fromFields(
+          Seq(
+            ("type", Json.fromString("uniqueCheck")),
+            ("columns", Json.fromValues(List(Json.fromString("item")))),
+            ("failed", Json.fromBoolean(false)),
+            ("events", Json.fromValues(Seq.empty))
+          )
+        )
+      )
     }
   }
 
@@ -107,8 +113,15 @@ class UniqueCheckSpec extends FunSpec with Matchers with TestingSparkSession {
       val uc = UniqueCheck(List("item"))
       val dict = new VarSubstitution
       val df = mkDataFrame(spark, defData)
-      val sut = ValidatorConfig(1, 1, None, detailedErrors = false, None, None,
-        List(ValidatorDataFrame(df, None, None, List(uc))))
+      val sut = ValidatorConfig(
+        1,
+        1,
+        None,
+        detailedErrors = false,
+        None,
+        None,
+        List(ValidatorDataFrame(df, None, None, List(uc)))
+      )
 
       assert(!sut.configCheck(spark, dict))
       assert(!sut.quickChecks(spark, dict))
@@ -120,8 +133,15 @@ class UniqueCheckSpec extends FunSpec with Matchers with TestingSparkSession {
       val uc = UniqueCheck(List("price"))
       val dict = new VarSubstitution
       val df = mkDataFrame(spark, defData)
-      val sut = ValidatorConfig(1, 1, None, detailedErrors = false, None, None,
-        List(ValidatorDataFrame(df, None, None, List(uc))))
+      val sut = ValidatorConfig(
+        1,
+        1,
+        None,
+        detailedErrors = false,
+        None,
+        None,
+        List(ValidatorDataFrame(df, None, None, List(uc)))
+      )
 
       assert(!sut.configCheck(spark, dict))
       assert(!sut.costlyChecks(spark, dict))

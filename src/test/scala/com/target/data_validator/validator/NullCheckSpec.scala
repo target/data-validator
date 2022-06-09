@@ -3,17 +3,17 @@ package com.target.data_validator.validator
 import com.target.TestingSparkSession
 import com.target.data_validator.{ValidatorConfig, ValidatorDataFrame, ValidatorError}
 import com.target.data_validator.TestHelpers._
-import org.scalatest.{FunSpec, Matchers}
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
-class NullCheckSpec extends FunSpec with Matchers with TestingSparkSession {
+class NullCheckSpec extends AnyFunSpec with Matchers with TestingSparkSession {
 
   describe("NullCheck") {
     describe("config parsing") {
       it("basic config") {
-        val json = parseYaml(
-          """
-            |type: nullCheck
-            |column: foo
+        val json = parseYaml("""
+          |type: nullCheck
+          |column: foo
           """.stripMargin)
 
         val sut = JsonDecoders.decodeChecks.decodeJson(json)
@@ -21,21 +21,19 @@ class NullCheckSpec extends FunSpec with Matchers with TestingSparkSession {
       }
 
       it("optional threshold") {
-        val json = parseYaml(
-          """
-            |type: nullCheck
-            |column: foo
-            |threshold: 10.0%
+        val json = parseYaml("""
+          |type: nullCheck
+          |column: foo
+          |threshold: 10.0%
           """.stripMargin)
 
         val sut = JsonDecoders.decodeChecks.decodeJson(json)
         assert(sut == Right(NullCheck("foo", Some("10.0%"))))
       }
       it("config error") {
-        val json = parseYaml(
-          """
-            |type: nullCheck
-            |garbage
+        val json = parseYaml("""
+          |type: nullCheck
+          |garbage
           """.stripMargin)
 
         val sut = JsonDecoders.decodeChecks.decodeJson(json)
@@ -57,12 +55,20 @@ class NullCheckSpec extends FunSpec with Matchers with TestingSparkSession {
         val sut = NullCheck("$column", Some("$threshold"))
         assert(sut.substituteVariables(dict) == sut)
         assert(sut.failed)
-        assert(sut.getEvents contains
-          ValidatorError("VariableSubstitution: Can't find values for the following keys, "
-        + "column"))
-        assert(sut.getEvents contains
-          ValidatorError("VariableSubstitution: Can't find values for the following keys, "
-            + "threshold"))
+        assert(
+          sut.getEvents contains
+            ValidatorError(
+              "VariableSubstitution: Can't find values for the following keys, "
+                + "column"
+            )
+        )
+        assert(
+          sut.getEvents contains
+            ValidatorError(
+              "VariableSubstitution: Can't find values for the following keys, "
+                + "threshold"
+            )
+        )
       }
     }
 
@@ -75,8 +81,7 @@ class NullCheckSpec extends FunSpec with Matchers with TestingSparkSession {
       }
 
       it("Column doesn't exist") {
-        val df = mkDf(spark = spark, "item" -> List("Eggs"),
-          "price" -> List(0.99), "perishable" -> List(true))
+        val df = mkDf(spark = spark, "item" -> List("Eggs"), "price" -> List(0.99), "perishable" -> List(true))
         val sut = NullCheck("junk", None)
         assert(sut.configCheck(df))
         assert(sut.failed)
@@ -95,7 +100,7 @@ class NullCheckSpec extends FunSpec with Matchers with TestingSparkSession {
       }
 
       it("fails") {
-        val df = mkDf(spark, "item"-> List("item1", "item2", "item3", null)) // scalastyle:ignore
+        val df = mkDf(spark, "item" -> List("item1", "item2", "item3", null)) // scalastyle:ignore
         val sut = ValidatorDataFrame(df, None, None, List(NullCheck("item", None)))
         val config = ValidatorConfig(1, 1, None, false, None, None, List.empty)
         assert(sut.quickChecks(spark, mkDict())(config))
@@ -104,7 +109,7 @@ class NullCheckSpec extends FunSpec with Matchers with TestingSparkSession {
       }
 
       it("threshold success") {
-        val df = mkDf(spark, "item"-> List("item1", "item2", "item3", null)) // scalastyle:ignore
+        val df = mkDf(spark, "item" -> List("item1", "item2", "item3", null)) // scalastyle:ignore
         val sut = ValidatorDataFrame(df, None, None, List(NullCheck("item", Some("1"))))
         val config = ValidatorConfig(1, 1, None, false, None, None, List.empty)
         assert(!sut.quickChecks(spark, mkDict())(config))
@@ -113,7 +118,7 @@ class NullCheckSpec extends FunSpec with Matchers with TestingSparkSession {
       }
 
       it("threshold failure") {
-        val df = mkDf(spark, "item"-> List("item1", "item2", "item3", null, null)) // scalastyle:ignore
+        val df = mkDf(spark, "item" -> List("item1", "item2", "item3", null, null)) // scalastyle:ignore
         val sut = ValidatorDataFrame(df, None, None, List(NullCheck("item", Some("1"))))
         val config = ValidatorConfig(1, 1, None, false, None, None, List.empty)
         assert(sut.quickChecks(spark, mkDict())(config))

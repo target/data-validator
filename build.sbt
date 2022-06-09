@@ -1,5 +1,3 @@
-val circeVersion = "0.10.0"
-
 val scala211 = "2.11.12"
 val scala212 = "2.12.15"
 val scala213 = "2.13.8"
@@ -15,6 +13,9 @@ Global / onChangedBuildSource := ReloadOnSourceChanges
 // Enforces scalastyle checks
 val compileScalastyle = TaskKey[Unit]("compileScalastyle")
 val generateTestData = TaskKey[Unit]("generateTestData")
+
+val circeVersion = SettingKey[String]("circeVersion")
+val circeYamlVersion = SettingKey[String]("circeYamlVersion")
 
 /////////////
 // Publishing
@@ -34,17 +35,17 @@ lazy val commonSettings: SettingsDefinition = Def.settings(
   buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion),
   buildInfoPackage := "com.target.data_validator",
   libraryDependencies ++= Seq(
-    "com.typesafe.scala-logging" %% "scala-logging" % "3.8.0",
-    "com.github.scopt" %% "scopt" % "3.7.0",
+    "com.typesafe.scala-logging" %% "scala-logging" % "3.9.5",
+    "com.github.scopt" %% "scopt" % "4.0.1",
     "com.sun.mail" % "javax.mail" % "1.6.2",
-    "com.lihaoyi" %% "scalatags" % "0.6.7",
-    "io.circe" %% "circe-yaml" % "0.9.0",
-    "io.circe" %% "circe-core" % circeVersion,
-    "io.circe" %% "circe-generic" % circeVersion,
-    "io.circe" %% "circe-parser" % circeVersion,
+    "com.lihaoyi" %% "scalatags" % "0.11.1",
+    "io.circe" %% "circe-yaml" % circeYamlVersion.value,
+    "io.circe" %% "circe-core" % circeVersion.value,
+    "io.circe" %% "circe-generic" % circeVersion.value,
+    "io.circe" %% "circe-parser" % circeVersion.value,
     // "org.apache.spark" %% "spark-sql" % sparkVersion % Provided,
-    "org.scalatest" %% "scalatest" % "3.0.5" % Test,
-    "junit" % "junit" % "4.12" % Test,
+    "org.scalatest" %% "scalatest" % "3.2.12" % Test,
+    "junit" % "junit" % "4.13.2" % Test,
     "com.novocode" % "junit-interface" % "0.11" % Test exclude ("junit", "junit-dep")
   ),
   (Test / fork) := true,
@@ -86,6 +87,8 @@ lazy val root = (projectMatrix in file("."))
   .jvmPlatform(
     scalaVersions = Seq(scala211),
     settings = Seq(
+      circeVersion := "0.11.2",
+      circeYamlVersion := "0.10.1",
       libraryDependencies += "org.apache.spark" %% "spark-sql" % "2.3.4" % Provided,
       (Compile / runMain) := Defaults.runMainTask(Compile / fullClasspath, Compile / run / runner).evaluated,
       generateTestData := {
@@ -95,9 +98,17 @@ lazy val root = (projectMatrix in file("."))
   )
   .jvmPlatform(
     scalaVersions = Seq(scala212),
-    settings = Seq(libraryDependencies += "org.apache.spark" %% "spark-sql" % "2.4.8" % Provided)
+    settings = Seq(
+      circeVersion := "0.14.2",
+      circeYamlVersion := "0.14.1",
+      libraryDependencies += "org.apache.spark" %% "spark-sql" % "2.4.8" % Provided
+    )
   )
-  .jvmPlatform(
+/* .jvmPlatform(
     scalaVersions = Seq(scala213),
-    settings = Seq(libraryDependencies += "org.apache.spark" %% "spark-sql" % "3.2.1" % Provided)
-  )
+    settings = Seq(
+      circeVersion := "0.14.2",
+      circeYamlVersion := "0.14.1",
+      libraryDependencies += "org.apache.spark" %% "spark-sql" % "3.2.1" % Provided
+    )
+  ) */

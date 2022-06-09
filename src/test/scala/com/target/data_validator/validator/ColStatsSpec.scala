@@ -4,10 +4,11 @@ import com.target.TestingSparkSession
 import com.target.data_validator._
 import com.target.data_validator.stats._
 import io.circe.Json
-import org.scalatest._
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
 // scalastyle:off magic.number
-class ColStatsSpec extends FunSpec with Matchers with TestingSparkSession {
+class ColStatsSpec extends AnyFunSpec with Matchers with TestingSparkSession {
   import spark.implicits._
 
   describe("ColStats + ValidatorDataFrame") {
@@ -36,8 +37,8 @@ class ColStatsSpec extends FunSpec with Matchers with TestingSparkSession {
 
     it("should generate the appropriate ColStats entries in report.json") {
       val report = validatorConfig.genJsonReport(variables)(spark)
-      val summaries = report \\ "events" flatMap {
-        json => json.as[Seq[CompleteStats]] match {
+      val summaries = report \\ "events" flatMap { json =>
+        json.as[Seq[CompleteStats]] match {
           case Right(summary) => summary
           case _ => Seq.empty
         }
@@ -95,7 +96,8 @@ object ColStatsSpec {
         Bin(11.5, 13.399999999999999, 2),
         Bin(13.399999999999999, 15.299999999999999, 2),
         Bin(15.299999999999999, 17.2, 2),
-        Bin(17.2, 19.099999999999998, 2), Bin(19.099999999999998, 21.0, 2)
+        Bin(17.2, 19.099999999999998, 2),
+        Bin(19.099999999999998, 21.0, 2)
       )
     )
   )

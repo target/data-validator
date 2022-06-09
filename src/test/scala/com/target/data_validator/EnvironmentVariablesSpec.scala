@@ -1,9 +1,10 @@
 package com.target.data_validator
 
 import com.target.data_validator.EnvironmentVariables.{Inaccessible, Present, Unset}
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.wordspec.AnyWordSpec
+import org.scalatest.matchers.should.Matchers
 
-class EnvironmentVariablesSpec extends WordSpec with Matchers {
+class EnvironmentVariablesSpec extends AnyWordSpec with Matchers {
 
   "EnvironmentVariables" should {
     "get envvars" when {
@@ -20,11 +21,11 @@ class EnvironmentVariablesSpec extends WordSpec with Matchers {
     "log envvars" when {
       "using get" in {
         EnvironmentVariables.get("HOME")
-        EnvironmentVariables.accessedEnvVars.keySet should contain ("HOME")
+        EnvironmentVariables.accessedEnvVars.keySet should contain("HOME")
       }
       "using tryGet" in {
         EnvironmentVariables.tryGet("HOME")
-        EnvironmentVariables.accessedEnvVars.keySet should contain ("HOME")
+        EnvironmentVariables.accessedEnvVars.keySet should contain("HOME")
       }
     }
   }

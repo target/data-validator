@@ -5,9 +5,10 @@ import com.target.data_validator.TestHelpers.{mkConfig, mkDataFrame, mkDictJson}
 import com.target.data_validator.validator.NullCheck
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.types._
-import org.scalatest.{FunSpec, Matchers}
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
-class ValidatorTableSpec extends FunSpec with Matchers with TestingSparkSession {
+class ValidatorTableSpec extends AnyFunSpec with Matchers with TestingSparkSession {
 
   val schema = StructType(
     List(StructField("name", StringType), StructField("age", IntegerType), StructField("teamMember", BooleanType))
