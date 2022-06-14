@@ -18,7 +18,8 @@ jobs:
         # to get a token for publishing even when not executing the publish task. Most of the time, SHELL is set
         # but apparently not inside GitHub Actions runners. Setting _something invalid_ satisfies the
         # GitHub Packages plugin safely and allows the operation to proceed.
-        run: git config github.token unused
+        # We also have to initialize the git repo because we're not in a repo context when this runs.
+        run: git init . && git config github.token unused
       - name: Install JDK for Scala Steward use
         uses: actions/setup-java@v3
         with:
