@@ -35,12 +35,11 @@ libraryDependencies ++= Seq(
   "com.github.scopt" %% "scopt" % "3.7.0",
   "com.sun.mail" % "javax.mail" % "1.6.2",
   "com.lihaoyi" %% "scalatags" % "0.6.7",
-  "io.circe" %% "circe-yaml" % "0.9.0",
+  "io.circe" %% "circe-yaml" % "0.10.1",
   "io.circe" %% "circe-core" % circeVersion,
   "io.circe" %% "circe-generic" % circeVersion,
   "io.circe" %% "circe-parser" % circeVersion,
   "org.apache.spark" %% "spark-sql" % sparkVersion % Provided,
-
   "org.scalatest" %% "scalatest" % "3.0.5" % Test,
   "junit" % "junit" % "4.12" % Test,
   "com.novocode" % "junit-interface" % "0.11" % Test exclude ("junit", "junit-dep")
