@@ -3,7 +3,7 @@ organization := "com.target"
 
 scalaVersion := "2.11.12"
 
-val sparkVersion = "2.3.4"
+val sparkVersion = "2.4.8"
 
 val circeVersion = "0.10.1"
 
