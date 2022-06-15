@@ -3,9 +3,9 @@ organization := "com.target"
 
 scalaVersion := "2.11.12"
 
-val sparkVersion = "2.3.1"
+val sparkVersion = "2.3.4"
 
-val circeVersion = "0.10.0"
+val circeVersion = "0.10.1"
 
 //addDependencyTreePlugin
 enablePlugins(GitVersioning)
@@ -40,7 +40,7 @@ libraryDependencies ++= Seq(
   "io.circe" %% "circe-generic" % circeVersion,
   "io.circe" %% "circe-parser" % circeVersion,
   "org.apache.spark" %% "spark-sql" % sparkVersion % Provided,
-  "org.scalatest" %% "scalatest" % "3.0.9" % Test,
+  "org.scalatest" %% "scalatest" % "3.0.5" % Test,
   "junit" % "junit" % "4.12" % Test,
   "com.novocode" % "junit-interface" % "0.11" % Test exclude ("junit", "junit-dep")
 )
