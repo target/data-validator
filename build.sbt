@@ -5,7 +5,7 @@ scalaVersion := "2.11.12"
 
 val sparkVersion = "2.3.4"
 
-val circeVersion = "0.10.1"
+val circeVersion = "0.11.2"
 
 //addDependencyTreePlugin
 enablePlugins(GitVersioning)
