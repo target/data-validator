@@ -3,9 +3,9 @@ organization := "com.target"
 
 scalaVersion := "2.11.12"
 
-val sparkVersion = "2.3.1"
+val sparkVersion = "2.3.4"
 
-val circeVersion = "0.10.0"
+val circeVersion = "0.10.1"
 
 //addDependencyTreePlugin
 enablePlugins(GitVersioning)
@@ -32,17 +32,17 @@ buildInfoPackage := "com.target.data_validator"
 
 libraryDependencies ++= Seq(
   "com.typesafe.scala-logging" %% "scala-logging" % "3.8.0",
-  "com.github.scopt" %% "scopt" % "3.7.0",
+  "com.github.scopt" %% "scopt" % "3.7.1",
   "com.sun.mail" % "javax.mail" % "1.6.2",
-  "com.lihaoyi" %% "scalatags" % "0.6.7",
-  "io.circe" %% "circe-yaml" % "0.9.0",
+  "com.lihaoyi" %% "scalatags" % "0.6.8",
+  "io.circe" %% "circe-yaml" % "0.10.1",
   "io.circe" %% "circe-core" % circeVersion,
   "io.circe" %% "circe-generic" % circeVersion,
   "io.circe" %% "circe-parser" % circeVersion,
   "org.apache.spark" %% "spark-sql" % sparkVersion % Provided,
-  "org.scalatest" %% "scalatest" % "3.0.5" % Test,
   "junit" % "junit" % "4.13.2" % Test,
-  "com.novocode" % "junit-interface" % "0.11" % Test exclude ("junit", "junit-dep")
+  "org.scalatest" %% "scalatest" % "3.0.9" % Test,
+  "com.github.sbt" % "junit-interface" % "0.13.3" % Test exclude ("junit", "junit-dep")
 )
 
 Test / fork := true
