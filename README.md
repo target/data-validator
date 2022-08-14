@@ -11,12 +11,33 @@ A tool to validate data in Spark
 
 ### Retrieving official releases via direct download or Maven-compatible dependency retrieval, e.g. `spark-submit`
 
-Get the latest version from [GitHub Packages](https://github.com/orgs/target/packages?repo_name=data-validator)
-for the project.
-You can pull in the dependency using Spark's `--repositories`, `--packages`, and `--mainClass`
-options.
-Instructions for those will be added to this document in the future, as it requires some Ivy settings
-configuration that is non-trivial at the moment due to GitHub Packages requiring authentication.
+You can make the jars available in one of two ways for the [example run invocations below](#example-run):
+
+1. Get the latest version from [GitHub Packages](https://github.com/orgs/target/packages?repo_name=data-validator)
+   for the project. Place the jars somewhere and pass their path to `--jars` when running `spark-submit`.
+
+1. You can pull in the dependency using `spark-submit`'s `--repositories`, `--packages`, and `--mainClass`
+   options, but it requires setting `spark.jars.ivySettings` and providing this file, populated with a valid
+   [personal access token](https://github.com/settings/tokens) having the `read:packages` scope enabled.
+   N.b. it can be a challenge to secure this file on shared clusters; consider using a public GitHub
+   service account instead of a token from your own personal GitHub account.
+
+    ```xml
+    <ivysettings>
+      <settings defaultResolver="thechain">
+        <credentials host="maven.pkg.github.com" realm="GitHub Package Registry"
+                     username="${GITHUB_PACKAGES_USER}" passwd="${GITHUB_PACKAGES_USER_TOKEN}" />
+      </settings>
+      <resolvers>
+        <chain name="thechain">
+          <ibiblio name="central" m2compatible="true" root="https://repo1.maven.org/maven2" />
+          <!-- add any other repositories here -->
+          <ibiblio name="ghp-dv" m2compatible="true" root="https://maven.pkg.github.com/target/data-validator"/>
+        </chain>
+      </resolvers>
+    </ivysettings>
+    ```
+
 
 ### Building locally
 
@@ -45,11 +66,27 @@ Usage: data-validator [options]
 
 ## Example Run
 
+With the JAR directly:
+
 ```bash
 spark-submit \
   --num-executors 10 \
   --executor-cores 2 \
-  data-validator-assembly-0.13.2.jar \
+  data-validator-assembly-0.14.1.jar \
+  --config config.yaml \
+  --jsonReport report.json
+```
+
+Using packages loading, having created `dv-ivy.xml` as suggested above
+and having replaced the placeholders in the example:
+
+```bash
+touch empty.file && \
+spark-submit \
+  --class com.target.data_validator.Main \
+  --packages com.target:data-validator_2.11:0.14.1 \
+  --conf spark.jars.ivySettings=$(pwd)/dv-ivy.xml \ 
+  empty.file \
   --config config.yaml \
   --jsonReport report.json
 ```
@@ -512,7 +549,7 @@ Example oozie wf snippet:
       <argument>${principal}</argument>
       <argument>--files</argument>
       <argument>config.yaml</argument>
-      <argument>data-validator-assembly-0.13.0.jar</argument>
+      <argument>data-validator-assembly-0.14.1.jar</argument>
       <argument>--config</argument>
       <argument>config.yaml</argument>
       <argument>--exitErrorOnFail</argument>
@@ -560,7 +597,7 @@ Example oozie wf snippet:
     <argument>${keytab}</argument>
     <argument>--principal</argument>
     <argument>${principal}</argument>
-    <argument>data-validator-assembly-0.13.0.jar</argument>
+    <argument>data-validator-assembly-0.14.1.jar</argument>
     <argument>--config</argument>
     <argument>config.yaml</argument>
     <argument>--exitErrorOnFail</argument>
@@ -605,7 +642,7 @@ is parseable. It _does not_ validate variable substitutions since those have run
 spark-submit \
   --class com.target.data_validator.ConfigParser \
   --files config.yml \
-  data-validator-assembly.jar \
+  data-validator-assembly-0.14.1.jar \
     config.yml
 ```
 
@@ -624,7 +661,7 @@ It will generate a `report.json` and `report.html`.
 ```sh
 spark-submit \
   --master "local[*]"  \
-  data-validator-assembly-0.13.0.jar \
+  data-validator-assembly-0.14.1.jar \
   --config local_validators.yaml \
   --jsonReport report.json  \
   --htmlReport report.html
