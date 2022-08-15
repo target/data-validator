@@ -32,19 +32,23 @@ class VarSubstitutionSpec extends FunSpec with Matchers {
 
     it("missing var produces error") {
       val dict = new VarSubstitution
-      assert(dict.replaceVars("The quick $color fox.") ==
-        Right(ValidatorError("VariableSubstitution: Can't find values for the following keys, color")))
+      assert(
+        dict.replaceVars("The quick $color fox.") ==
+          Right(ValidatorError("VariableSubstitution: Can't find values for the following keys, color"))
+      )
     }
 
     it("missing scala var produces error") {
       val dict = new VarSubstitution
-      assert(dict.replaceVars("The quick ${color} fox.") ==
-        Right(ValidatorError("VariableSubstitution: Can't find values for the following keys, color")))
+      assert(
+        dict.replaceVars("The quick ${color} fox.") ==
+          Right(ValidatorError("VariableSubstitution: Can't find values for the following keys, color"))
+      )
     }
 
     it("adding map works") {
       val dict = new VarSubstitution
-      dict.addMap(Map[String, String]("one"-> "1", "two"-> "2"))
+      dict.addMap(Map[String, String]("one" -> "1", "two" -> "2"))
       assert(dict.dict.size == 2)
       assert(dict.replaceVars("$one, $two") == Left("1, 2"))
     }

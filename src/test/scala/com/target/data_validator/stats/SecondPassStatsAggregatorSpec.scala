@@ -14,7 +14,8 @@ class SecondPassStatsAggregatorSpec extends FunSpec with Matchers with TestingSp
       val stats1 = NumericData.firstPassStats
       val agg2 = new SecondPassStatsAggregator(stats1)
 
-      val stats2 = data.select(agg2(data("value1")).as("stats"))
+      val stats2 = data
+        .select(agg2(data("value1")).as("stats"))
         .select(
           "stats.stdDev",
           "stats.histogram"

@@ -104,7 +104,7 @@ class ConfigVarSpec extends FunSpec with Matchers with TestingSparkSession {
         val sut = NameShell("one", "echo 1")
         val varSub = new VarSubstitution
         assert(!sut.addEntry(spark, varSub))
-        assert(varSub.dict("one") ==  Json.fromInt(1))
+        assert(varSub.dict("one") == Json.fromInt(1))
       }
 
       it("asJson works") {
@@ -135,8 +135,10 @@ class ConfigVarSpec extends FunSpec with Matchers with TestingSparkSession {
         val varSub = new VarSubstitution
         assert(sut.addEntry(spark, varSub))
         assert(!varSub.dict.contains("one"))
-        assert(EventLog.events contains
-          ValidatorError("NameShell(one, echo 1 && false) Ran but returned exitCode: 1 stderr: "))
+        assert(
+          EventLog.events contains
+            ValidatorError("NameShell(one, echo 1 && false) Ran but returned exitCode: 1 stderr: ")
+        )
       }
 
       it("variable substitution in command works") {

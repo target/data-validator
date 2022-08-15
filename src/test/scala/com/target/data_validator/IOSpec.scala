@@ -13,12 +13,14 @@ class IOSpec extends FunSpec with Matchers with TestingSparkSession {
   val SAMPLE_HTML = html(h1("H1"), "Sample HTML Doc")
   val SAMPLE_JSON: Json = parser
     .parse("""{
-             | "one" : 1,
-             | "two" : [ 1,2 ],
-             | "three": { "a":1.0,"b":2.0,"c":3.0 }
-             |}
-           """.stripMargin).right.getOrElse(Json.Null)
-  
+      | "one" : 1,
+      | "two" : [ 1,2 ],
+      | "three": { "a":1.0,"b":2.0,"c":3.0 }
+      |}
+           """.stripMargin)
+    .right
+    .getOrElse(Json.Null)
+
   def createRandomTempFilename: String = {
     val useDefault = null
     val file = Files.createTempFile("data-validator_temp", useDefault)
@@ -49,7 +51,7 @@ class IOSpec extends FunSpec with Matchers with TestingSparkSession {
     it("file:/// should be able to write") {
       val baseFilename = createRandomTempFilename
       val filename = "file://" + baseFilename
-      val data = List.fill(128)(nextPrintableChar).mkString + IO.NEW_LINE //scalastyle:ignore
+      val data = List.fill(128)(nextPrintableChar).mkString + IO.NEW_LINE // scalastyle:ignore
       assert(!IO.writeString(filename, data)(spark))
       fromFile(baseFilename).mkString should be(data)
       assert(rm(baseFilename))

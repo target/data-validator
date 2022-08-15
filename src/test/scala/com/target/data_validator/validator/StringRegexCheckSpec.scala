@@ -23,7 +23,7 @@ class StringRegexCheckSpec extends FunSpec with Matchers with TestingSparkSessio
     Row("Item23", 5.35),
     Row("I", 1.00),
     Row(null, 1.00), // scalastyle:ignore
-    Row(null, 2.00)  // scalastyle:ignore
+    Row(null, 2.00) // scalastyle:ignore
   )
 
   describe("StringRegexCheck") {
@@ -74,7 +74,8 @@ class StringRegexCheckSpec extends FunSpec with Matchers with TestingSparkSessio
       }
 
       it("substitute with threshold") {
-        val dict = mkParams(List(("column", "item"), ("regex", "I%"), ("threshold", Json.fromInt(100)))) // scalastyle:ignore
+        val dict =
+          mkParams(List(("column", "item"), ("regex", "I%"), ("threshold", Json.fromInt(100)))) // scalastyle:ignore
         val sut = StringRegexCheck("$column", Some(Json.fromString("${regex}")), Some("${threshold}"))
         assert(sut.substituteVariables(dict) == StringRegexCheck("item", Some(Json.fromString("I%")), Some("100")))
         assert(!sut.failed)
@@ -85,9 +86,11 @@ class StringRegexCheckSpec extends FunSpec with Matchers with TestingSparkSessio
 
       it("regex pattern ab%") {
         val sut = StringRegexCheck("item", Some(Json.fromString("ab%")), None)
-        assert(sut.colTest(schema, mkParams()).sql == And(
-          Not(RLike(UnresolvedAttribute("item"), Literal.create("ab%", StringType))),
-          IsNotNull(UnresolvedAttribute("item"))).sql
+        assert(
+          sut.colTest(schema, mkParams()).sql == And(
+            Not(RLike(UnresolvedAttribute("item"), Literal.create("ab%", StringType))),
+            IsNotNull(UnresolvedAttribute("item"))
+          ).sql
         )
       }
     }
@@ -157,58 +160,107 @@ class StringRegexCheckSpec extends FunSpec with Matchers with TestingSparkSessio
         val dict = mkParams()
         val df = mkDataFrame(spark, defData, schema)
         val sut = StringRegexCheck("item", Some(Json.fromString("^It")), None) // scalastyle:ignore
-        val config = ValidatorConfig(1, 2, None, detailedErrors = true, None,
-          None, List(ValidatorDataFrame(df, None, None, sut :: Nil)))
+        val config = ValidatorConfig(
+          1,
+          2,
+          None,
+          detailedErrors = true,
+          None,
+          None,
+          List(ValidatorDataFrame(df, None, None, sut :: Nil))
+        )
         assert(!config.configCheck(spark, dict))
         assert(config.quickChecks(spark, dict))
         assert(sut.failed)
-        assert(sut.getEvents contains
-          ValidatorCheckEvent(failure = true, "StringRegexCheck on column 'item'", 5, 1)) // scalastyle:ignore
+        assert(
+          sut.getEvents contains
+            ValidatorCheckEvent(failure = true, "StringRegexCheck on column 'item'", 5, 1)
+        ) // scalastyle:ignore
 
-        assert(sut.getEvents contains
-          ValidatorQuickCheckError(("item", "I") :: Nil, "I",
-            "StringRegexCheck failed! item = I and (NOT 'item RLIKE ^It && isnotnull('item))"))
+        assert(
+          sut.getEvents contains
+            ValidatorQuickCheckError(
+              ("item", "I") :: Nil,
+              "I",
+              "StringRegexCheck failed! item = I and (NOT 'item RLIKE ^It && isnotnull('item))"
+            )
+        )
       }
 
       it("String regex check fails : numFailures=2 : numFailuresToReport=2") {
         val dict = mkParams()
         val df = mkDataFrame(spark, defData, schema)
         val sut = StringRegexCheck("item", Some(Json.fromString("^Item2")), None) // scalastyle:ignore
-        val config = ValidatorConfig(1, 2, None, detailedErrors = true, None,
-          None, List(ValidatorDataFrame(df, None, None, sut :: Nil)))
+        val config = ValidatorConfig(
+          1,
+          2,
+          None,
+          detailedErrors = true,
+          None,
+          None,
+          List(ValidatorDataFrame(df, None, None, sut :: Nil))
+        )
         assert(!config.configCheck(spark, dict))
         assert(config.quickChecks(spark, dict))
         assert(sut.failed)
-        assert(sut.getEvents contains
-          ValidatorCheckEvent(failure = true, "StringRegexCheck on column 'item'", 5, 2)) // scalastyle:ignore
+        assert(
+          sut.getEvents contains
+            ValidatorCheckEvent(failure = true, "StringRegexCheck on column 'item'", 5, 2)
+        ) // scalastyle:ignore
 
-        assert(sut.getEvents contains
-          ValidatorQuickCheckError(("item", "I") :: Nil, "I",
-            "StringRegexCheck failed! item = I and (NOT 'item RLIKE ^Item2 && isnotnull('item))"))
+        assert(
+          sut.getEvents contains
+            ValidatorQuickCheckError(
+              ("item", "I") :: Nil,
+              "I",
+              "StringRegexCheck failed! item = I and (NOT 'item RLIKE ^Item2 && isnotnull('item))"
+            )
+        )
 
-        assert(sut.getEvents contains
-          ValidatorQuickCheckError(("item", "Item1") :: Nil, "Item1",
-            "StringRegexCheck failed! item = Item1 and (NOT 'item RLIKE ^Item2 && isnotnull('item))"))
+        assert(
+          sut.getEvents contains
+            ValidatorQuickCheckError(
+              ("item", "Item1") :: Nil,
+              "Item1",
+              "StringRegexCheck failed! item = Item1 and (NOT 'item RLIKE ^Item2 && isnotnull('item))"
+            )
+        )
       }
 
       it("String regex check fails : numFailures=2 : numFailuresToReport=1") {
         val dict = mkParams()
         val df = mkDataFrame(spark, defData, schema)
         val sut = StringRegexCheck("item", Some(Json.fromString("^Item2")), None) // scalastyle:ignore
-        val config = ValidatorConfig(1, 1, None, detailedErrors = true, None,
-          None, List(ValidatorDataFrame(df, None, None, sut :: Nil)))
+        val config = ValidatorConfig(
+          1,
+          1,
+          None,
+          detailedErrors = true,
+          None,
+          None,
+          List(ValidatorDataFrame(df, None, None, sut :: Nil))
+        )
         assert(!config.configCheck(spark, dict))
         assert(config.quickChecks(spark, dict))
         assert(sut.failed)
-        assert(sut.getEvents contains
-          ValidatorCheckEvent(failure = true, "StringRegexCheck on column 'item'", 5, 2)) // scalastyle:ignore
+        assert(
+          sut.getEvents contains
+            ValidatorCheckEvent(failure = true, "StringRegexCheck on column 'item'", 5, 2)
+        ) // scalastyle:ignore
 
-        assert((sut.getEvents contains
-          ValidatorQuickCheckError(("item", "I") :: Nil, "I",
-            "StringRegexCheck failed! item = I and (NOT 'item RLIKE ^Item2 && isnotnull('item))")) ^
+        assert(
           (sut.getEvents contains
-            ValidatorQuickCheckError(("item", "Item1") :: Nil, "Item1",
-              "StringRegexCheck failed! item = Item1 and (NOT 'item RLIKE ^Item2 && isnotnull('item))"))
+            ValidatorQuickCheckError(
+              ("item", "I") :: Nil,
+              "I",
+              "StringRegexCheck failed! item = I and (NOT 'item RLIKE ^Item2 && isnotnull('item))"
+            )) ^
+            (sut.getEvents contains
+              ValidatorQuickCheckError(
+                ("item", "Item1") :: Nil,
+                "Item1",
+                "StringRegexCheck failed! item = Item1 and (NOT 'item RLIKE ^Item2 && isnotnull('item))"
+              ))
         )
       }
 
@@ -216,26 +268,44 @@ class StringRegexCheckSpec extends FunSpec with Matchers with TestingSparkSessio
         val dict = mkParams()
         val df = mkDataFrame(spark, defData, schema)
         val sut = StringRegexCheck("item", Some(Json.fromString("^I")), None) // scalastyle:ignore
-        val config = ValidatorConfig(1, 2, None, detailedErrors = true, None,
-          None, List(ValidatorDataFrame(df, None, None, sut :: Nil)))
+        val config = ValidatorConfig(
+          1,
+          2,
+          None,
+          detailedErrors = true,
+          None,
+          None,
+          List(ValidatorDataFrame(df, None, None, sut :: Nil))
+        )
         assert(!config.configCheck(spark, dict))
         assert(!config.quickChecks(spark, dict))
         assert(!sut.failed)
-        assert(sut.getEvents contains
-          ValidatorCheckEvent(failure = false, "StringRegexCheck on column 'item'", 5, 0)) // scalastyle:ignore
+        assert(
+          sut.getEvents contains
+            ValidatorCheckEvent(failure = false, "StringRegexCheck on column 'item'", 5, 0)
+        ) // scalastyle:ignore
       }
 
       it("String regex check passes 2") {
         val dict = mkParams()
         val df = mkDataFrame(spark, defData, schema)
         val sut = StringRegexCheck("item", Some(Json.fromString("\\w")), None) // scalastyle:ignore
-        val config = ValidatorConfig(1, 2, None, detailedErrors = true, None,
-          None, List(ValidatorDataFrame(df, None, None, sut :: Nil)))
+        val config = ValidatorConfig(
+          1,
+          2,
+          None,
+          detailedErrors = true,
+          None,
+          None,
+          List(ValidatorDataFrame(df, None, None, sut :: Nil))
+        )
         assert(!config.configCheck(spark, dict))
         assert(!config.quickChecks(spark, dict))
         assert(!sut.failed)
-        assert(sut.getEvents contains
-          ValidatorCheckEvent(failure = false, "StringRegexCheck on column 'item'", 5, 0)) // scalastyle:ignore
+        assert(
+          sut.getEvents contains
+            ValidatorCheckEvent(failure = false, "StringRegexCheck on column 'item'", 5, 0)
+        ) // scalastyle:ignore
       }
 
     }

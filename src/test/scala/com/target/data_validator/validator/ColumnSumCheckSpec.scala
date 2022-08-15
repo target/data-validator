@@ -24,11 +24,11 @@ class ColumnSumCheckSpec extends FunSpec with Matchers with TestingSparkSession 
       it("lower bound is optional") {
         val json = parseYaml(
           s"""
-             |type: columnSumCheck
-             |column: foo
-             |maxValue: 3.14
-             |inclusive: true
-             |""".stripMargin
+            |type: columnSumCheck
+            |column: foo
+            |maxValue: 3.14
+            |inclusive: true
+            |""".stripMargin
         )
         val sut = JsonDecoders.decodeChecks.decodeJson(json)
         assert(sut == Right(columnSumCheck.copy(minValue = None)))
@@ -37,11 +37,11 @@ class ColumnSumCheckSpec extends FunSpec with Matchers with TestingSparkSession 
       it("upper bound is optional") {
         val json = parseYaml(
           s"""
-             |type: columnSumCheck
-             |column: foo
-             |minValue: 2
-             |inclusive: true
-             |""".stripMargin
+            |type: columnSumCheck
+            |column: foo
+            |minValue: 2
+            |inclusive: true
+            |""".stripMargin
         )
         val sut = JsonDecoders.decodeChecks.decodeJson(json)
         assert(sut == Right(columnSumCheck.copy(maxValue = None)))
@@ -50,11 +50,11 @@ class ColumnSumCheckSpec extends FunSpec with Matchers with TestingSparkSession 
       it("inclusive is optional") {
         val json = parseYaml(
           s"""
-             |type: columnSumCheck
-             |column: foo
-             |minValue: 2
-             |maxValue: 3.14
-             |""".stripMargin
+            |type: columnSumCheck
+            |column: foo
+            |minValue: 2
+            |maxValue: 3.14
+            |""".stripMargin
         )
         val sut = JsonDecoders.decodeChecks.decodeJson(json)
         assert(sut == Right(columnSumCheck.copy(inclusive = None)))
@@ -63,11 +63,11 @@ class ColumnSumCheckSpec extends FunSpec with Matchers with TestingSparkSession 
       it("column is required") {
         val json = parseYaml(
           s"""
-             |type: columnSumCheck
-             |minValue: 2
-             |maxValue: 3.14
-             |inclusive: false
-             |""".stripMargin
+            |type: columnSumCheck
+            |minValue: 2
+            |maxValue: 3.14
+            |inclusive: false
+            |""".stripMargin
         )
         val sut = JsonDecoders.decodeChecks.decodeJson(json)
         assert(sut.isLeft)
@@ -127,8 +127,9 @@ class ColumnSumCheckSpec extends FunSpec with Matchers with TestingSparkSession 
         val sut = columnSumCheck.copy(inclusive = Some(Json.fromString("bar")))
         assert(sut.configCheck(df))
         assert(sut.failed)
-        assert(sut.getEvents contains
-          ValidatorError("'inclusive' defined but type is not Boolean, is: String")
+        assert(
+          sut.getEvents contains
+            ValidatorError("'inclusive' defined but type is not Boolean, is: String")
         )
       }
 
@@ -187,16 +188,18 @@ class ColumnSumCheckSpec extends FunSpec with Matchers with TestingSparkSession 
         val sut = ValidatorDataFrame(df, None, None, List(check))
         assert(sut.quickChecks(spark, mkDict())(config))
         assert(sut.failed)
-        assert(check.getEvents contains ColumnBasedValidatorCheckEvent(
-          failure = true,
-          ListMap(
-            "lower_bound" -> "6",
-            "inclusive" -> "false",
-            "actual" -> "6",
-            "relative_error" -> "undefined"
-          ),
-          "columnSumCheck on foo[LongType]: Expected Range: (6, ) Actual: 6 Relative Error: undefined"
-        ))
+        assert(
+          check.getEvents contains ColumnBasedValidatorCheckEvent(
+            failure = true,
+            ListMap(
+              "lower_bound" -> "6",
+              "inclusive" -> "false",
+              "actual" -> "6",
+              "relative_error" -> "undefined"
+            ),
+            "columnSumCheck on foo[LongType]: Expected Range: (6, ) Actual: 6 Relative Error: undefined"
+          )
+        )
       }
 
       it("lower bound inclusive success") {
@@ -234,16 +237,18 @@ class ColumnSumCheckSpec extends FunSpec with Matchers with TestingSparkSession 
         val sut = ValidatorDataFrame(df, None, None, List(check))
         assert(sut.quickChecks(spark, mkDict())(config))
         assert(sut.failed)
-        assert(check.getEvents contains ColumnBasedValidatorCheckEvent(
-          failure = true,
-          ListMap(
-            "upper_bound" -> "1.0",
-            "inclusive" -> "false",
-            "actual" -> "3",
-            "relative_error" -> "200.00%"
-          ),
-          "columnSumCheck on foo[LongType]: Expected Range: ( , 1.0) Actual: 3 Relative Error: 200.00%"
-        ))
+        assert(
+          check.getEvents contains ColumnBasedValidatorCheckEvent(
+            failure = true,
+            ListMap(
+              "upper_bound" -> "1.0",
+              "inclusive" -> "false",
+              "actual" -> "3",
+              "relative_error" -> "200.00%"
+            ),
+            "columnSumCheck on foo[LongType]: Expected Range: ( , 1.0) Actual: 3 Relative Error: 200.00%"
+          )
+        )
       }
 
       it("upper bound inclusive success") {
@@ -280,17 +285,19 @@ class ColumnSumCheckSpec extends FunSpec with Matchers with TestingSparkSession 
         val sut = ValidatorDataFrame(df, None, None, List(check))
         assert(sut.quickChecks(spark, mkDict())(config))
         assert(sut.failed)
-        assert(check.getEvents contains ColumnBasedValidatorCheckEvent(
-          failure = true,
-          ListMap(
-            "lower_bound" -> "0",
-            "upper_bound" -> "2",
-            "inclusive" -> "false",
-            "actual" -> "2",
-            "relative_error" -> "undefined"
-          ),
-          "columnSumCheck on foo[LongType]: Expected Range: (0, 2) Actual: 2 Relative Error: undefined"
-        ))
+        assert(
+          check.getEvents contains ColumnBasedValidatorCheckEvent(
+            failure = true,
+            ListMap(
+              "lower_bound" -> "0",
+              "upper_bound" -> "2",
+              "inclusive" -> "false",
+              "actual" -> "2",
+              "relative_error" -> "undefined"
+            ),
+            "columnSumCheck on foo[LongType]: Expected Range: (0, 2) Actual: 2 Relative Error: undefined"
+          )
+        )
       }
 
       it("upper and lower bound inclusive failure") {
@@ -304,17 +311,19 @@ class ColumnSumCheckSpec extends FunSpec with Matchers with TestingSparkSession 
         val sut = ValidatorDataFrame(df, None, None, List(check))
         assert(sut.quickChecks(spark, mkDict())(config))
         assert(sut.failed)
-        assert(check.getEvents contains ColumnBasedValidatorCheckEvent(
-          failure = true,
-          ListMap(
-            "lower_bound" -> "10",
-            "upper_bound" -> "20",
-            "inclusive" -> "true",
-            "actual" -> "3",
-            "relative_error" -> "70.00%"
-          ),
-          "columnSumCheck on foo[LongType]: Expected Range: [10, 20] Actual: 3 Relative Error: 70.00%"
-        ))
+        assert(
+          check.getEvents contains ColumnBasedValidatorCheckEvent(
+            failure = true,
+            ListMap(
+              "lower_bound" -> "10",
+              "upper_bound" -> "20",
+              "inclusive" -> "true",
+              "actual" -> "3",
+              "relative_error" -> "70.00%"
+            ),
+            "columnSumCheck on foo[LongType]: Expected Range: [10, 20] Actual: 3 Relative Error: 70.00%"
+          )
+        )
       }
 
       it("upper bound and lower inclusive success") {

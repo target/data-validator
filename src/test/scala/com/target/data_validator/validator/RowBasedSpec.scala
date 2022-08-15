@@ -32,7 +32,9 @@ class RowBasedSpec extends FunSpec with Matchers with TestingSparkSession {
 
     it("should be able to be configured from json/YAML") {
       val json = """{ "type": "negativeCheck", "column": "med_regular_price" }"""
-      assert(decode[ValidatorBase](json)(JsonDecoders.decodeChecks) == Right(NegativeCheck("med_regular_price", None)))
+      assert(
+        decode[ValidatorBase](json)(JsonDecoders.decodeChecks) == Right(NegativeCheck("med_regular_price", None))
+      )
     }
 
     it("should fail with negative data") {
@@ -95,12 +97,14 @@ class RowBasedSpec extends FunSpec with Matchers with TestingSparkSession {
       assert(sut.quickChecks(spark, dict))
       assert(sut.failed)
       assert(vTable.getEvents.exists(_.failed))
-      assert(vTable.checks.flatMap(_.getEvents) contains
-        ValidatorQuickCheckError(
-          List(("key", "negative"), ("key2", "one")),
-          -1,
-          "NegativeCheck failed! data = -1 and ('data < 0)"
-        ))
+      assert(
+        vTable.checks.flatMap(_.getEvents) contains
+          ValidatorQuickCheckError(
+            List(("key", "negative"), ("key2", "one")),
+            -1,
+            "NegativeCheck failed! data = -1 and ('data < 0)"
+          )
+      )
     }
 
     it("variable substitution should produce VarSubJsonEvent()") {
@@ -121,24 +125,24 @@ class RowBasedSpec extends FunSpec with Matchers with TestingSparkSession {
 
   }
 
-  describe ("threshold tests") {
-    describe ("validate different way of specifying thresholds") {
-      it ("absolute 10") {
+  describe("threshold tests") {
+    describe("validate different way of specifying thresholds") {
+      it("absolute 10") {
         val sut = NullCheck("col", Some("10"))
         assert(!sut.configCheckThreshold)
       }
 
-      it ("less then 1.0") {
+      it("less then 1.0") {
         val sut = NullCheck("col", Some("0.10"))
         assert(!sut.configCheckThreshold)
       }
 
-      it ("10%") {
+      it("10%") {
         val sut = NullCheck("col", Some("10%"))
         assert(!sut.configCheckThreshold)
       }
 
-      it (" works with extra spacing before percentage sign") {
+      it(" works with extra spacing before percentage sign") {
         val sut = NullCheck("col", Some("10%"))
         assert(!sut.configCheckThreshold)
         assert(sut.calcErrorCountThreshold(100) == 10) // scalastyle:ignore
@@ -150,30 +154,30 @@ class RowBasedSpec extends FunSpec with Matchers with TestingSparkSession {
         assert(sut.failed)
       }
 
-      it ("is negative") {
+      it("is negative") {
         val sut = NullCheck("col", Some("-10"))
         assert(sut.configCheckThreshold)
         assert(sut.failed)
       }
 
-      it ("is negative fraction") {
+      it("is negative fraction") {
         val sut = NullCheck("col", Some("-0.1"))
         assert(sut.configCheckThreshold)
         assert(sut.failed)
       }
-      it ("is negative percent") {
+      it("is negative percent") {
         val sut = NullCheck("col", Some("-10%"))
         assert(sut.configCheckThreshold)
         assert(sut.failed)
       }
 
-      it ("negative percentage should be rejected") {
+      it("negative percentage should be rejected") {
         val sut = NullCheck("col", Some("-2.3 %"))
         assert(sut.configCheckThreshold)
         assert(sut.failed)
       }
 
-      it ("multiple '%' should be rejected") {
+      it("multiple '%' should be rejected") {
         val sut = NullCheck("col", Some("2.3 %%%"))
         assert(sut.configCheckThreshold)
         assert(sut.failed)
@@ -181,24 +185,24 @@ class RowBasedSpec extends FunSpec with Matchers with TestingSparkSession {
 
     }
 
-    describe ("calMaxErrors()") {
+    describe("calMaxErrors()") {
       val rowCount = 10000
-      it ("absolute 10") {
+      it("absolute 10") {
         val sut = NullCheck("col", Some("10"))
         assert(sut.calcErrorCountThreshold(rowCount) == 10)
       }
 
-      it ("less then 1.0") {
+      it("less then 1.0") {
         val sut = NullCheck("col", Some("0.10"))
         assert(sut.calcErrorCountThreshold(rowCount) == 1000)
       }
 
-      it ("10%") {
+      it("10%") {
         val sut = NullCheck("col", Some("10%"))
         assert(sut.calcErrorCountThreshold(rowCount) == 1000)
       }
 
-      it ("check for integer division") {
+      it("check for integer division") {
         val sut = NullCheck("col", Some("10%"))
         assert(sut.calcErrorCountThreshold(99) == 9) // scalastyle:ignore
       }
