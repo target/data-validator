@@ -3,9 +3,10 @@ package com.target.data_validator
 import com.target.TestingSparkSession
 import com.target.data_validator.validator.{ColumnMaxCheck, MinNumRows, NegativeCheck, NullCheck}
 import io.circe.Json
-import org.scalatest.{FunSpec, Matchers}
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
-class ConfigVarSubSpec extends FunSpec with Matchers with TestingSparkSession {
+class ConfigVarSubSpec extends AnyFunSpec with Matchers with TestingSparkSession {
 
   val baseMap: Map[String, String] =
     Map("one" -> "1", "two" -> "2", "three" -> "3", "four" -> "4", "five" -> "5", "six" -> "6")

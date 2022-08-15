@@ -7,9 +7,10 @@ import org.apache.spark.sql.Row
 import org.apache.spark.sql.catalyst.analysis.UnresolvedAttribute
 import org.apache.spark.sql.catalyst.expressions._
 import org.apache.spark.sql.types._
-import org.scalatest.{FunSpec, Matchers}
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
-class StringRegexCheckSpec extends FunSpec with Matchers with TestingSparkSession with Mocker {
+class StringRegexCheckSpec extends AnyFunSpec with Matchers with TestingSparkSession with Mocker {
 
   val schema = StructType(
     List(

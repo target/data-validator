@@ -5,9 +5,11 @@ import com.target.data_validator._
 import com.target.data_validator.stats._
 import io.circe.Json
 import org.scalatest._
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
 // scalastyle:off magic.number
-class ColStatsSpec extends FunSpec with Matchers with TestingSparkSession {
+class ColStatsSpec extends AnyFunSpec with Matchers with TestingSparkSession {
   import spark.implicits._
 
   describe("ColStats + ValidatorDataFrame") {

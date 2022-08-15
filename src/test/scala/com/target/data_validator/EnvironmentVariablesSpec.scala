@@ -1,9 +1,10 @@
 package com.target.data_validator
 
 import com.target.data_validator.EnvironmentVariables.{Inaccessible, Present, Unset}
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-class EnvironmentVariablesSpec extends WordSpec with Matchers {
+class EnvironmentVariablesSpec extends AnyWordSpec with Matchers {
 
   "EnvironmentVariables" should {
     "get envvars" when {

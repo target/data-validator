@@ -1,8 +1,9 @@
 package com.target.data_validator
 
-import org.scalatest.{FunSpec, Matchers}
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
-class VarSubstitutionSpec extends FunSpec with Matchers {
+class VarSubstitutionSpec extends AnyFunSpec with Matchers {
 
   describe("VarSubstitution") {
 
