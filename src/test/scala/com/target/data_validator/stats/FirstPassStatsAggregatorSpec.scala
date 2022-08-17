@@ -1,9 +1,10 @@
 package com.target.data_validator.stats
 
 import com.target.TestingSparkSession
-import org.scalatest.{FunSpec, Matchers}
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
-class FirstPassStatsAggregatorSpec extends FunSpec with Matchers with TestingSparkSession {
+class FirstPassStatsAggregatorSpec extends AnyFunSpec with Matchers with TestingSparkSession {
 
   describe("FirstPassStatsAggregator") {
 

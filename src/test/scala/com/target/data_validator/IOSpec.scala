@@ -4,12 +4,13 @@ import java.nio.file.Files
 
 import com.target.TestingSparkSession
 import io.circe.{parser, Json}
-import org.scalatest.{FunSpec, Matchers}
 import scala.io.Source.fromFile
 import scala.util.Random._
 import scalatags.Text.all._
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
-class IOSpec extends FunSpec with Matchers with TestingSparkSession {
+class IOSpec extends AnyFunSpec with Matchers with TestingSparkSession {
   val SAMPLE_HTML = html(h1("H1"), "Sample HTML Doc")
   val SAMPLE_JSON: Json = parser
     .parse("""{

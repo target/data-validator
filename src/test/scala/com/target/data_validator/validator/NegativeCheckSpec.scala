@@ -3,9 +3,10 @@ package com.target.data_validator.validator
 import com.target.TestingSparkSession
 import com.target.data_validator.TestHelpers.{mkDf, mkDict, parseYaml}
 import com.target.data_validator.{ValidatorConfig, ValidatorDataFrame, ValidatorError}
-import org.scalatest.{FunSpec, Matchers}
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
-class NegativeCheckSpec extends FunSpec with Matchers with TestingSparkSession {
+class NegativeCheckSpec extends AnyFunSpec with Matchers with TestingSparkSession {
 
   describe("NullCheck") {
 

@@ -4,9 +4,9 @@ import java.util.Random
 import javax.mail.Message
 import javax.mail.internet.{InternetAddress, MimeMessage}
 
-import org.scalatest.FunSpec
+import org.scalatest.funspec.AnyFunSpec
 
-class EmailerSpec extends FunSpec {
+class EmailerSpec extends AnyFunSpec {
 
   private val doug_work = "doug@example.com"
   private val doug_home = "doug@example.net"

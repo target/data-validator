@@ -6,8 +6,10 @@ import io.circe.parser._
 import org.apache.spark.sql.{DataFrame, Row}
 import org.apache.spark.sql.types._
 import org.scalatest._
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
-class RowBasedSpec extends FunSpec with Matchers with TestingSparkSession {
+class RowBasedSpec extends AnyFunSpec with Matchers with TestingSparkSession {
 
   def mkConfig(df: DataFrame, checks: List[ValidatorBase]): ValidatorConfig =
     ValidatorConfig(

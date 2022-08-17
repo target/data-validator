@@ -12,8 +12,10 @@ import org.scalatest._
 
 import scala.collection.immutable.ListMap
 import scala.util.Random
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
-class ValidatorBaseSpec extends FunSpec with Matchers with TestingSparkSession {
+class ValidatorBaseSpec extends AnyFunSpec with Matchers with TestingSparkSession {
   val nullCheck = List(NullCheck("name", None))
   val nameStructField = StructField("name", StringType)
   val schema = StructType(List(nameStructField, StructField("age", IntegerType)))

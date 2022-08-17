@@ -2,8 +2,8 @@
 
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/target/data-validator?style=plastic)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=plastic)](https://opensource.org/licenses/Apache-2.0)
-![Master Build Status](https://github.com/target/data-validator/actions/workflows/ci.yaml/badge.svg?branch=master)
-![Release Build Status](https://github.com/target/data-validator/actions/workflows/release.yaml/badge.svg)
+[![Continuous Integration](https://github.com/target/data-validator/actions/workflows/ci.yaml/badge.svg)](https://github.com/target/data-validator/actions/workflows/ci.yaml)
+[![Release Build Status](https://github.com/target/data-validator/actions/workflows/release.yaml/badge.svg)](https://github.com/target/data-validator/actions/workflows/release.yaml)
 
 A tool to validate data in Spark
 
@@ -37,6 +37,7 @@ You can make the jars available in one of two ways for the [example run invocati
       </resolvers>
     </ivysettings>
     ```
+    See also [How do I add a GitHub Package repository when executing spark-submit --repositories?](https://stackoverflow.com/q/70687667/204052)
 
 
 ### Building locally
@@ -46,9 +47,9 @@ See [CONTRIBUTING](CONTRIBUTING.md) for development environment setup.
 Assemble fat jar: `make build` or `sbt clean assembly`
 
 ```
-spark-submit --master local data-validator-assembly-0.13.2.jar --help
+spark-submit --master local data-validator-assembly-0.14.1.jar --help
 
-data-validator v0.13.2
+data-validator v0.14.1
 Usage: data-validator [options]
 
   --version

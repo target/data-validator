@@ -1,9 +1,10 @@
 package com.target.data_validator
 
 import com.target.TestingSparkSession
-import org.scalatest.{FunSpec, Matchers}
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
-class ValidatorOutputSpec extends FunSpec with Matchers with TestingSparkSession {
+class ValidatorOutputSpec extends AnyFunSpec with Matchers with TestingSparkSession {
 
   val dict = new VarSubstitution()
 

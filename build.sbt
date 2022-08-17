@@ -32,16 +32,16 @@ buildInfoPackage := "com.target.data_validator"
 
 libraryDependencies ++= Seq(
   "com.typesafe.scala-logging" %% "scala-logging" % "3.9.5",
-  "com.github.scopt" %% "scopt" % "3.7.1",
+  "com.github.scopt" %% "scopt" % "4.1.0",
   "com.sun.mail" % "javax.mail" % "1.6.2",
-  "com.lihaoyi" %% "scalatags" % "0.6.8",
+  "com.lihaoyi" %% "scalatags" % "0.11.1",
   "io.circe" %% "circe-yaml" % "0.10.1",
   "io.circe" %% "circe-core" % circeVersion,
   "io.circe" %% "circe-generic" % circeVersion,
   "io.circe" %% "circe-parser" % circeVersion,
   "org.apache.spark" %% "spark-sql" % sparkVersion % Provided,
   "junit" % "junit" % "4.13.2" % Test,
-  "org.scalatest" %% "scalatest" % "3.0.9" % Test,
+  "org.scalatest" %% "scalatest" % "3.2.13" % Test,
   "com.github.sbt" % "junit-interface" % "0.13.3" % Test exclude ("junit", "junit-dep")
 )
 
