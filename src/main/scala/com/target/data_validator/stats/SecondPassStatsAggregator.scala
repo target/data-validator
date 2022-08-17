@@ -4,8 +4,7 @@ import org.apache.spark.sql.Row
 import org.apache.spark.sql.expressions.{MutableAggregationBuffer, UserDefinedAggregateFunction}
 import org.apache.spark.sql.types._
 
-/**
-  * Calculate the standard deviation and histogram of a numeric column
+/** Calculate the standard deviation and histogram of a numeric column
   */
 class SecondPassStatsAggregator(firstPassStats: FirstPassStats) extends UserDefinedAggregateFunction {
 
@@ -14,13 +13,11 @@ class SecondPassStatsAggregator(firstPassStats: FirstPassStats) extends UserDefi
   private val binSize = (firstPassStats.max - firstPassStats.min) / NUMBER_OF_BINS
   private val upperBounds = for (i <- 1 to NUMBER_OF_BINS) yield { firstPassStats.min + i * binSize }
 
-  /**
-    * input is a single column of `DoubleType`
+  /** input is a single column of `DoubleType`
     */
   override def inputSchema: StructType = new StructType().add("value", DoubleType)
 
-  /**
-    * buffer keeps state for the total count, sumOfSquares, and individual bin counts
+  /** buffer keeps state for the total count, sumOfSquares, and individual bin counts
     */
   override def bufferSchema: StructType = StructType(
     List(
@@ -44,18 +41,15 @@ class SecondPassStatsAggregator(firstPassStats: FirstPassStats) extends UserDefi
   private val binStart = bufferSchema.fieldIndex("bin1count")
   private val binEnd = bufferSchema.fieldIndex("bin10count")
 
-  /**
-    * specifies the return type when using the UDAF
+  /** specifies the return type when using the UDAF
     */
   override def dataType: DataType = SecondPassStats.dataType
 
-  /**
-    * these calculations are deterministic
+  /** these calculations are deterministic
     */
   override def deterministic: Boolean = true
 
-  /**
-    * set the initial values for count, sum of squares and individual bin counts
+  /** set the initial values for count, sum of squares and individual bin counts
     */
   override def initialize(buffer: MutableAggregationBuffer): Unit = {
     buffer(count) = 0L
@@ -63,8 +57,7 @@ class SecondPassStatsAggregator(firstPassStats: FirstPassStats) extends UserDefi
     for (i <- binStart to binEnd) { buffer(i) = 0L }
   }
 
-  /**
-    * update the count, sum of squares and individual bin counts
+  /** update the count, sum of squares and individual bin counts
     */
   override def update(buffer: MutableAggregationBuffer, input: Row): Unit = {
     buffer(count) = buffer.getLong(count) + 1
@@ -75,8 +68,7 @@ class SecondPassStatsAggregator(firstPassStats: FirstPassStats) extends UserDefi
     buffer(binIndex) = buffer.getLong(binIndex) + 1
   }
 
-  /**
-    * reduce the count, sum of squares and individual bin counts
+  /** reduce the count, sum of squares and individual bin counts
     */
   override def merge(buffer1: MutableAggregationBuffer, buffer2: Row): Unit = {
     buffer1(count) = buffer1.getLong(count) + buffer2.getLong(count)
@@ -86,8 +78,7 @@ class SecondPassStatsAggregator(firstPassStats: FirstPassStats) extends UserDefi
     }
   }
 
-  /**
-    * evaluate the standard deviation and define bins of histogram
+  /** evaluate the standard deviation and define bins of histogram
     */
   override def evaluate(buffer: Row): Any = {
     val bins: Seq[Bin] = for (i <- binStart to binEnd) yield {

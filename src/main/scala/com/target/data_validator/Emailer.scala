@@ -9,13 +9,14 @@ import javax.mail.internet._
 import scala.util.Try
 
 case class EmailConfig(
-  smtpHost: String,
-  subject: String,
-  from: String,
-  to: List[String],
-  cc: Option[List[String]] = None,
-  bcc: Option[List[String]] = None
-) extends EventLog with Substitutable {
+    smtpHost: String,
+    subject: String,
+    from: String,
+    to: List[String],
+    cc: Option[List[String]] = None,
+    bcc: Option[List[String]] = None
+) extends EventLog
+    with Substitutable {
   def substituteVariables(dict: VarSubstitution): EmailConfig = {
     EmailConfig(
       getVarSub(smtpHost, "smtpHost", dict),
@@ -69,12 +70,12 @@ object Emailer extends LazyLogging {
   }
 
   def createEmptyMessage(
-    smtpHost: String,
-    subject: String,
-    from: String,
-    to: Seq[String],
-    cc: Seq[String],
-    bcc: Seq[String]
+      smtpHost: String,
+      subject: String,
+      from: String,
+      to: Seq[String],
+      cc: Seq[String],
+      bcc: Seq[String]
   ): Option[Message] = {
 
     logger.debug(s"Creating Message frm: $from to: ${to.mkString(", ")} sub: $subject")
@@ -114,8 +115,7 @@ object Emailer extends LazyLogging {
       Transport.send(message)
       logger.info(s"Email #$id sent successfully to all recipients.")
       false
-    }
-    catch {
+    } catch {
       case sfe: SendFailedException =>
         handleSendFailedException(id, sfe)
         true
@@ -142,13 +142,13 @@ object Emailer extends LazyLogging {
   }
 
   def sendTextMessage(
-    smtpHost: String,
-    body: String,
-    subject: String,
-    from: String,
-    to: Seq[String],
-    cc: Seq[String] = Nil,
-    bcc: Seq[String] = Nil
+      smtpHost: String,
+      body: String,
+      subject: String,
+      from: String,
+      to: Seq[String],
+      cc: Seq[String] = Nil,
+      bcc: Seq[String] = Nil
   ): Boolean =
     createEmptyMessage(smtpHost, subject, from, to, cc, bcc) match {
       case None =>
@@ -159,7 +159,7 @@ object Emailer extends LazyLogging {
     }
 
   def sendTextMessage(emailConfig: EmailConfig, body: String): Boolean = {
-    createEmptyMessage(emailConfig) match  {
+    createEmptyMessage(emailConfig) match {
       case None =>
         logger.error("createMessage failed!")
         true
@@ -169,13 +169,13 @@ object Emailer extends LazyLogging {
   }
 
   def sendHtmlMessage(
-    smtpHost: String,
-    body: String,
-    subject: String,
-    from: String,
-    to: Seq[String],
-    cc: Seq[String] = Nil,
-    bcc: Seq[String] = Nil
+      smtpHost: String,
+      body: String,
+      subject: String,
+      from: String,
+      to: Seq[String],
+      cc: Seq[String] = Nil,
+      bcc: Seq[String] = Nil
   ): Boolean =
     createEmptyMessage(smtpHost, subject, from, to, cc, bcc) match {
       case None =>

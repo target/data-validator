@@ -11,9 +11,9 @@ import org.apache.spark.sql.catalyst.expressions._
 import org.apache.spark.sql.types.{StringType, StructType}
 
 case class StringRegexCheck(
-  column: String,
-  regex: Option[Json],
-  threshold: Option[String]
+    column: String,
+    regex: Option[Json],
+    threshold: Option[String]
 ) extends RowBased {
 
   override def substituteVariables(dict: VarSubstitution): ValidatorBase = {
@@ -49,7 +49,7 @@ case class StringRegexCheck(
   override def configCheck(df: DataFrame): Boolean = {
 
     // Verify if regex is specified.
-    val values = (regex::Nil).flatten
+    val values = (regex :: Nil).flatten
     if (values.isEmpty) {
       addEvent(ValidatorError("Must define a regex."))
     }

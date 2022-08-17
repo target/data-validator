@@ -12,8 +12,8 @@ import scala.collection.mutable.ListBuffer
 import scalatags.Text.all._
 
 abstract class ValidatorBase(
-  var failed: Boolean = false,
-  events: ListBuffer[ValidatorEvent] = new ListBuffer[ValidatorEvent]
+    var failed: Boolean = false,
+    events: ListBuffer[ValidatorEvent] = new ListBuffer[ValidatorEvent]
 ) extends Substitutable {
   import ValidatorBase._
 
@@ -44,10 +44,11 @@ abstract class ValidatorBase(
 
   final def getEvents: List[ValidatorEvent] = events.toList
 
-  /**
-    * Check Types of column and value
-    * @param value - what we are comparing to from config.
-    * @return true on Error
+  /** Check Types of column and value
+    * @param value
+    *   \- what we are comparing to from config.
+    * @return
+    *   true on Error
     */
   private[validator] def checkTypes(df: DataFrame, column: String, value: Json): Boolean = {
     if (isColumnInDataFrame(df, column)) {
@@ -78,10 +79,10 @@ abstract class ValidatorBase(
   }
 
   private[validator] def checkValueString(
-    schema: StructType,
-    column: String,
-    colType: DataType,
-    value: String
+      schema: StructType,
+      column: String,
+      colType: DataType,
+      value: String
   ): Boolean = {
     val ret = if (isValueColumn(value)) {
       lookupValueColumn(schema, value) match {
@@ -107,19 +108,23 @@ abstract class ValidatorBase(
     ret
   }
 
-  /**
-    * Checks a value for compatibility with column.
-    * @param schema - from DataFrame.
-    * @param column - to check.
-    * @param colType - DataType of column.
-    * @param value - Json value to compare against column, could be another column.
-    * @return True on error.
+  /** Checks a value for compatibility with column.
+    * @param schema
+    *   \- from DataFrame.
+    * @param column
+    *   \- to check.
+    * @param colType
+    *   \- DataType of column.
+    * @param value
+    *   \- Json value to compare against column, could be another column.
+    * @return
+    *   True on error.
     */
   private[validator] def checkValue(
-    schema: StructType,
-    column: String,
-    colType: DataType,
-    value: Json
+      schema: StructType,
+      column: String,
+      colType: DataType,
+      value: Json
   ): Boolean = {
     val ret = value match {
       case v: Json if v.isNumber => !areNumberTypesCompatible(colType, v.asNumber)
@@ -153,27 +158,32 @@ object ValidatorBase extends LazyLogging {
     None
   }
 
-  /**
-    * searches for a columnName in schema
-    * @param schema - from source table.
-    * @param columnName - value from config that could be reference to column.
-    * @return True if v is found in schema.
+  /** searches for a columnName in schema
+    * @param schema
+    *   \- from source table.
+    * @param columnName
+    *   \- value from config that could be reference to column.
+    * @return
+    *   True if v is found in schema.
     */
   def schemaContainsValueColumn(schema: StructType, columnName: String): Boolean =
     lookupValueColumn(schema, columnName).isDefined
 
-  /**
-    * Take value that refers to a Column and creates an Expression referring to it.
-    * @param columnReference - String that is prefixes with backtick that represents a column name.
-    * @return UnresolvedAttribute
+  /** Take value that refers to a Column and creates an Expression referring to it.
+    * @param columnReference
+    *   \- String that is prefixes with backtick that represents a column name.
+    * @return
+    *   UnresolvedAttribute
     */
   def getValueColumn(columnReference: String): Expression = UnresolvedAttribute(columnReference.stripPrefix(backtick))
 
-  /**
-    * Takes Json Number and creates a Expression representing it.
-    * @param dataType - Type of column we are comparing to.
-    * @param json - Value.
-    * @return Expression - Literal representing Json Value as dataType.
+  /** Takes Json Number and creates a Expression representing it.
+    * @param dataType
+    *   \- Type of column we are comparing to.
+    * @param json
+    *   \- Value.
+    * @return
+    *   Expression - Literal representing Json Value as dataType.
     */
   def createNumericLiteral(dataType: DataType, json: JsonNumber): Expression = dataType match {
     case ByteType => Literal.create(json.toByte.get, dataType)
@@ -186,11 +196,13 @@ object ValidatorBase extends LazyLogging {
       Literal.create(json.toString, dataType)
   }
 
-  /**
-    * Creates an expression based on the json. If its a string prefixed with backtick, treat is as a column.
-    * @param dataType - Type of column we are comparing to
-    * @param json - can be a reference to column, numeric, or string.
-    * @return Expression
+  /** Creates an expression based on the json. If its a string prefixed with backtick, treat is as a column.
+    * @param dataType
+    *   \- Type of column we are comparing to
+    * @param json
+    *   \- can be a reference to column, numeric, or string.
+    * @return
+    *   Expression
     */
   def createLiteralOrUnresolvedAttribute(dataType: DataType, json: Json): Expression = {
     if (isValueColumn(json)) {
@@ -235,7 +247,8 @@ object ValidatorBase extends LazyLogging {
       case BooleanType => value.asBoolean.isDefined
       case x: DataType if x.isInstanceOf[NumericType] => areNumberTypesCompatible(dataType, value.asNumber)
       case StringType => true
-      case ut => logger.error(s"type: $ut is not implemented, please report this as bug!")
+      case ut =>
+        logger.error(s"type: $ut is not implemented, please report this as bug!")
         false // Fail Unimplemented.
     }
     logger.debug(s"areTypesCompatible colType: $dataType value[${value.getClass.getCanonicalName}]: $value ret: $ret")
@@ -243,26 +256,27 @@ object ValidatorBase extends LazyLogging {
   }
 }
 
-/**
-* CheapChecks are checks that can be combined into the same pass through a table.
-*/
+/** CheapChecks are checks that can be combined into the same pass through a table.
+  */
 trait CheapCheck extends ValidatorBase {
   def select(schema: StructType, dict: VarSubstitution): Expression
 
-  /**
-    * Run a check on a particular column on a row
+  /** Run a check on a particular column on a row
     *
-    * @param r the row under inspection
-    * @param count the number of rows total
-    * @param idx the index of the column under inspection
-    * @return true if the check fails, false if is passes
+    * @param r
+    *   the row under inspection
+    * @param count
+    *   the number of rows total
+    * @param idx
+    *   the index of the column under inspection
+    * @return
+    *   true if the check fails, false if is passes
     */
   def quickCheck(r: Row, count: Long, idx: Int): Boolean
 }
 
-/**
-* CostlyChecks are checks that require their own pass through the table and therefore are most costly.
-*/
+/** CostlyChecks are checks that require their own pass through the table and therefore are most costly.
+  */
 trait CostlyCheck extends ValidatorBase {
   def costlyCheck(df: DataFrame): Boolean
 }

@@ -1,4 +1,4 @@
-SCALAFMT ?= bin/scalafmt
+SBT ?= bin/sbt
 
 ##@ Utilities
 
@@ -15,26 +15,19 @@ deps-sys: Brewfile ## Installs system-wide dependencies
 
 .PHONY: test
 test: ## Runs tests
-	bin/sbt test
+	$(SBT) test
 
 .PHONY: check
 check: ## Runs linters and other checks
-	bin/sbt scalastyle
+	$(SBT) scalastyle
 
 .PHONY: build
 build:
-	bin/sbt assembly
+	$(SBT) assembly
 
 .PHONY: format-scala
-format-scala: $(SCALAFMT) ## Formats all Scala code
-	$(SCALAFMT)
-
-SCALAFMT_VERSION ?= "$(shell grep "sbt-scalafmt" "build.sbt" | cut -d "%" -f 3 | sed -e 's/[^\.0-9A-Za-z-]//g' )"
-$(SCALAFMT):
-	coursier bootstrap org.scalameta:scalafmt-cli_2.12:$(SCALAFMT_VERSION) \
-		-r sonatype:releases \
-		-o $@ \
-		--main org.scalafmt.cli.Cli
+format-scala: ## Formats all Scala code
+	$(SBT) scalafmt
 
 ##@ Maintenance Tasks
 

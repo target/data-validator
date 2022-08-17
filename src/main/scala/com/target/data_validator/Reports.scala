@@ -6,9 +6,9 @@ import org.apache.spark.sql.SparkSession
 object Reports extends LazyLogging with EventLog {
 
   def emailReport(
-                   mainConfig: CliOptions,
-                   config: ValidatorConfig,
-                   varSub: VarSubstitution
+      mainConfig: CliOptions,
+      config: ValidatorConfig,
+      varSub: VarSubstitution
   )(implicit spark: SparkSession): Unit = {
     if (mainConfig.htmlReport.isDefined || config.email.isDefined) {
       val htmlReport = config.generateHTMLReport()
@@ -26,9 +26,9 @@ object Reports extends LazyLogging with EventLog {
   }
 
   def jsonReport(
-                  mainConfig: CliOptions,
-                  config: ValidatorConfig,
-                  varSub: VarSubstitution
+      mainConfig: CliOptions,
+      config: ValidatorConfig,
+      varSub: VarSubstitution
   )(implicit spark: SparkSession): Unit = {
     if (config.outputs.isDefined || mainConfig.jsonReport.isDefined) {
       val jsonReport = config.genJsonReport(varSub)
@@ -37,7 +37,10 @@ object Reports extends LazyLogging with EventLog {
         IO.writeJSON(jsonFilename, jsonReport, append = true)
       }
 
-      for (outputs <- config.outputs; out <- outputs) {
+      for {
+        outputs <- config.outputs
+        out <- outputs
+      } {
         if (out.write(jsonReport)) {
           val msg = s"ERROR: Failed to write out: $out"
           logger.error(msg)

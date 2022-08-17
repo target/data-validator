@@ -49,30 +49,31 @@ abstract class RowBased extends CheapCheck {
 
   def select(schema: StructType, dict: VarSubstitution): Expression = If(colTest(schema, dict), L1, L0)
 
-  /**
-    * Calculates the max acceptable number of errors from threshold and rowCount.
-    * @param rowCount of table.
-    * @return max number of errors we can tolerate.
-    * if threshold < 1, then its a percentage of rowCount.
-    * if threshold ends with '%' then its percentage of rowCount
-    * if threshold is > 1, then its maxErrors.
+  /** Calculates the max acceptable number of errors from threshold and rowCount.
+    * @param rowCount
+    *   of table.
+    * @return
+    *   max number of errors we can tolerate. if threshold < 1, then its a percentage of rowCount. if threshold ends
+    *   with '%' then its percentage of rowCount if threshold is > 1, then its maxErrors.
     */
   def calcErrorCountThreshold(rowCount: Long): Long = {
-    threshold.map { t =>
-      val tempThreshold = t.stripSuffix("%").toDouble
-      val ret: Long = if (t.endsWith("%")) {
-        // Has '%', so divide by 100.0
-        (tempThreshold * (rowCount / 100.0)).toLong
-      } else if (tempThreshold < 1.0) {
-        // Percentage without the '%'
-        (tempThreshold * rowCount).toLong
-      } else {
-        // Number of rows
-        tempThreshold.toLong
+    threshold
+      .map { t =>
+        val tempThreshold = t.stripSuffix("%").toDouble
+        val ret: Long = if (t.endsWith("%")) {
+          // Has '%', so divide by 100.0
+          (tempThreshold * (rowCount / 100.0)).toLong
+        } else if (tempThreshold < 1.0) {
+          // Percentage without the '%'
+          (tempThreshold * rowCount).toLong
+        } else {
+          // Number of rows
+          tempThreshold.toLong
+        }
+        logger.info(s"Threshold:${threshold.get} tempThreshold:$tempThreshold ret:$ret")
+        ret
       }
-      logger.info(s"Threshold:${threshold.get} tempThreshold:$tempThreshold ret:$ret")
-      ret
-    }.getOrElse(0)
+      .getOrElse(0)
   }
 
   override def quickCheck(row: Row, count: Long, idx: Int): Boolean = {
@@ -88,8 +89,12 @@ abstract class RowBased extends CheapCheck {
       }
 
       val failure = errorCount > errorCountThreshold
-      if (failure) logger.error(s"Quick check for $name on $column failed, $errorCount errors in $count rows"
-        + s" errorCountThreshold: $errorCountThreshold")
+      if (failure) {
+        logger.error(
+          s"Quick check for $name on $column failed, $errorCount errors in $count rows"
+            + s" errorCountThreshold: $errorCountThreshold"
+        )
+      }
       addEvent(ValidatorCheckEvent(failure, s"$name on column '$column'", count, errorCount))
     } else {
       logger.warn(s"No Rows to check for $toString!")
@@ -100,11 +105,12 @@ abstract class RowBased extends CheapCheck {
   def quickCheckDetail(row: Row, key: Seq[(String, Any)], idx: Int, dict: VarSubstitution): Unit = {
     val r = row.get(idx)
     val column = row.schema.fieldNames(idx)
-    addEvent(ValidatorQuickCheckError(key.toList, r, name + s" failed! $column = $r and ${colTest(row.schema, dict)}"))
+    addEvent(
+      ValidatorQuickCheckError(key.toList, r, name + s" failed! $column = $r and ${colTest(row.schema, dict)}")
+    )
   }
 }
 
 object RowBased {
   val THRESHOLD_NUMBER_REGEX: Regex = "^([0-9]+\\.*[0-9]*)\\s*%{0,1}$".r // scalastyle:ignore
 }
-

@@ -14,8 +14,7 @@ import org.apache.spark.sql.types.{NumericType, StructType}
 case class NegativeCheck(column: String, threshold: Option[String]) extends RowBased {
 
   override def substituteVariables(dict: VarSubstitution): ValidatorBase = {
-    val ret = NegativeCheck(getVarSub(column, "column", dict),
-      threshold.map(getVarSub(_, "threshold", dict)))
+    val ret = NegativeCheck(getVarSub(column, "column", dict), threshold.map(getVarSub(_, "threshold", dict)))
     getEvents.foreach(ret.addEvent)
     ret
   }
@@ -37,7 +36,7 @@ case class NegativeCheck(column: String, threshold: Option[String]) extends RowB
   }
 
   override def colTest(schema: StructType, dict: VarSubstitution): Expression =
-    LessThan (UnresolvedAttribute(column), I0)
+    LessThan(UnresolvedAttribute(column), I0)
 
   override def toJson: Json = Json.obj(
     ("type", Json.fromString("negativeCheck")),

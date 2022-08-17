@@ -24,11 +24,9 @@ abstract class ColumnBased(column: String, condTest: Expression) extends CheapCh
 
     if (expected == actual) {
       formatStr.format(0.00) // if expected == actual, error % should be 0, even if expected is 0
-    }
-    else if (expected == 0.0) {
+    } else if (expected == 0.0) {
       "undefined"
-    }
-    else {
+    } else {
       val pct = abs(((expected - actual) * 100.0) / expected)
       formatStr.format(pct)
     }
@@ -53,10 +51,11 @@ case class MinNumRows(minNumRows: Json) extends ColumnBased("", ValidatorBase.L0
     }
 
     minNumRows.asNumber match {
-      case Some(jsonNumber) => jsonNumber.toLong match {
-        case Some(x) if x > 0 =>
-        case _ => notNaturalNumber()
-      }
+      case Some(jsonNumber) =>
+        jsonNumber.toLong match {
+          case Some(x) if x > 0 =>
+          case _ => notNaturalNumber()
+        }
       case _ => notNaturalNumber()
     }
     failed
@@ -87,7 +86,7 @@ case class MinNumRows(minNumRows: Json) extends ColumnBased("", ValidatorBase.L0
 }
 
 case class ColumnMaxCheck(column: String, value: Json)
-  extends ColumnBased(column, Max(UnresolvedAttribute(column)).toAggregateExpression()) {
+    extends ColumnBased(column, Max(UnresolvedAttribute(column)).toAggregateExpression()) {
 
   override def substituteVariables(dict: VarSubstitution): ValidatorBase = {
     val ret = copy(column = getVarSub(column, "column", dict), value = getVarSubJson(value, "value", dict))
@@ -136,7 +135,7 @@ case class ColumnMaxCheck(column: String, value: Json)
     def resultForOther: (ListMap[String, String], String) = {
       logger.error(
         s"""ColumnMaxCheck for type: $dataType, Row: $row not implemented!
-           |Please open a bug report on the data-validator issue tracker.""".stripMargin
+          |Please open a bug report on the data-validator issue tracker.""".stripMargin
       )
       failed = true
       val errorMsg = s"ColumnMaxCheck is not supported for data type $dataType"

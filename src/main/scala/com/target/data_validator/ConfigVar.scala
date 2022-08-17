@@ -56,7 +56,9 @@ case class NameShell(name: String, shell: String) extends ConfigVar {
         case Failure(exception) =>
           validatorError(s"NameShell($name, $newShell) Failed with exception $exception"); true
         case Success(exitCode) if exitCode != 0 =>
-          validatorError(s"NameShell($name, $newShell) Ran but returned exitCode: $exitCode stderr: ${err.toString()}")
+          validatorError(
+            s"NameShell($name, $newShell) Ran but returned exitCode: $exitCode stderr: ${err.toString()}"
+          )
           true
         case Success(0) if out.isEmpty =>
           validatorError(s"NameShell($name, $newShell) Ran but returned No output")
