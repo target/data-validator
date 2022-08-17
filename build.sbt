@@ -32,7 +32,7 @@ buildInfoPackage := "com.target.data_validator"
 
 libraryDependencies ++= Seq(
   "com.typesafe.scala-logging" %% "scala-logging" % "3.9.5",
-  "com.github.scopt" %% "scopt" % "3.7.1",
+  "com.github.scopt" %% "scopt" % "4.1.0",
   "com.sun.mail" % "javax.mail" % "1.6.2",
   "com.lihaoyi" %% "scalatags" % "0.6.8",
   "io.circe" %% "circe-yaml" % "0.10.1",
