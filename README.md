@@ -2,8 +2,8 @@
 
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/target/data-validator?style=plastic)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=plastic)](https://opensource.org/licenses/Apache-2.0)
-![Master Build Status](https://github.com/target/data-validator/actions/workflows/ci.yaml/badge.svg?branch=master)
-![Release Build Status](https://github.com/target/data-validator/actions/workflows/release.yaml/badge.svg)
+[![Continuous Integration](https://github.com/target/data-validator/actions/workflows/ci.yaml/badge.svg)](https://github.com/target/data-validator/actions/workflows/ci.yaml)
+[![Release Build Status](https://github.com/target/data-validator/actions/workflows/release.yaml/badge.svg)](https://github.com/target/data-validator/actions/workflows/release.yaml)
 
 A tool to validate data in Spark
 
