@@ -5,9 +5,10 @@ import com.target.data_validator.TestHelpers._
 import io.circe.Json
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.types._
-import org.scalatest.{FunSpec, Matchers}
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
-class TestHelpersSpec  extends FunSpec with Matchers with TestingSparkSession {
+class TestHelpersSpec  extends AnyFunSpec with Matchers with TestingSparkSession {
 
 
   val data = List(

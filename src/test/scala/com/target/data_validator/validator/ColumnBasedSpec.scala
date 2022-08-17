@@ -9,8 +9,10 @@ import org.apache.spark.sql.types._
 import org.scalatest._
 
 import scala.collection.immutable.ListMap
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
-class ColumnBasedSpec extends FunSpec with Matchers with TestingSparkSession {
+class ColumnBasedSpec extends AnyFunSpec with Matchers with TestingSparkSession {
 
   describe("columnMaxCheck") {
 

@@ -1,8 +1,9 @@
 package com.target.data_validator
 
-import org.scalatest.{FunSpec, Matchers}
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
-class CliOptionParserSpec extends FunSpec with Matchers {
+class CliOptionParserSpec extends AnyFunSpec with Matchers {
 
   describe("CliOptionParser") {
     describe("parsing") {

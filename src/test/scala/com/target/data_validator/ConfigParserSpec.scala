@@ -3,9 +3,10 @@ package com.target.data_validator
 import com.target.TestingSparkSession
 import com.target.data_validator.validator.{MinNumRows, NullCheck}
 import io.circe.Json
-import org.scalatest.{BeforeAndAfterAll, FunSpec}
+import org.scalatest.BeforeAndAfterAll
+import org.scalatest.funspec.AnyFunSpec
 
-class ConfigParserSpec extends FunSpec with BeforeAndAfterAll {
+class ConfigParserSpec extends AnyFunSpec with BeforeAndAfterAll {
 
   // Silence is golden!
   override def beforeAll(): Unit = TestingSparkSession.configTestLog4j("OFF", "OFF")

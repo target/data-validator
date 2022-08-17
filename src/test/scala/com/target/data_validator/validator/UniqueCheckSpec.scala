@@ -5,9 +5,10 @@ import com.target.data_validator._
 import io.circe.Json
 import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 import org.apache.spark.sql.types._
-import org.scalatest.{FunSpec, Matchers}
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
-class UniqueCheckSpec extends FunSpec with Matchers with TestingSparkSession {
+class UniqueCheckSpec extends AnyFunSpec with Matchers with TestingSparkSession {
 
   val schema = StructType(List(StructField("item", StringType),
     StructField("location", IntegerType),
