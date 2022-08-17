@@ -37,6 +37,7 @@ You can make the jars available in one of two ways for the [example run invocati
       </resolvers>
     </ivysettings>
     ```
+    See also [How do I add a GitHub Package repository when executing spark-submit --repositories?](https://stackoverflow.com/q/70687667/204052)
 
 
 ### Building locally
@@ -46,9 +47,9 @@ See [CONTRIBUTING](CONTRIBUTING.md) for development environment setup.
 Assemble fat jar: `make build` or `sbt clean assembly`
 
 ```
-spark-submit --master local data-validator-assembly-0.13.2.jar --help
+spark-submit --master local data-validator-assembly-0.14.1.jar --help
 
-data-validator v0.13.2
+data-validator v0.14.1
 Usage: data-validator [options]
 
   --version
