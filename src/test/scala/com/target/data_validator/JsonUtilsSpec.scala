@@ -5,10 +5,10 @@ import com.target.data_validator.JsonUtils._
 import io.circe.Json
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.types._
-import org.scalatest.funspec.AnyFunSpec
-import org.scalatest.matchers.should.Matchers
 
 import scala.util.Random
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
 class JsonUtilsSpec extends AnyFunSpec with Matchers with TestingSparkSession {
   val TEST_STRING_LENGTH = 10

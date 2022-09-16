@@ -5,6 +5,7 @@ import com.target.data_validator._
 import io.circe.parser._
 import org.apache.spark.sql.{DataFrame, Row}
 import org.apache.spark.sql.types._
+import org.scalatest._
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers
 

@@ -8,19 +8,26 @@ on:
 
 name: Launch Scala Steward
 
+env:
+  # This is required because SBT is configured to look at env:GITHUB_TOKEN or git:github.token or env:SHELL
+  # to get a token for publishing even when not executing the publish task. Most of the time, SHELL is set
+  # but apparently not inside GitHub Actions runners. Setting _something invalid_ satisfies the
+  # GitHub Packages plugin safely and allows the operation to proceed.
+  SHELL: "/bin/bash"
+
 jobs:
   scala-steward:
     runs-on: ubuntu-latest
     name: Launch Scala Steward
     steps:
-      - uses: actions/setup-java@v3
+      - name: Install JDK for Scala Steward use
+        uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: '8'
       - name: Launch Scala Steward
         uses: scala-steward-org/scala-steward-action@v2
         with:
-          repo-config: .scala-steward.conf
           github-token: ${{ secrets.REPO_GITHUB_TOKEN }}
-          author-email: 12345+octocat@users.noreply.github.com
-          author-name: "Scala Steward on GitHub Actions"
+          author-email: "41898282+github-actions[bot]@users.noreply.github.com"
+          author-name: "github-actions[bot]"

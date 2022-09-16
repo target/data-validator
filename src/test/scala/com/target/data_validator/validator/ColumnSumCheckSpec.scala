@@ -4,10 +4,10 @@ import com.target.TestingSparkSession
 import com.target.data_validator.{ColumnBasedValidatorCheckEvent, ValidatorConfig, ValidatorDataFrame, ValidatorError}
 import com.target.data_validator.TestHelpers.{mkDf, mkDict, parseYaml}
 import io.circe._
-import org.scalatest.funspec.AnyFunSpec
-import org.scalatest.matchers.should.Matchers
 
 import scala.collection.immutable.ListMap
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
 class ColumnSumCheckSpec extends AnyFunSpec with Matchers with TestingSparkSession {
 

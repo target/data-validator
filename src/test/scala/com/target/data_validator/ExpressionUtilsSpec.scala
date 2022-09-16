@@ -3,6 +3,7 @@ package com.target.data_validator
 import ExpressionUtils.orFromList
 import com.target.data_validator.validator.ValidatorBase._
 import org.apache.spark.sql.catalyst.expressions.{GreaterThan, Or}
+import org.scalatest._
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers
 

@@ -17,9 +17,7 @@ trait TestingSparkSession extends BeforeAndAfterAll { self: Suite =>
 
 object TestingSparkSession {
 
-  /**
-    * config a log4j properties used for testsuite.
-    * Copied from org.apache.spark.utils.Util because it private.
+  /** config a log4j properties used for testsuite. Copied from org.apache.spark.utils.Util because it private.
     */
   def configTestLog4j(levelOther: String, levelMe: String): Unit = {
     val pro = new Properties()
@@ -27,8 +25,10 @@ object TestingSparkSession {
     pro.put("log4j.appender.console", "org.apache.log4j.ConsoleAppender")
     pro.put("log4j.appender.console.target", "System.err")
     pro.put("log4j.appender.console.layout", "org.apache.log4j.PatternLayout")
-    pro.put("log4j.appender.console.layout.ConversionPattern",
-      "%d{yy/MM/dd HH:mm:ss} %p %c{1}: %m%n") // scalastyle:ignore regex
+    pro.put(
+      "log4j.appender.console.layout.ConversionPattern",
+      "%d{yy/MM/dd HH:mm:ss} %p %c{1}: %m%n"
+    ) // scalastyle:ignore regex
     pro.put(s"log4j.logger.${this.getClass.getPackage.getName}", levelMe)
     PropertyConfigurator.configure(pro)
   }

@@ -7,10 +7,10 @@ import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 import org.apache.spark.sql.catalyst.analysis.UnresolvedAttribute
 import org.apache.spark.sql.catalyst.expressions._
 import org.apache.spark.sql.types._
-import org.scalatest.funspec.AnyFunSpec
-import org.scalatest.matchers.should.Matchers
 
 import scala.util.Random
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
 class StringLengthCheckSpec extends AnyFunSpec with Matchers with TestingSparkSession {
 

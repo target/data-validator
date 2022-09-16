@@ -2,6 +2,11 @@ val scala211 = "2.11.12"
 val scala212 = "2.12.15"
 val scala213 = "2.13.8"
 
+val sparkVersion = "2.3.4"
+
+val circeVersion = "0.11.2"
+
+//addDependencyTreePlugin
 ThisBuild / organization := "com.target"
 enablePlugins(GitVersioning)
 ThisBuild / git.useGitDescribe := true
@@ -36,7 +41,7 @@ lazy val commonSettings: SettingsDefinition = Def.settings(
   buildInfoPackage := "com.target.data_validator",
   libraryDependencies ++= Seq(
     "com.typesafe.scala-logging" %% "scala-logging" % "3.9.5",
-    "com.github.scopt" %% "scopt" % "4.0.1",
+    "com.github.scopt" %% "scopt" % "4.1.0",
     "com.sun.mail" % "javax.mail" % "1.6.2",
     "com.lihaoyi" %% "scalatags" % "0.11.1",
     "io.circe" %% "circe-yaml" % circeYamlVersion.value,
@@ -44,9 +49,9 @@ lazy val commonSettings: SettingsDefinition = Def.settings(
     "io.circe" %% "circe-generic" % circeVersion.value,
     "io.circe" %% "circe-parser" % circeVersion.value,
     // "org.apache.spark" %% "spark-sql" % sparkVersion % Provided,
-    "org.scalatest" %% "scalatest" % "3.2.12" % Test,
+    "org.scalatest" %% "scalatest" % "3.2.13" % Test,
     "junit" % "junit" % "4.13.2" % Test,
-    "com.novocode" % "junit-interface" % "0.11" % Test exclude ("junit", "junit-dep")
+    "com.novocode" % "junit-interface" % "0.13.3" % Test exclude ("junit", "junit-dep")
   ),
   (Test / fork) := true,
   javaOptions ++= Seq("-Xms512M", "-Xmx2048M", "-XX:+CMSClassUnloadingEnabled"),

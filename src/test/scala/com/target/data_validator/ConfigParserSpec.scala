@@ -3,8 +3,8 @@ package com.target.data_validator
 import com.target.TestingSparkSession
 import com.target.data_validator.validator.{MinNumRows, NullCheck}
 import io.circe.Json
-import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.BeforeAndAfterAll
+import org.scalatest.funspec.AnyFunSpec
 
 import scala.io.Source
 

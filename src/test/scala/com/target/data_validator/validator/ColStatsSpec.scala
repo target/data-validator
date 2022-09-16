@@ -4,6 +4,7 @@ import com.target.TestingSparkSession
 import com.target.data_validator._
 import com.target.data_validator.stats._
 import io.circe.Json
+import org.scalatest._
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers
 

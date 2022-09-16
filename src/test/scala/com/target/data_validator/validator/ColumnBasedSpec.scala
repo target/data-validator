@@ -10,6 +10,8 @@ import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers
 
 import scala.collection.immutable.ListMap
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
 class ColumnBasedSpec extends AnyFunSpec with Matchers with TestingSparkSession {
 

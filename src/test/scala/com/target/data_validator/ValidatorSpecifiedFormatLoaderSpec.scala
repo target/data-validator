@@ -3,8 +3,8 @@ package com.target.data_validator
 import com.target.TestingSparkSession
 import com.target.data_validator.TestHelpers.{mkConfig, mkDict}
 import com.target.data_validator.validator.{ColumnMaxCheck, MinNumRows, NegativeCheck, NullCheck}
-import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
 class ValidatorSpecifiedFormatLoaderSpec extends AnyWordSpec with Matchers with TestingSparkSession {
   "ValidatorSpecifiedFormatLoader" should {

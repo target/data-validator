@@ -10,10 +10,10 @@ import io.circe.parser._
 import io.circe.syntax._
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.types.{IntegerType, StructField, StructType}
-import org.scalatest.funspec.AnyFunSpec
-import org.scalatest.matchers.should.Matchers
 
 import scala.util.Random
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
 class ConfigVarSpec extends AnyFunSpec with Matchers with TestingSparkSession {
 
