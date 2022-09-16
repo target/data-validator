@@ -49,7 +49,7 @@ lazy val commonSettings: SettingsDefinition = Def.settings(
     // "org.apache.spark" %% "spark-sql" % sparkVersion % Provided,
     "org.scalatest" %% "scalatest" % "3.2.13" % Test,
     "junit" % "junit" % "4.13.2" % Test,
-    "com.novocode" % "junit-interface" % "0.13.3" % Test exclude ("junit", "junit-dep")
+    "com.novocode" % "junit-interface" % "0.11" % Test exclude ("junit", "junit-dep")
   ),
   (Test / fork) := true,
   javaOptions ++= Seq("-Xms512M", "-Xmx2048M", "-XX:+CMSClassUnloadingEnabled"),
