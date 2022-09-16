@@ -4,9 +4,7 @@ val scala213 = "2.13.8"
 
 val sparkVersion = "2.3.4"
 
-val circeVersion = "0.11.2"
-
-//addDependencyTreePlugin
+// addDependencyTreePlugin
 ThisBuild / organization := "com.target"
 enablePlugins(GitVersioning)
 ThisBuild / git.useGitDescribe := true
@@ -109,11 +107,11 @@ lazy val root = (projectMatrix in file("."))
       libraryDependencies += "org.apache.spark" %% "spark-sql" % "2.4.8" % Provided
     )
   )
-/* .jvmPlatform(
+  .jvmPlatform(
     scalaVersions = Seq(scala213),
     settings = Seq(
       circeVersion := "0.14.2",
       circeYamlVersion := "0.14.1",
       libraryDependencies += "org.apache.spark" %% "spark-sql" % "3.2.1" % Provided
     )
-  ) */
+  )
