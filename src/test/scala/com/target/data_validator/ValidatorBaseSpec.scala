@@ -76,19 +76,18 @@ class ValidatorBaseSpec extends AnyFunSpec with Matchers with TestingSparkSessio
       }
 
       it("ByteType is not compatible with Long") {
-        assert(!areNumberTypesCompatible(ByteType,
-          Json.fromLong(Byte.MaxValue + 1).asNumber))
+        assert(!areNumberTypesCompatible(ByteType, Json.fromLong(Byte.MaxValue + 1).asNumber))
       }
 
     }
 
-    describe ("isValueColumn()") {
+    describe("isValueColumn()") {
 
-      it ("detects column specified in value") {
+      it("detects column specified in value") {
         assert(isValueColumn("`price"))
       }
 
-      it ("detects non-column specified in value") {
+      it("detects non-column specified in value") {
         assert(!isValueColumn("2018-12-25"))
       }
 
@@ -123,8 +122,10 @@ class ValidatorBaseSpec extends AnyFunSpec with Matchers with TestingSparkSessio
 
     describe("createLiteralOrUnresolvedAttribute()") {
 
-      it ("creates column reference") {
-        assert(createLiteralOrUnresolvedAttribute(StringType, Json.fromString("`name")) == UnresolvedAttribute("name"))
+      it("creates column reference") {
+        assert(
+          createLiteralOrUnresolvedAttribute(StringType, Json.fromString("`name")) == UnresolvedAttribute("name")
+        )
       }
 
       it("creates String Literal") {
@@ -141,12 +142,12 @@ class ValidatorBaseSpec extends AnyFunSpec with Matchers with TestingSparkSessio
     }
   }
 
-
   describe("ValidatorNullCheck") {
 
     it("should not error on non-null data") {
       val dict = new VarSubstitution
-      val df = spark.createDataFrame(sc.parallelize(List(Row("Doug", 50), Row("Collin", 32))), schema) //scalastyle:ignore
+      val df =
+        spark.createDataFrame(sc.parallelize(List(Row("Doug", 50), Row("Collin", 32))), schema) // scalastyle:ignore
       val sut = mkConfig(df, nullCheck)
       assert(!sut.configCheck(spark, dict), "configCheck should not fail!")
       assert(!sut.quickChecks(spark, dict))
@@ -154,7 +155,8 @@ class ValidatorBaseSpec extends AnyFunSpec with Matchers with TestingSparkSessio
 
     it("should error on null data") {
       val dict = new VarSubstitution
-      val df = spark.createDataFrame(sc.parallelize(List(Row("Doug", 50), Row(null, 32))), schema) // scalastyle:ignore
+      val df =
+        spark.createDataFrame(sc.parallelize(List(Row("Doug", 50), Row(null, 32))), schema) // scalastyle:ignore
       val config = mkConfig(df, nullCheck)
       assert(config.quickChecks(spark, dict))
       assert(config.failed)
@@ -163,7 +165,8 @@ class ValidatorBaseSpec extends AnyFunSpec with Matchers with TestingSparkSessio
 
     it("should fail configCheck on unknown column") {
       val dict = new VarSubstitution
-      val df = spark.createDataFrame(sc.parallelize(List(Row("Doug", 50), Row("Collin", 32))), schema) //scalastyle:ignore
+      val df =
+        spark.createDataFrame(sc.parallelize(List(Row("Doug", 50), Row("Collin", 32))), schema) // scalastyle:ignore
       val config = mkConfig(df, List(NullCheck("unknown_column", None)))
       assert(config.configCheck(spark, dict))
       assert(config.failed)
@@ -173,7 +176,8 @@ class ValidatorBaseSpec extends AnyFunSpec with Matchers with TestingSparkSessio
 
   describe("ValidatorMinNumRows") {
 
-    val df = spark.createDataFrame(sc.parallelize(List(Row("Doug", 50), Row("Collin", 32))), schema) //scalastyle:ignore
+    val df =
+      spark.createDataFrame(sc.parallelize(List(Row("Doug", 50), Row("Collin", 32))), schema) // scalastyle:ignore
 
     it("configCheck() should fail for minNumRows as non-numeric") {
       val dict = new VarSubstitution
@@ -198,11 +202,13 @@ class ValidatorBaseSpec extends AnyFunSpec with Matchers with TestingSparkSessio
       assert(config.quickChecks(spark, dict))
       assert(config.failed)
       assert(config.tables.head.failed)
-      assert(minNumRowsCheck.getEvents contains ColumnBasedValidatorCheckEvent(
-        failure = true,
-        ListMap("expected" -> "10", "actual" -> "2", "relative_error" -> "80.00%"),
-        "MinNumRowsCheck Expected: 10 Actual: 2 Relative Error: 80.00%"
-      ))
+      assert(
+        minNumRowsCheck.getEvents contains ColumnBasedValidatorCheckEvent(
+          failure = true,
+          ListMap("expected" -> "10", "actual" -> "2", "relative_error" -> "80.00%"),
+          "MinNumRowsCheck Expected: 10 Actual: 2 Relative Error: 80.00%"
+        )
+      )
     }
 
     it("quickCheck() should succeed when rowCount > minNumRows") {
@@ -213,11 +219,13 @@ class ValidatorBaseSpec extends AnyFunSpec with Matchers with TestingSparkSessio
       assert(!config.quickChecks(spark, dict))
       assert(!config.failed)
       assert(!config.tables.exists(_.failed))
-      assert(minNumRowsCheck.getEvents contains ColumnBasedValidatorCheckEvent(
-        failure = false,
-        ListMap("expected" -> "1", "actual" -> "2", "relative_error" -> "0.00%"),
-        "MinNumRowsCheck Expected: 1 Actual: 2 Relative Error: 0.00%"
-      ))
+      assert(
+        minNumRowsCheck.getEvents contains ColumnBasedValidatorCheckEvent(
+          failure = false,
+          ListMap("expected" -> "1", "actual" -> "2", "relative_error" -> "0.00%"),
+          "MinNumRowsCheck Expected: 1 Actual: 2 Relative Error: 0.00%"
+        )
+      )
     }
 
   }

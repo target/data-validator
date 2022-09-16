@@ -21,11 +21,11 @@ class EnvironmentVariablesSpec extends AnyWordSpec with Matchers {
     "log envvars" when {
       "using get" in {
         EnvironmentVariables.get("HOME")
-        EnvironmentVariables.accessedEnvVars.keySet should contain ("HOME")
+        EnvironmentVariables.accessedEnvVars.keySet should contain("HOME")
       }
       "using tryGet" in {
         EnvironmentVariables.tryGet("HOME")
-        EnvironmentVariables.accessedEnvVars.keySet should contain ("HOME")
+        EnvironmentVariables.accessedEnvVars.keySet should contain("HOME")
       }
     }
   }

@@ -29,7 +29,7 @@ class JsonUtilsSpec extends AnyFunSpec with Matchers with TestingSparkSession {
 
       it("garbage doesn't crash") {
         val garbageString = "{]2389s0fj2}"
-        assert(string2Json(garbageString)== Json.fromString(garbageString))
+        assert(string2Json(garbageString) == Json.fromString(garbageString))
       }
 
     }
@@ -87,7 +87,8 @@ class JsonUtilsSpec extends AnyFunSpec with Matchers with TestingSparkSession {
         )
       )
 
-      val sampleData = List(Row(TEST_STRING, TEST_LONG, TEST_INT, null, TEST_BOOLEAN, TEST_DOUBLE)) // scalastyle:ignore
+      val sampleData =
+        List(Row(TEST_STRING, TEST_LONG, TEST_INT, null, TEST_BOOLEAN, TEST_DOUBLE)) // scalastyle:ignore
 
       def mkRow: Row = spark.createDataFrame(sc.parallelize(sampleData), schema).head()
 
@@ -123,14 +124,16 @@ class JsonUtilsSpec extends AnyFunSpec with Matchers with TestingSparkSession {
 
       it("Full Row") {
         val sut = mkRow
-        assert(row2Json(sut) == Json.obj(
-          ("string", Json.fromString(TEST_STRING)),
-          ("long", Json.fromLong(TEST_LONG)),
-          ("int", Json.fromInt(TEST_INT)),
-          ("null", Json.Null),
-          ("bool", Json.fromBoolean(TEST_BOOLEAN)),
-          ("double", Json.fromDoubleOrNull(TEST_DOUBLE))
-        ))
+        assert(
+          row2Json(sut) == Json.obj(
+            ("string", Json.fromString(TEST_STRING)),
+            ("long", Json.fromLong(TEST_LONG)),
+            ("int", Json.fromInt(TEST_INT)),
+            ("null", Json.Null),
+            ("bool", Json.fromBoolean(TEST_BOOLEAN)),
+            ("double", Json.fromDoubleOrNull(TEST_DOUBLE))
+          )
+        )
       }
 
     }

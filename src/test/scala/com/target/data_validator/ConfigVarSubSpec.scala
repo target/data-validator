@@ -42,16 +42,18 @@ class ConfigVarSubSpec extends AnyFunSpec with Matchers with TestingSparkSession
           Some("$five == $six"),
           List.empty
         )
-        assert(sut.substituteVariables(dict) ==
-          ValidatorOrcFile("/1/2/orcFile", Some(List("Col3", "Col4")), Some("5 == 6"), List.empty)
+        assert(
+          sut.substituteVariables(dict) ==
+            ValidatorOrcFile("/1/2/orcFile", Some(List("Col3", "Col4")), Some("5 == 6"), List.empty)
         )
       }
 
       it("ValidatorDataFrame substitution should work") {
         val df = spark.emptyDataFrame
         val sut = ValidatorDataFrame(df, Some(List("Col$three", "Col$four")), Some("$five == $six"), List.empty)
-        assert(sut.substituteVariables(dict) ==
-          ValidatorDataFrame(df, Some(List("Col3", "Col4")), Some("5 == 6"), List.empty)
+        assert(
+          sut.substituteVariables(dict) ==
+            ValidatorDataFrame(df, Some(List("Col3", "Col4")), Some("5 == 6"), List.empty)
         )
       }
 
@@ -76,7 +78,7 @@ class ConfigVarSubSpec extends AnyFunSpec with Matchers with TestingSparkSession
             val sut = ColumnMaxCheck("Col$six", Json.fromString("$five"))
             val newColMaxCheck = sut.substituteVariables(dict).asInstanceOf[ColumnMaxCheck]
             assert(newColMaxCheck.column == "Col6")
-            assert(newColMaxCheck.value  == Json.fromInt(5)) // scalastyle:ignore
+            assert(newColMaxCheck.value == Json.fromInt(5)) // scalastyle:ignore
             assert(sut.substituteVariables(dict) == ColumnMaxCheck("Col6", Json.fromInt(5))) // scalastyle:ignore
             assert(!sut.failed)
           }

@@ -10,41 +10,38 @@ class NegativeCheckSpec extends AnyFunSpec with Matchers with TestingSparkSessio
 
   describe("NullCheck") {
 
-      describe("config parsing") {
-        it("basic config") {
-          val json = parseYaml(
-            """
-              |type: negativeCheck
-              |column: foo
+    describe("config parsing") {
+      it("basic config") {
+        val json = parseYaml("""
+          |type: negativeCheck
+          |column: foo
             """.stripMargin)
 
-          val sut = JsonDecoders.decodeChecks.decodeJson(json)
-          assert(sut == Right(NegativeCheck("foo", None)))
-        }
-
-        it("optional threshold") {
-          val json = parseYaml(
-            """
-              |type: negativeCheck
-              |column: foo
-              |threshold: 10.0%
-            """.stripMargin)
-
-          val sut = JsonDecoders.decodeChecks.decodeJson(json)
-          assert(sut == Right(NegativeCheck("foo", Some("10.0%"))))
-        }
-        it("config error") {
-          val json = parseYaml(
-            """
-              |type: negativeCheck
-              |garbage
-            """.stripMargin)
-
-          val sut = JsonDecoders.decodeChecks.decodeJson(json)
-          assert(sut.isLeft) // Todo: Maybe add better check. Left is generic failure.
-        }
-
+        val sut = JsonDecoders.decodeChecks.decodeJson(json)
+        assert(sut == Right(NegativeCheck("foo", None)))
       }
+
+      it("optional threshold") {
+        val json = parseYaml("""
+          |type: negativeCheck
+          |column: foo
+          |threshold: 10.0%
+            """.stripMargin)
+
+        val sut = JsonDecoders.decodeChecks.decodeJson(json)
+        assert(sut == Right(NegativeCheck("foo", Some("10.0%"))))
+      }
+      it("config error") {
+        val json = parseYaml("""
+          |type: negativeCheck
+          |garbage
+            """.stripMargin)
+
+        val sut = JsonDecoders.decodeChecks.decodeJson(json)
+        assert(sut.isLeft) // Todo: Maybe add better check. Left is generic failure.
+      }
+
+    }
 
     describe("variable substitution") {
       it("success substitution") {
@@ -59,12 +56,20 @@ class NegativeCheckSpec extends AnyFunSpec with Matchers with TestingSparkSessio
         var sut = NegativeCheck("$column", Some("$threshold"))
         assert(sut.substituteVariables(dict) == sut)
         assert(sut.failed)
-        assert(sut.getEvents contains
-          ValidatorError("VariableSubstitution: Can't find values for the following keys, "
-            + "column"))
-        assert(sut.getEvents contains
-          ValidatorError("VariableSubstitution: Can't find values for the following keys, "
-            + "threshold"))
+        assert(
+          sut.getEvents contains
+            ValidatorError(
+              "VariableSubstitution: Can't find values for the following keys, "
+                + "column"
+            )
+        )
+        assert(
+          sut.getEvents contains
+            ValidatorError(
+              "VariableSubstitution: Can't find values for the following keys, "
+                + "threshold"
+            )
+        )
       }
     }
 
@@ -76,7 +81,7 @@ class NegativeCheckSpec extends AnyFunSpec with Matchers with TestingSparkSessio
       }
 
       it("Column doesn't exist") {
-        val df = mkDf(spark = spark, ("price" -> List(1.99)))
+        val df = mkDf(spark = spark, "price" -> List(1.99))
         val sut = NegativeCheck("junk", None)
         assert(sut.configCheck(df))
         assert(sut.failed)
@@ -84,7 +89,7 @@ class NegativeCheckSpec extends AnyFunSpec with Matchers with TestingSparkSessio
       }
 
       it("Column exists but is wrong type") {
-        val df = mkDf(spark = spark, ("item" -> List("eggs")))
+        val df = mkDf(spark = spark, "item" -> List("eggs"))
         val sut = NegativeCheck("item", None)
         assert(sut.configCheck(df))
         assert(sut.failed)
@@ -96,7 +101,7 @@ class NegativeCheckSpec extends AnyFunSpec with Matchers with TestingSparkSessio
     describe("functionality") {
 
       it("success") {
-        val df = mkDf(spark, "price"-> List(1.99, 1.50, 2.50)) // scalastyle:ignore
+        val df = mkDf(spark, "price" -> List(1.99, 1.50, 2.50)) // scalastyle:ignore
         val sut = ValidatorDataFrame(df, None, None, List(NegativeCheck("price", None)))
         val config = ValidatorConfig(1, 1, None, false, None, None, List.empty)
         assert(!sut.quickChecks(spark, mkDict())(config))
@@ -104,7 +109,7 @@ class NegativeCheckSpec extends AnyFunSpec with Matchers with TestingSparkSessio
       }
 
       it("fails") {
-        val df = mkDf(spark, "price"-> List(1.99, -1.50, 2.50)) // scalastyle:ignore
+        val df = mkDf(spark, "price" -> List(1.99, -1.50, 2.50)) // scalastyle:ignore
         val sut = ValidatorDataFrame(df, None, None, List(NegativeCheck("price", None)))
         val config = ValidatorConfig(1, 1, None, false, None, None, List.empty)
         assert(sut.quickChecks(spark, mkDict())(config))
@@ -113,7 +118,7 @@ class NegativeCheckSpec extends AnyFunSpec with Matchers with TestingSparkSessio
       }
 
       it("threshold success") {
-        val df = mkDf(spark, "price"-> List(1.99, -1.50, 2.50)) // scalastyle:ignore
+        val df = mkDf(spark, "price" -> List(1.99, -1.50, 2.50)) // scalastyle:ignore
         val sut = ValidatorDataFrame(df, None, None, List(NegativeCheck("price", Some("1"))))
         val config = ValidatorConfig(1, 1, None, false, None, None, List.empty)
         assert(!sut.quickChecks(spark, mkDict())(config))
@@ -122,7 +127,7 @@ class NegativeCheckSpec extends AnyFunSpec with Matchers with TestingSparkSessio
       }
 
       it("threshold failure") {
-        val df = mkDf(spark, "price"-> List(1.99, -1.50, -2.50)) // scalastyle:ignore
+        val df = mkDf(spark, "price" -> List(1.99, -1.50, -2.50)) // scalastyle:ignore
         val sut = ValidatorDataFrame(df, None, None, List(NegativeCheck("price", Some("1"))))
         val config = ValidatorConfig(1, 1, None, false, None, None, List.empty)
         assert(sut.quickChecks(spark, mkDict())(config))

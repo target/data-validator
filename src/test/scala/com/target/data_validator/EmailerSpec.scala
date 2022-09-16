@@ -79,7 +79,8 @@ class EmailerSpec extends AnyFunSpec {
         val msg = Emailer.createEmptyMessage("", "", doug_home, List(collin_email), Nil, Nil).get
         val toAddresses = msg
           .asInstanceOf[MimeMessage]
-          .getRecipients(Message.RecipientType.TO).asInstanceOf[Array[InternetAddress]]
+          .getRecipients(Message.RecipientType.TO)
+          .asInstanceOf[Array[InternetAddress]]
         assert(toAddresses.length == 1)
         assert(toAddresses(0).getAddress == collin_email)
       }
@@ -88,7 +89,8 @@ class EmailerSpec extends AnyFunSpec {
         val msg = Emailer.createEmptyMessage("", "", doug_home, List(collin_email), List(doug_work), Nil).get
         val ccAddresses = msg
           .asInstanceOf[MimeMessage]
-          .getRecipients(Message.RecipientType.CC).asInstanceOf[Array[InternetAddress]]
+          .getRecipients(Message.RecipientType.CC)
+          .asInstanceOf[Array[InternetAddress]]
         assert(ccAddresses.length == 1)
         assert(ccAddresses(0).getAddress == doug_work)
       }
@@ -97,7 +99,8 @@ class EmailerSpec extends AnyFunSpec {
         val msg = Emailer.createEmptyMessage("", "", doug_home, Nil, Nil, List(doug_home)).get
         val bccAddresses = msg
           .asInstanceOf[MimeMessage]
-          .getRecipients(Message.RecipientType.BCC).asInstanceOf[Array[InternetAddress]]
+          .getRecipients(Message.RecipientType.BCC)
+          .asInstanceOf[Array[InternetAddress]]
         assert(bccAddresses.length == 1)
         assert(bccAddresses(0).getAddress == doug_home)
       }
