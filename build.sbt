@@ -47,9 +47,7 @@ lazy val commonSettings: SettingsDefinition = Def.settings(
     "io.circe" %% "circe-generic" % circeVersion.value,
     "io.circe" %% "circe-parser" % circeVersion.value,
     // "org.apache.spark" %% "spark-sql" % sparkVersion % Provided,
-    "org.scalatest" %% "scalatest" % "3.2.13" % Test,
-    "junit" % "junit" % "4.13.2" % Test,
-    "com.novocode" % "junit-interface" % "0.11" % Test exclude ("junit", "junit-dep")
+    "org.scalatest" %% "scalatest" % "3.2.13" % Test
   ),
   (Test / fork) := true,
   javaOptions ++= Seq("-Xms512M", "-Xmx2048M", "-XX:+CMSClassUnloadingEnabled"),
