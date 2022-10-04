@@ -34,7 +34,7 @@ libraryDependencies ++= Seq(
   "com.typesafe.scala-logging" %% "scala-logging" % "3.9.5",
   "com.github.scopt" %% "scopt" % "4.1.0",
   "com.sun.mail" % "javax.mail" % "1.6.2",
-  "com.lihaoyi" %% "scalatags" % "0.11.1",
+  "com.lihaoyi" %% "scalatags" % "0.12.0",
   "io.circe" %% "circe-yaml" % "0.10.1",
   "io.circe" %% "circe-core" % circeVersion,
   "io.circe" %% "circe-generic" % circeVersion,
