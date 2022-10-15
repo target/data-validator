@@ -1,7 +1,7 @@
 name := "data-validator"
 organization := "com.target"
 
-scalaVersion := "2.11.12"
+scalaVersion := "2.13.10"
 
 val sparkVersion = "2.3.4"
 
