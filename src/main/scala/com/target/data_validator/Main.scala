@@ -95,7 +95,7 @@ object Main extends LazyLogging with EventLog {
     // Resolve config
     val (fatal, validator_fail) = resolveVariables(spark, mainConfig, origConfig, varSub)
       .map { config =>
-        val fatal = checkConfig(spark, mainConfig, config, varSub)
+        val fatal = config.failed || checkConfig(spark, mainConfig, config, varSub)
         if (fatal) {
           (fatal, false)
         } else {
