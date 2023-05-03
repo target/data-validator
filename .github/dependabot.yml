@@ -5,3 +5,6 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+
+# scala updates are handed by the Scala Steward action.
+# https://github.com/target/data-validator/blob/master/.github/workflows/scala-steward.yaml
