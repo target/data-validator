@@ -1,11 +1,11 @@
 name := "data-validator"
 organization := "com.target"
 
-scalaVersion := "2.11.12"
+scalaVersion := "2.12.13"
 
-val sparkVersion = "2.3.4"
+val sparkVersion = "2.4.8"
 
-val circeVersion = "0.11.2"
+val circeVersion = "0.14.2"
 
 //addDependencyTreePlugin
 enablePlugins(GitVersioning)
@@ -78,3 +78,7 @@ TaskKey[Unit]("generateTestData") := {
   libraryDependencies += "org.apache.spark" %% "spark-sql" % sparkVersion
   (Compile / runMain).toTask(" com.target.data_validator.GenTestData").value
 }
+
+scalafixDependencies in ThisBuild +=
+  "com.holdenkarau" %% "spark-scalafix-rules-2.4.8" % "0.1.15"
+semanticdbEnabled in ThisBuild := true

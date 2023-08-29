@@ -78,13 +78,14 @@ case class ColumnSumCheck(
     }
 
     def getData(pctError: String): ListMap[String, String] = {
-      ((minValue, maxValue) match {
+      val initial: ListMap[String, String] = ((minValue, maxValue) match {
         case (Some(x), Some(y)) =>
           ListMap("lower_bound" -> x.asNumber.get.toString, "upper_bound" -> y.asNumber.get.toString)
         case (None, Some(y)) => ListMap("upper_bound" -> y.asNumber.get.toString)
         case (Some(x), None) => ListMap("lower_bound" -> x.asNumber.get.toString)
         case (None, None) => throw new RuntimeException("Must define at least one of minValue or maxValue.")
-      }) + ("inclusive" -> isInclusive.toString, "actual" -> r(idx).toString, "relative_error" -> pctError)
+      })
+      initial ++ List("inclusive" -> isInclusive.toString, "actual" -> r(idx).toString, "relative_error" -> pctError)
     }
 
     val actualSum: Double = dataType match {
