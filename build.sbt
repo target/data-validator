@@ -1,11 +1,42 @@
 name := "data-validator"
 organization := "com.target"
 
-scalaVersion := "2.12.13"
+val sparkVersion = settingKey[String]("Spark version")
 
-val sparkVersion = "3.4.1"
+sparkVersion := System.getProperty("sparkVersion", "2.3.4")
 
-val circeVersion = "0.14.2"
+scalaVersion := {
+  if (sparkVersion.value > "3.0") {
+    "2.12.13"
+  } else {
+    "2.11.12"
+  }
+}
+
+val sparkValidationVersion = settingKey[String]("Version of package")
+
+sparkValidationVersion := "0.15.0"
+
+version := sparkVersion.value + "_" + sparkValidationVersion.value
+
+val circeVersion = settingKey[String]("Circe version")
+val circeYamlVersion = settingKey[String]("Circe YAML version")
+
+circeVersion := {
+  if (sparkVersion.value > "3.0") {
+    "0.14.2"
+  } else {
+    "0.11.2"
+  }
+}
+
+circeYamlVersion := {
+  if (sparkVersion.value > "3.0") {
+    "0.14.2"
+  } else {
+    "0.10.1"
+  }
+}
 
 //addDependencyTreePlugin
 enablePlugins(GitVersioning)
@@ -35,11 +66,11 @@ libraryDependencies ++= Seq(
   "com.github.scopt" %% "scopt" % "4.1.0",
   "com.sun.mail" % "javax.mail" % "1.6.2",
   "com.lihaoyi" %% "scalatags" % "0.12.0",
-  "io.circe" %% "circe-yaml" % circeVersion,
-  "io.circe" %% "circe-core" % circeVersion,
-  "io.circe" %% "circe-generic" % circeVersion,
-  "io.circe" %% "circe-parser" % circeVersion,
-  "org.apache.spark" %% "spark-sql" % sparkVersion % Provided,
+  "io.circe" %% "circe-yaml" % circeYamlVersion.value,
+  "io.circe" %% "circe-core" % circeVersion.value,
+  "io.circe" %% "circe-generic" % circeVersion.value,
+  "io.circe" %% "circe-parser" % circeVersion.value,
+  "org.apache.spark" %% "spark-sql" % sparkVersion.value % Provided,
   "junit" % "junit" % "4.13.2" % Test,
   "org.scalatest" %% "scalatest" % "3.2.15" % Test,
   "com.github.sbt" % "junit-interface" % "0.13.3" % Test exclude ("junit", "junit-dep")
@@ -75,6 +106,6 @@ compileScalastyle := (Compile / scalastyle).toTask("").value
 
 (Compile / runMain) := Defaults.runMainTask(Compile / fullClasspath, Compile / run / runner).evaluated
 TaskKey[Unit]("generateTestData") := {
-  libraryDependencies += "org.apache.spark" %% "spark-sql" % sparkVersion
+  libraryDependencies += "org.apache.spark" %% "spark-sql" % sparkVersion.value
   (Compile / runMain).toTask(" com.target.data_validator.GenTestData").value
 }
