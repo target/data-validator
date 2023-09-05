@@ -77,7 +77,15 @@ libraryDependencies ++= Seq(
 )
 
 Test / fork := true
-javaOptions ++= Seq("-Xms512M", "-Xmx2048M", "-XX:+CMSClassUnloadingEnabled")
+javaOptions ++= (if (sparkVersion.value > "3.0") {
+  Seq("-Xms4048M", "-Xmx4048M",
+    "-Dio.netty.tryReflectionSetAccessible=true",
+    "--add-opens=java.base/java.lang=ALL-UNNAMED",
+    "--add-opens=java.base/java.io=ALL-UNNAMED",
+    "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED")
+} else {
+    Seq("-Xms4048M", "-Xmx4048M")
+})
 Test / parallelExecution := false
 // required for unit tests, but not set in some environments
 Test / envVars ++= Map(
