@@ -7,7 +7,7 @@ sparkVersion := System.getProperty("sparkVersion", "2.3.4")
 
 scalaVersion := {
   if (sparkVersion.value > "3.0") {
-    "2.12.13"
+    "2.12.17"
   } else {
     "2.11.12"
   }
@@ -95,6 +95,11 @@ Test / envVars ++= Map(
 )
 
 assembly / mainClass := Some("com.target.data_validator.Main")
+
+assembly / assemblyShadeRules := Seq(
+        ShadeRule.rename("shapeless.**" -> "new_shapeless.@1").inAll,
+        ShadeRule.rename("cats.kernel.**" -> s"new_cats.kernel.@1").inAll
+      )
 
 // Enforces scalastyle checks
 val compileScalastyle = TaskKey[Unit]("compileScalastyle")
