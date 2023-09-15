@@ -41,7 +41,7 @@ libraryDependencies ++= Seq(
   "io.circe" %% "circe-parser" % circeVersion,
   "org.apache.spark" %% "spark-sql" % sparkVersion % Provided,
   "junit" % "junit" % "4.13.2" % Test,
-  "org.scalatest" %% "scalatest" % "3.2.15" % Test,
+  "org.scalatest" %% "scalatest" % "3.2.17" % Test,
   "com.github.sbt" % "junit-interface" % "0.13.3" % Test exclude ("junit", "junit-dep")
 )
 
