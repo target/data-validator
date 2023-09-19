@@ -77,7 +77,8 @@ libraryDependencies ++= Seq(
 )
 
 Test / fork := true
-javaOptions ++= (if (sparkVersion.value > "3.0") {
+javaOptions ++= (if (sparkVersion.value > "3.0" && System.getenv("MODERN_JAVA") == "TRUE") {
+  // For modern Java we need to open up a lot of config options.
   Seq("-Xms4048M", "-Xmx4048M",
     "-Dio.netty.tryReflectionSetAccessible=true",
     "--add-opens=java.base/java.lang=ALL-UNNAMED",
