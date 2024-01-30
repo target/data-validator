@@ -86,7 +86,7 @@ case class MinNumRows(minNumRows: Json) extends ColumnBased("", ValidatorBase.L0
 }
 
 case class ColumnMaxCheck(column: String, value: Json)
-    extends ColumnBased(column, Max(UnresolvedAttribute(column)).toAggregateExpression()) {
+    extends ColumnBased(column, Max(UnresolvedAttribute.quoted(column)).toAggregateExpression()) {
 
   override def substituteVariables(dict: VarSubstitution): ValidatorBase = {
     val ret = copy(column = getVarSub(column, "column", dict), value = getVarSubJson(value, "value", dict))

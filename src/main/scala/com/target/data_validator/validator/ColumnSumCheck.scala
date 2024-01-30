@@ -16,7 +16,7 @@ case class ColumnSumCheck(
     minValue: Option[Json] = None,
     maxValue: Option[Json] = None,
     inclusive: Option[Json] = None
-) extends ColumnBased(column, Sum(UnresolvedAttribute(column)).toAggregateExpression()) {
+) extends ColumnBased(column, Sum(UnresolvedAttribute.quoted(column)).toAggregateExpression()) {
 
   private val minOrMax: Either[String, Unit] = if (minValue.isEmpty && maxValue.isEmpty) {
     Left("'minValue' or 'maxValue' or both must be defined")
@@ -78,13 +78,14 @@ case class ColumnSumCheck(
     }
 
     def getData(pctError: String): ListMap[String, String] = {
-      ((minValue, maxValue) match {
+      val initial: ListMap[String, String] = ((minValue, maxValue) match {
         case (Some(x), Some(y)) =>
           ListMap("lower_bound" -> x.asNumber.get.toString, "upper_bound" -> y.asNumber.get.toString)
         case (None, Some(y)) => ListMap("upper_bound" -> y.asNumber.get.toString)
         case (Some(x), None) => ListMap("lower_bound" -> x.asNumber.get.toString)
         case (None, None) => throw new RuntimeException("Must define at least one of minValue or maxValue.")
-      }) + ("inclusive" -> isInclusive.toString, "actual" -> r(idx).toString, "relative_error" -> pctError)
+      })
+      initial ++ List("inclusive" -> isInclusive.toString, "actual" -> r(idx).toString, "relative_error" -> pctError)
     }
 
     val actualSum: Double = dataType match {

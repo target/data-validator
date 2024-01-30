@@ -65,6 +65,8 @@ Usage: data-validator [options]
   --help                   Show this help message and exit.
 ```
 
+If you want to build with a modern version of java set the "MODERN_JAVA" enviornment variable.
+
 ## Example Run
 
 With the JAR directly:

@@ -305,7 +305,7 @@ class RangeCheckSpec extends AnyFunSpec with Matchers with TestingSparkSession {
             ValidatorQuickCheckError(
               ("item", "Eggs") :: Nil,
               5.99,
-              "RangeCheck failed! max = 5.99 and (('max <= 6.0) || ('max >= 10.0))"
+              "RangeCheck failed! max = 5.99 and (('max <= 6.0) OR ('max >= 10.0))"
             )
         )
       }
@@ -341,7 +341,7 @@ class RangeCheckSpec extends AnyFunSpec with Matchers with TestingSparkSession {
         val dict = new VarSubstitution
         val df = mkDataFrame(spark, defData)
         assert(!sut.configCheck(df))
-        assert(sut.colTest(df.schema, dict).sql == "((`avg` < `min`) OR (`avg` > `max`))")
+        assert(sut.colTest(df.schema, dict).sql == "((avg < min) OR (avg > max))")
       }
 
       it("bad minValue column") {
@@ -395,7 +395,7 @@ class RangeCheckSpec extends AnyFunSpec with Matchers with TestingSparkSession {
             ValidatorQuickCheckError(
               ("item", "Bread") :: Nil,
               0.99,
-              "RangeCheck failed! avg = 0.99 and (('avg <= 'min) || ('avg >= 'max))"
+              "RangeCheck failed! avg = 0.99 and (('avg <= 'min) OR ('avg >= 'max))"
             )
         )
       }
