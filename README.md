@@ -65,6 +65,9 @@ Usage: data-validator [options]
   --help                   Show this help message and exit.
 ```
 
+If you want to build with Java 11 or newer, set the "MODERN_JAVA" environment variable.
+This may become the default in the future.
+
 ## Example Run
 
 With the JAR directly:

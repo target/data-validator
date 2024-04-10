@@ -25,3 +25,5 @@ jobs:
       # uses sbt-github-packages, see build.sbt
       - name: Publish with SBT
         run: bin/sbt publish
+      - name: Publish with SBT
+        run: bin/sbt publish -DsparkVersion=3.5.1
