@@ -7,7 +7,7 @@ sparkVersion := System.getProperty("sparkVersion", "2.3.4")
 
 scalaVersion := {
   if (sparkVersion.value > "3.0") {
-    "2.12.17"
+    "2.12.19"
   } else {
     "2.11.12"
   }
