@@ -21,7 +21,7 @@ jobs:
           extraKey: ${{ runner.os }}
       - uses: coursier/setup-action@v1
         with:
-          jvm: adopt:1.8
+          jvm: adopt:1.17
       # uses sbt-github-packages, see build.sbt
       - name: Publish with SBT
         run: bin/sbt publish

@@ -22,7 +22,7 @@ jobs:
           extraKey: ${{ runner.os }}
       - uses: coursier/setup-action@v1
         with:
-          jvm: adopt:1.8
+          jvm: adopt:1.17
       - name: Build, test, and package project on Spark 3.5
         run: bin/sbt clean compile test package makePom -DsparkVersion=3.5.1
       - name: Build and package project on "legacy" Spark
