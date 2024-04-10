@@ -40,4 +40,4 @@ jobs:
       - name: Publish for Spark 3 / Scala 2.12 with SBT
         run: bin/sbt publish -DsparkVersion=3.5.1
         env:
-          MODERN_JAVA: true
+          MODERN_JAVA: TRUE
