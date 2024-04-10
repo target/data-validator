@@ -32,7 +32,7 @@ circeVersion := {
 
 circeYamlVersion := {
   if (sparkVersion.value > "3.0") {
-    "0.14.6"
+    "0.15.1"
   } else {
     "0.10.1"
   }
