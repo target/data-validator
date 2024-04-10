@@ -80,6 +80,7 @@ Test / fork := true
 javaOptions ++= (if (sparkVersion.value > "3.0" && System.getenv("MODERN_JAVA") == "TRUE") {
   // For modern Java we need to open up a lot of config options.
   Seq("-Xms4048M", "-Xmx4048M",
+    // these were added in JDK 11 and newer, apparently.
     "-Dio.netty.tryReflectionSetAccessible=true",
     "--add-opens=java.base/java.lang=ALL-UNNAMED",
     "--add-opens=java.base/java.io=ALL-UNNAMED",
