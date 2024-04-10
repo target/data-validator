@@ -26,4 +26,4 @@ jobs:
       - name: Publish with SBT
         run: bin/sbt publish
       - name: Publish with SBT
-        run: bin/sbt publish -DsparkVersion=3.3.1
+        run: bin/sbt publish -DsparkVersion=3.5.1
