@@ -24,7 +24,7 @@ val circeYamlVersion = settingKey[String]("Circe YAML version")
 
 circeVersion := {
   if (sparkVersion.value > "3.0") {
-    "0.14.2"
+    "0.14.6"
   } else {
     "0.11.2"
   }
@@ -32,7 +32,7 @@ circeVersion := {
 
 circeYamlVersion := {
   if (sparkVersion.value > "3.0") {
-    "0.14.2"
+    "0.14.6"
   } else {
     "0.10.1"
   }
