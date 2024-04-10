@@ -21,13 +21,14 @@ jobs:
           extraKey: ${{ runner.os }}
       - uses: coursier/setup-action@v1
         with:
-          jvm: adoptium:1.17
+          jvm: adopt:1.8
       # uses sbt-github-packages, see build.sbt
-      - name: Publish with SBT
+      - name: Publish for Spark 2 with SBT
         run: bin/sbt publish
-        env:
-          MODERN_JAVA: true
-      - name: Publish with SBT
+      - uses: coursier/setup-action@v1
+        with:
+          jvm: adoptium:1.17
+      - name: Publish for Spark 3 with SBT
         run: bin/sbt publish -DsparkVersion=3.5.1
         env:
           MODERN_JAVA: true
