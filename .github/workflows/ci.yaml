@@ -11,8 +11,8 @@ env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
-  build:
-    name: Build and Test
+  build-legacy:
+    name: Build and Test on legacy JDK and Spark
     runs-on: ubuntu-latest
     steps:
       - name: Checkout current branch (full)
@@ -25,6 +25,15 @@ jobs:
           jvm: adopt:1.8
       - name: Build, test, and package project on "legacy" Spark
         run: bin/sbt clean compile test package makePom
+  build-modern:
+    name: Build and Test on Modern JDK and Spark
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout current branch (full)
+        uses: actions/checkout@v4
+      - uses: coursier/cache-action@v6
+        with:
+          extraKey: ${{ runner.os }}
       - uses: coursier/setup-action@v1
         with:
           jvm: adoptium:1.17

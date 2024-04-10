@@ -10,7 +10,7 @@ env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
-  deploy:
+  deploy-legacy:
     name: Release
     runs-on: ubuntu-latest
     steps:
@@ -23,12 +23,21 @@ jobs:
         with:
           jvm: adopt:1.8
       # uses sbt-github-packages, see build.sbt
-      - name: Publish for Spark 2 with SBT
+      - name: Publish for Spark 2 / Scala 2.11 with SBT
         run: bin/sbt publish
+  deploy-modern:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout current branch (full)
+        uses: actions/checkout@v4
+      - uses: coursier/cache-action@v6
+        with:
+          extraKey: ${{ runner.os }}
       - uses: coursier/setup-action@v1
         with:
           jvm: adoptium:1.17
-      - name: Publish for Spark 3 with SBT
+      - name: Publish for Spark 3 / Scala 2.12 with SBT
         run: bin/sbt publish -DsparkVersion=3.5.1
         env:
           MODERN_JAVA: true
