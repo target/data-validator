@@ -25,5 +25,9 @@ jobs:
       # uses sbt-github-packages, see build.sbt
       - name: Publish with SBT
         run: bin/sbt publish
+        env:
+          MODERN_JAVA: true
       - name: Publish with SBT
         run: bin/sbt publish -DsparkVersion=3.5.1
+        env:
+          MODERN_JAVA: true
