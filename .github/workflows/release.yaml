@@ -15,15 +15,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout current branch (full)
-        uses: actions/checkout@v3
-
-      - name: Setup Java and Scala
-        uses: olafurpg/setup-scala@v14
+        uses: actions/checkout@v4
+      - uses: coursier/cache-action@v6
         with:
-          java-version: adopt@1.8
-
-      - name: Cache sbt
-        uses: actions/cache@v3
+          extraKey: ${{ runner.os }}
+      - uses: coursier/setup-action@v1
         with:
           path: |
             ~/.sbt
@@ -33,7 +29,9 @@ jobs:
             ~/AppData/Local/Coursier/Cache/v1
             ~/Library/Caches/Coursier/v1
           key: ${{ runner.os }}-sbt-cache-v2-${{ hashFiles('**/*.sbt') }}-${{ hashFiles('project/build.properties') }}
-
+          jvm: adopt:1.8
       # uses sbt-github-packages, see build.sbt
       - name: Publish with SBT
         run: bin/sbt dependencyLockCheck publish
+      - name: Publish with SBT
+        run: bin/sbt dependencyLockCheck publish -DsparkVersion=3.5.1
