@@ -327,13 +327,13 @@ class StringLengthCheckSpec extends AnyFunSpec with Matchers with TestingSparkSe
             ValidatorQuickCheckError(
               ("item", "I") :: Nil,
               "I",
-              "StringLengthCheck failed! item = I and ((length('item) < 5) || (length('item) > 6))"
+              "StringLengthCheck failed! item = I and ((length('item) < 5) OR (length('item) > 6))"
             )) ^
             (sut.getEvents contains
               ValidatorQuickCheckError(
                 ("item", "") :: Nil,
                 "",
-                "StringLengthCheck failed! item =  and ((length('item) < 5) || (length('item) > 6))"
+                "StringLengthCheck failed! item =  and ((length('item) < 5) OR (length('item) > 6))"
               ))
         )
       }
@@ -364,7 +364,7 @@ class StringLengthCheckSpec extends AnyFunSpec with Matchers with TestingSparkSe
             ValidatorQuickCheckError(
               ("item", "I") :: Nil,
               "I",
-              "StringLengthCheck failed! item = I and ((length('item) < 5) || (length('item) > 6))"
+              "StringLengthCheck failed! item = I and ((length('item) < 5) OR (length('item) > 6))"
             )
         )
 
@@ -373,7 +373,7 @@ class StringLengthCheckSpec extends AnyFunSpec with Matchers with TestingSparkSe
             ValidatorQuickCheckError(
               ("item", "") :: Nil,
               "",
-              "StringLengthCheck failed! item =  and ((length('item) < 5) || (length('item) > 6))"
+              "StringLengthCheck failed! item =  and ((length('item) < 5) OR (length('item) > 6))"
             )
         )
       }
@@ -404,7 +404,7 @@ class StringLengthCheckSpec extends AnyFunSpec with Matchers with TestingSparkSe
             ValidatorQuickCheckError(
               ("item", "I") :: Nil,
               "I",
-              "StringLengthCheck failed! item = I and ((length('item) < 5) || (length('item) > 5))"
+              "StringLengthCheck failed! item = I and ((length('item) < 5) OR (length('item) > 5))"
             )
         )
 
@@ -413,7 +413,7 @@ class StringLengthCheckSpec extends AnyFunSpec with Matchers with TestingSparkSe
             ValidatorQuickCheckError(
               ("item", "") :: Nil,
               "",
-              "StringLengthCheck failed! item =  and ((length('item) < 5) || (length('item) > 5))"
+              "StringLengthCheck failed! item =  and ((length('item) < 5) OR (length('item) > 5))"
             )
         )
 
@@ -422,7 +422,7 @@ class StringLengthCheckSpec extends AnyFunSpec with Matchers with TestingSparkSe
             ValidatorQuickCheckError(
               ("item", "Item23") :: Nil,
               "Item23",
-              "StringLengthCheck failed! item = Item23 and ((length('item) < 5) || (length('item) > 5))"
+              "StringLengthCheck failed! item = Item23 and ((length('item) < 5) OR (length('item) > 5))"
             )
         )
       }
