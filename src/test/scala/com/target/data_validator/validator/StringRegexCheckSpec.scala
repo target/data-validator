@@ -183,7 +183,7 @@ class StringRegexCheckSpec extends AnyFunSpec with Matchers with TestingSparkSes
             ValidatorQuickCheckError(
               ("item", "I") :: Nil,
               "I",
-              "StringRegexCheck failed! item = I and (NOT 'item RLIKE ^It && isnotnull('item))"
+              "StringRegexCheck failed! item = I and (NOT RLIKE('item, ^It) AND isnotnull('item))"
             )
         )
       }
@@ -214,7 +214,7 @@ class StringRegexCheckSpec extends AnyFunSpec with Matchers with TestingSparkSes
             ValidatorQuickCheckError(
               ("item", "I") :: Nil,
               "I",
-              "StringRegexCheck failed! item = I and (NOT 'item RLIKE ^Item2 && isnotnull('item))"
+              "StringRegexCheck failed! item = I and (NOT RLIKE('item, ^Item2) AND isnotnull('item))"
             )
         )
 
@@ -223,7 +223,7 @@ class StringRegexCheckSpec extends AnyFunSpec with Matchers with TestingSparkSes
             ValidatorQuickCheckError(
               ("item", "Item1") :: Nil,
               "Item1",
-              "StringRegexCheck failed! item = Item1 and (NOT 'item RLIKE ^Item2 && isnotnull('item))"
+              "StringRegexCheck failed! item = Item1 and (NOT RLIKE('item, ^Item2) AND isnotnull('item))"
             )
         )
       }
@@ -254,13 +254,13 @@ class StringRegexCheckSpec extends AnyFunSpec with Matchers with TestingSparkSes
             ValidatorQuickCheckError(
               ("item", "I") :: Nil,
               "I",
-              "StringRegexCheck failed! item = I and (NOT 'item RLIKE ^Item2 && isnotnull('item))"
+              "StringRegexCheck failed! item = I and (NOT RLIKE('item, ^Item2) AND isnotnull('item))"
             )) ^
             (sut.getEvents contains
               ValidatorQuickCheckError(
                 ("item", "Item1") :: Nil,
                 "Item1",
-                "StringRegexCheck failed! item = Item1 and (NOT 'item RLIKE ^Item2 && isnotnull('item))"
+                "StringRegexCheck failed! item = Item1 and (NOT RLIKE('item, ^Item2) AND isnotnull('item))"
               ))
         )
       }
