@@ -21,9 +21,17 @@ test: ## Runs tests
 check: ## Runs linters and other checks
 	$(SBT) scalastyle
 
+.PHONY: check-deps
+check-deps: ## Checks dependencies are what are expected
+	$(SBT) dependencyLockCheck
+
 .PHONY: build
 build:
 	$(SBT) assembly
+
+.PHONY: relock
+relock: ## Lock dependencies based on what's currently referenced
+	$(SBT) dependencyLockWrite
 
 .PHONY: format-scala
 format-scala: ## Formats all Scala code
