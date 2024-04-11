@@ -23,5 +23,7 @@ jobs:
       - uses: coursier/setup-action@v1
         with:
           jvm: adopt:1.8
-      - name: Build, test, and package project
-        run: bin/sbt clean compile test package makePom
+      - name: Build, test, and package project on Spark 3.5
+        run: bin/sbt clean compile test package makePom -DsparkVersion=3.5.1
+      - name: Build and package project on "legacy" Spark
+        run: bin/sbt clean compile package makePom
