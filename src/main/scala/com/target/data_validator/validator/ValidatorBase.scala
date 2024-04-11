@@ -141,8 +141,8 @@ object ValidatorBase extends LazyLogging {
   private val backtick = "`"
   val I0: Literal = Literal.create(0, IntegerType)
   val D0: Literal = Literal.create(0.0, DoubleType)
-  val L0: Literal = Literal.create(0, LongType)
-  val L1: Literal = Literal.create(1, LongType)
+  val L0: Literal = Literal.create(0L, LongType)
+  val L1: Literal = Literal.create(1L, LongType)
 
   def isValueColumn(v: String): Boolean = v.startsWith(backtick)
 
