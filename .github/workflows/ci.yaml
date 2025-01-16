@@ -28,8 +28,16 @@ jobs:
           extraKey: ${{ runner.os }}
       - uses: coursier/setup-action@v1
         with:
+          path: |
+            ~/.sbt
+            ~/.ivy2/cache
+            ~/.coursier/cache/v1
+            ~/.cache/coursier/v1
+            ~/AppData/Local/Coursier/Cache/v1
+            ~/Library/Caches/Coursier/v1
+          key: ${{ runner.os }}-sbt-cache-v2-${{ hashFiles('**/*.sbt') }}-${{ hashFiles('project/build.properties') }}
           jvm: adopt:1.8
       - name: Build, test, and package project on Spark 3.5
-        run: bin/sbt clean compile test package makePom -DsparkVersion=3.5.1
+        run: bin/sbt clean update dependencyLockCheck compile test package makePom -DsparkVersion=3.5.1
       - name: Build and package project on "legacy" Spark
-        run: bin/sbt clean compile package makePom
+        run: bin/sbt clean update dependencyLockCheck compile package makePom
