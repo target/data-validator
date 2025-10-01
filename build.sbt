@@ -62,7 +62,7 @@ buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion)
 buildInfoPackage := "com.target.data_validator"
 
 libraryDependencies ++= Seq(
-  "com.typesafe.scala-logging" %% "scala-logging" % "3.9.5",
+  "com.typesafe.scala-logging" %% "scala-logging" % "3.9.6",
   "com.github.scopt" %% "scopt" % "4.1.0",
   "com.sun.mail" % "javax.mail" % "1.6.2",
   "com.lihaoyi" %% "scalatags" % "0.12.0",
