@@ -23,7 +23,7 @@ jobs:
     steps:
       - name: Checkout current branch (full)
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
-      - uses: coursier/cache-action@v7
+      - uses: coursier/cache-action@bebeeb0e6f48ebad66d3783946588ecf43114433 # v7.0.0
         with:
           extraKey: ${{ runner.os }}
       - uses: coursier/setup-action@v1
