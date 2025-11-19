@@ -23,6 +23,8 @@ jobs:
     steps:
       - name: Checkout current branch (full)
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+        with:
+          persist-credentials: false
       - uses: coursier/cache-action@bebeeb0e6f48ebad66d3783946588ecf43114433 # v7.0.0
         with:
           extraKey: ${{ runner.os }}
