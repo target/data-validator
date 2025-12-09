@@ -4,7 +4,9 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: "weekly"
+    cooldown:
+      default-days: 7
 
 # Until Dependabot provides Scala updates, they are are handed by the Scala Steward action.
 # https://github.com/target/data-validator/blob/master/.github/workflows/scala-steward.yaml
