@@ -1,10 +1,12 @@
 # This workflow will launch at 00:00 every Sunday
 on:
   workflow_dispatch:
-  schedule:
+  # The Scala Steward Bot runs this for target/data-validator as long as
+  # it's listed in https://github.com/VirtusLab/scala-steward-repos/blob/main/repos-github.md.
+  # schedule:
     # At 09:00 on day-of-month 1 and 15 
     # https://crontab.guru/#0_9_1,15_*_*
-    - cron: '0 9 1,15 * *'
+    # - cron: '0 9 1,15 * *'
 
 name: Launch Scala Steward
 
