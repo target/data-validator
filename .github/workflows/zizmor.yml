@@ -10,28 +10,16 @@ permissions: {}
 
 jobs:
   zizmor:
-    name: zizmor latest via PyPI
     runs-on: ubuntu-latest
     permissions:
       security-events: write # needed for SARIF uploads
-      contents: read # only needed for private repos
-      actions: read # only needed for private repos
+      contents: read # only needed for private or internal repos
+      actions: read # only needed for private or internal repos
     steps:
       - name: Checkout repository
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           persist-credentials: false
 
-      - name: Install the latest version of uv
-        uses: astral-sh/setup-uv@681c641aba71e4a1c380be3ab5e12ad51f415867 # v7.1.6
-
       - name: Run zizmor 🌈
-        run: uvx zizmor --format=sarif . > results.sarif 
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
-
-      - name: Upload SARIF file
-        uses: github/codeql-action/upload-sarif@5d4e8d1aca955e8d8589aabd499c5cae939e33c7 # v4.31.9
-        with:
-          sarif_file: results.sarif
-          category: zizmor
+        uses: zizmorcore/zizmor-action@135698455da5c3b3e55f73f4419e481ab68cdd95 # v0.4.1
