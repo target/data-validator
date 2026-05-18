@@ -28,7 +28,7 @@ jobs:
           distribution: 'temurin'
           java-version: '11'
       - name: Launch Scala Steward
-        uses: scala-steward-org/scala-steward-action@df2a4cec1721d0b48be3e1d1f0acdf7543ea0fb4 # v2.84.0
+        uses: scala-steward-org/scala-steward-action@b186ab858ce163f9af7b016fac32cfb3f2c2f503 # v2.88.0
         with:
           github-token: ${{ secrets.REPO_GITHUB_TOKEN }}
           author-email: "41898282+github-actions[bot]@users.noreply.github.com"
