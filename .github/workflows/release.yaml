@@ -21,7 +21,7 @@ jobs:
       - uses: coursier/cache-action@95e5b1029b6b86e7bac033ee44a0697d8a527d2d # v8.1.1
         with:
           extraKey: ${{ runner.os }}
-      - uses: coursier/setup-action@fd1707a76b027efdfb66ca79318b4d29b72e5a02 # v3.0.0
+      - uses: coursier/setup-action@63a23764316528a1b627103472030d5a16fc6133 # v3.0.1
         with:
           jvm: adopt:1.8
       # uses sbt-github-packages, see build.sbt
